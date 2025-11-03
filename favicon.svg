@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <!-- 背景圆形 -->
+  <circle cx="16" cy="16" r="15" fill="#3B82F6"/>
+  <!-- 工具箱轮廓 -->
+  <rect x="7" y="10" width="18" height="14" rx="2" stroke="white" stroke-width="2"/>
+  <!-- 工具箱盖子 -->
+  <path d="M7 10H25V14H7V10Z" fill="white" fill-opacity="0.3"/>
+  <!-- 工具箱把手 -->
+  <circle cx="16" cy="7" r="2" fill="white"/>
+  <!-- 工具箱工具 - 扳手 -->
+  <path d="M10 18L12 16L14 18L12 20L10 18Z" fill="white"/>
+  <rect x="12" y="18" width="2" height="4" fill="white"/>
+  <!-- 工具箱工具 - 螺丝刀 -->
+  <rect x="16" y="16" width="2" height="8" rx="1" fill="white"/>
+  <circle cx="17" cy="16" r="2" fill="white"/>
+  <!-- 工具箱工具 - 锤子 -->
+  <rect x="20" y="16" width="2" height="6" fill="white"/>
+  <rect x="18" y="16" width="6" height="2" fill="white"/>
+</svg>
