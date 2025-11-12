@@ -26,6 +26,8 @@
                         'dark-300': '#C9CDD4',
                         'light-100': '#F2F3F5',
                         'light-200': '#F7F8FA',
+                        'navy-blue': '#0F3460',
+                        'navy-blue-light': '#1A5276',
                     },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -52,196 +54,222 @@
     </style>
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #0F3460;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
         }
         .form-input {
             transition: all 0.3s ease;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 14px;
+            padding: 8px 12px !important;
+            height: 38px;
+        }
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
         }
         .form-input:focus {
-            border-color: #165DFF;
-            box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
+            border-color: #4080FF;
+            box-shadow: 0 0 0 3px rgba(64, 128, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.15);
+            outline: none;
         }
         .result-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #f2f3f5;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         .result-item:last-child {
             border-bottom: none;
         }
+        input[type="radio"] {
+            accent-color: #4080FF;
+        }
+        .bg-navy-blue {
+            background-color: #0F3460;
+        }
+        .bg-navy-blue-light {
+            background-color: #1A5276;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px !important;
+            }
+            .form-input {
+                font-size: 16px; /* 防止iOS缩放 */
+            }
+        }
+        label {
+            font-size: 13px;
+        }
+        button {
+            font-size: 14px;
+            padding: 8px 16px;
+            min-height: 38px;
+        }
     </style>
 </head>
 <body class="min-h-screen">
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
-        <!-- 页面标题 -->
-        <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark mb-6 text-center">税费计算工具</h1>
-        
+    <div class="container mx-auto px-4 py-3 max-w-5xl min-h-screen">
         <!-- 返回按钮 -->
-        <div class="mb-6">
-            <button id="back-to-home" class="px-4 py-2 bg-gray-200 text-dark rounded-lg btn-hover">
+        <div class="mb-3">
+            <button id="back-to-home" class="px-4 py-2 bg-navy-blue-light text-white rounded-lg btn-hover">
                 <i class="fa fa-arrow-left mr-2"></i>返回主页
             </button>
         </div>
         
-        <!-- 税费计算工具卡片 -->
-        <div id="anti-dumping-calculator" class="bg-white rounded-xl p-6 card-shadow mb-8">
-            <!-- 主要内容区 - 左右排列 -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- 左侧：基本信息输入区 -->
-                <div>
-                    <h2 class="text-lg font-semibold text-dark mb-4">基本信息输入</h2>
+        <!-- 主要内容区 - 两列布局 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <!-- 左侧：基本信息输入区 -->
+            <div class="bg-navy-blue rounded-xl p-4 shadow-lg">
+                <h2 class="text-lg font-semibold text-white mb-4">基本信息输入</h2>
                     
                     <div class="space-y-4">
                         <!-- 发票价格计算方式 -->
-                        <div class="p-4 bg-light-200 rounded-lg">
-                            <label class="block text-dark-100 mb-2 font-medium">发票价格计算方式</label>
+                        <div class="p-3 bg-navy-blue-light rounded-lg mb-3">
+                            <label class="block text-white mb-2 font-medium">发票价格计算方式</label>
                             <div class="flex items-center space-x-4">
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="invoice-type" value="total" checked class="w-4 h-4 text-primary focus:ring-primary">
-                                    <span class="ml-2 text-dark-100">总价</span>
+                                    <input type="radio" name="invoice-type" value="total" checked class="w-4 h-4">
+                                    <span class="ml-2 text-white">总价</span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="invoice-type" value="formula" class="w-4 h-4 text-primary focus:ring-primary">
-                                    <span class="ml-2 text-dark-100">单价 × 数量</span>
+                                    <input type="radio" name="invoice-type" value="formula" class="w-4 h-4">
+                                    <span class="ml-2 text-white">单价 × 数量</span>
                                 </label>
                             </div>
                         </div>
                         
                         <!-- 单价和净重 -->
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label for="ad-unit-price" class="block text-dark-100 mb-1 text-sm">单价</label>
-                                <input type="number" id="ad-unit-price" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入单价" disabled step="0.01">
+                                <label for="ad-unit-price" class="block text-white mb-1 text-sm">单价</label>
+                                <input type="number" id="ad-unit-price" class="w-full form-input" placeholder="输入单价" disabled step="0.01">
                             </div>
                             <div>
-                                <label for="ad-net-weight" class="block text-dark-100 mb-1 text-sm">净重 (kg)</label>
-                                <input type="number" id="ad-net-weight" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入净重" step="0.01">
+                                <label for="ad-net-weight" class="block text-white mb-1 text-sm">净重 (kg)</label>
+                                <input type="number" id="ad-net-weight" class="w-full form-input" placeholder="输入净重" step="0.01">
                             </div>
                         </div>
                         
                         <!-- 发票价格 -->
-                        <div>
-                            <label for="ad-invoice-price" class="block text-dark-100 mb-1 text-sm">发票价格</label>
-                            <input type="number" id="ad-invoice-price" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入发票价格" step="0.01">
+                        <div class="mb-3">
+                            <label for="ad-invoice-price" class="block text-white mb-1 text-sm">发票价格</label>
+                            <input type="number" id="ad-invoice-price" class="w-full form-input" placeholder="输入发票价格" step="0.01">
                         </div>
                         
                         <!-- 保费计算方式 -->
-                        <div class="p-4 bg-light-200 rounded-lg">
-                            <label class="block text-dark-100 mb-2 font-medium">保费计算方式</label>
+                        <div class="p-3 bg-navy-blue-light rounded-lg mb-3">
+                            <label class="block text-white mb-2 font-medium">保费计算方式</label>
                             <div class="flex items-center space-x-4">
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="premium-type" value="rate" checked class="w-4 h-4 text-primary focus:ring-primary">
-                                    <span class="ml-2 text-dark-100">按率 (%)</span>
+                                    <input type="radio" name="premium-type" value="rate" checked class="w-4 h-4">
+                                    <span class="ml-2 text-white">按率 (%)</span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="premium-type" value="amount" class="w-4 h-4 text-primary focus:ring-primary">
-                                    <span class="ml-2 text-dark-100">按金额</span>
+                                    <input type="radio" name="premium-type" value="amount" class="w-4 h-4">
+                                    <span class="ml-2 text-white">按金额</span>
                                 </label>
                             </div>
                         </div>
                         
                         <!-- 保费值 -->
-                        <div>
-                            <label for="premium-value" class="block text-dark-100 mb-1 text-sm">保费</label>
-                            <input type="number" id="premium-value" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入保费" step="0.01">
+                        <div class="mb-3">
+                            <label for="premium-value" class="block text-white mb-1 text-sm">保费</label>
+                            <input type="number" id="premium-value" class="w-full form-input" placeholder="输入保费" step="0.01">
                         </div>
                         
                         <!-- 海关汇率 -->
-                        <div>
-                            <label for="exchange-rate" class="block text-dark-100 mb-1 text-sm">海关汇率</label>
-                            <input type="number" id="exchange-rate" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入海关汇率" step="0.01">
+                        <div class="mb-3">
+                            <label for="exchange-rate" class="block text-white mb-1 text-sm">海关汇率</label>
+                            <input type="number" id="exchange-rate" class="w-full form-input" placeholder="输入海关汇率" step="0.01">
                         </div>
                         
                         <!-- 关税率类型 -->
-                        <div class="p-4 bg-light-200 rounded-lg">
-                            <label class="block text-dark-100 mb-2 font-medium">关税率类型</label>
+                        <div class="p-3 bg-navy-blue-light rounded-lg mb-3">
+                            <label class="block text-white mb-2 font-medium">关税率类型</label>
                             <div class="flex items-center space-x-4">
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="tariff-type" value="ad-valorem" checked class="w-4 h-4 text-primary focus:ring-primary">
-                                    <span class="ml-2 text-dark-100">从价 (%)</span>
+                                    <input type="radio" name="tariff-type" value="ad-valorem" checked class="w-4 h-4">
+                                    <span class="ml-2 text-white">从价 (%)</span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="tariff-type" value="specific" class="w-4 h-4 text-primary focus:ring-primary">
-                                    <span class="ml-2 text-dark-100">从量</span>
+                                    <input type="radio" name="tariff-type" value="specific" class="w-4 h-4">
+                                    <span class="ml-2 text-white">从量</span>
                                 </label>
                             </div>
                         </div>
                         
                         <!-- 关税率 -->
-                        <div>
-                            <label for="tariff-rate" class="block text-dark-100 mb-1 text-sm">关税率</label>
-                            <input type="number" id="tariff-rate" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入关税率" step="0.01">
+                        <div class="mb-3">
+                            <label for="tariff-rate" class="block text-white mb-1 text-sm">关税率</label>
+                            <input type="number" id="tariff-rate" class="w-full form-input" placeholder="输入关税率" step="0.01">
                         </div>
                         
                         <!-- 增值税率 -->
-                        <div>
-                            <label for="vat-rate" class="block text-dark-100 mb-1 text-sm">增值税率 (%)</label>
-                            <input type="number" id="vat-rate" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入增值税率" step="0.01">
+                        <div class="mb-3">
+                            <label for="vat-rate" class="block text-white mb-1 text-sm">增值税率 (%)</label>
+                            <input type="number" id="vat-rate" class="w-full form-input" placeholder="输入增值税率" step="0.01">
                         </div>
                         
                         <!-- 反倾销保证金率 -->
-                        <div>
-                            <label for="dumping-rate" class="block text-dark-100 mb-1 text-sm">反倾销保证金率 (%)</label>
-                            <input type="number" id="dumping-rate" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入反倾销保证金率" step="0.01">
+                        <div class="mb-3">
+                            <label for="dumping-rate" class="block text-white mb-1 text-sm">反倾销保证金率 (%)</label>
+                            <input type="number" id="dumping-rate" class="w-full form-input" placeholder="输入反倾销保证金率" step="0.01">
                         </div>
                         
                         <!-- 备注 -->
-                        <div>
-                            <label for="ad-remark" class="block text-dark-100 mb-1 text-sm">备注</label>
-                            <textarea id="ad-remark" rows="3" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入备注信息"></textarea>
+                        <div class="mb-3">
+                            <label for="ad-remark" class="block text-white mb-1 text-sm">备注</label>
+                            <textarea id="ad-remark" rows="2" class="w-full form-input" placeholder="输入备注信息" style="min-height: 60px;"></textarea>
                         </div>
                     </div>
                 </div>
                 
                 <!-- 右侧：计算结果显示区 -->
-                <div>
-                    <div class="bg-light-200 rounded-xl p-6 mb-6">
-                        <h2 class="text-lg font-semibold text-dark mb-4">计算结果</h2>
-                        <div class="space-y-4">
+                <div class="flex flex-col h-full">
+                    <!-- 计算结果 -->
+                    <div class="bg-navy-blue rounded-xl p-4 shadow-lg mb-4 flex-grow">
+                        <h2 class="text-lg font-semibold text-white mb-4">成本计算结果</h2>
+                        <div class="space-y-3">
                             <div class="result-item">
-                                <span class="text-dark-100">完税价格</span>
-                                <span id="paid-price" class="font-medium text-dark">¥ 0.00</span>
+                                <span class="text-white">完税价格</span>
+                                <span id="paid-price" class="font-medium text-white">¥ 0.00</span>
                             </div>
                             <div class="result-item">
-                                <span class="text-dark-100">关税</span>
-                                <span id="tariff-amount" class="font-medium text-dark">¥ 0.00</span>
+                                <span class="text-white">关税</span>
+                                <span id="tariff-amount" class="font-medium text-white">¥ 0.00</span>
                             </div>
                             <div class="result-item">
-                                <span class="text-dark-100">增值税</span>
-                                <span id="vat-amount" class="font-medium text-dark">¥ 0.00</span>
+                                <span class="text-white">增值税</span>
+                                <span id="vat-amount" class="font-medium text-white">¥ 0.00</span>
                             </div>
                             <div class="result-item">
-                                <span class="text-dark-100">反倾销保证金</span>
-                                <span id="dumping-amount" class="font-medium text-dark">¥ 0.00</span>
+                                <span class="text-white">反倾销保证金</span>
+                                <span id="dumping-amount" class="font-medium text-white">¥ 0.00</span>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- 计算公式说明 -->
-                    <div class="bg-light-100 rounded-lg p-4">
-                        <h3 class="text-sm font-semibold text-dark-100 mb-2">计算公式说明</h3>
-                        <ul class="text-sm text-dark-200 space-y-1">
-                            <li>• 发票价格：选择总价则直接使用输入值，选择单价×数量则为单价×净重</li>
-                            <li>• 完税价格：(发票价格 × 海关汇率) × (1 + 保费率) 或 (发票价格 × 海关汇率) + 保费金额</li>
-                            <li>• 关税：完税价格 × 关税率(从价) 或 净重 × 关税率(从量)</li>
-                            <li>• 增值税：(完税价格 + 关税) × 增值税率</li>
-                            <li>• 反倾销保证金：完税价格 × 保证金比率 × (1 + 增值税率)</li>
-                        </ul>
+                    <!-- 操作按钮 -->
+                    <div class="bg-navy-blue rounded-xl p-4 shadow-lg">
+                        <div class="flex justify-center space-x-3">
+                            <button id="ad-calculate-btn" class="px-6 py-2 bg-primary text-white rounded-lg btn-hover">
+                                <i class="fa fa-calculator mr-2"></i>计算
+                            </button>
+                            <button id="ad-reset-btn" class="px-6 py-2 bg-navy-blue-light text-white border border-white/30 rounded-lg btn-hover">
+                                <i class="fa fa-refresh mr-2"></i>重置
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- 操作按钮 -->
-            <div class="flex justify-center space-x-4 mt-6">
-                <button id="ad-calculate-btn" class="px-6 py-2 bg-primary text-white rounded-lg btn-hover">
-                    <i class="fa fa-calculator mr-2"></i> 计算
-                </button>
-                <button id="ad-reset-btn" class="px-6 py-2 bg-white text-dark border border-dark-300 rounded-lg btn-hover">
-                    <i class="fa fa-refresh mr-2"></i> 重置
-                </button>
             </div>
         </div>
     </div>
