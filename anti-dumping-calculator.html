@@ -354,13 +354,27 @@
         
         // 设置字段交互逻辑
         function setupFieldInteractions() {
+            const unitPriceInput = document.getElementById('ad-unit-price');
+            const netWeightInput = document.getElementById('ad-net-weight');
+            const invoicePriceInput = document.getElementById('ad-invoice-price');
+            
+            // 自动计算发票价格的函数
+            function autoCalculateInvoicePrice() {
+                const invoiceType = document.querySelector('input[name="invoice-type"]:checked').value;
+                if (invoiceType === 'formula') {
+                    const unitPrice = parseFloat(unitPriceInput.value) || 0;
+                    const netWeight = parseFloat(netWeightInput.value) || 0;
+                    if (unitPrice > 0 && netWeight > 0) {
+                        const calculatedPrice = unitPrice * netWeight;
+                        invoicePriceInput.value = calculatedPrice.toFixed(6);
+                    }
+                }
+            }
+            
             // 发票价格计算方式切换
             const invoiceTypeRadios = document.querySelectorAll('input[name="invoice-type"]');
             invoiceTypeRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
-                    const unitPriceInput = document.getElementById('ad-unit-price');
-                    const invoicePriceInput = document.getElementById('ad-invoice-price');
-                    
                     if (this.value === 'total') {
                         // 总价模式
                         unitPriceInput.disabled = true;
@@ -369,9 +383,15 @@
                         // 单价×数量模式
                         unitPriceInput.disabled = false;
                         invoicePriceInput.disabled = true;
+                        // 切换到公式模式时自动计算
+                        autoCalculateInvoicePrice();
                     }
                 });
             });
+            
+            // 为单价和净重输入框添加事件监听器，实现实时计算
+            unitPriceInput.addEventListener('input', autoCalculateInvoicePrice);
+            netWeightInput.addEventListener('input', autoCalculateInvoicePrice);
             
             // 保费计算方式切换
             const premiumTypeRadios = document.querySelectorAll('input[name="premium-type"]');
@@ -401,20 +421,43 @@
                 });
             });
             
-            // 数字输入验证
+            // 数字输入验证 - 优化版本，更好地支持小数输入
             const numberInputs = document.querySelectorAll('input[type="number"]');
             numberInputs.forEach(input => {
-                input.addEventListener('input', function() {
-                    // 只允许输入数字和小数点
-                    this.value = this.value.replace(/[^\d.]/g, '');
-                    // 确保只有一个小数点
-                    const parts = this.value.split('.');
-                    if (parts.length > 2) {
-                        this.value = parts[0] + '.' + parts.slice(1).join('');
+                // 设置inputmode为decimal以在移动设备上显示数字键盘
+                input.setAttribute('inputmode', 'decimal');
+                
+                // 监听keypress事件，允许数字、小数点和删除键
+                input.addEventListener('keypress', function(e) {
+                    // 获取按键的ASCII码
+                    const charCode = e.which || e.keyCode;
+                    // 允许数字键 (0-9)
+                    if (charCode >= 48 && charCode <= 57) {
+                        return true;
                     }
-                    // 限制小数位数为6位
-                    if (parts.length === 2 && parts[1].length > 6) {
-                        this.value = parts[0] + '.' + parts[1].substring(0, 6);
+                    // 允许小数点
+                    if (charCode === 46 && !this.value.includes('.')) {
+                        return true;
+                    }
+                    // 允许退格键等控制键
+                    if (charCode === 0 || charCode === 8) {
+                        return true;
+                    }
+                    // 阻止其他字符输入
+                    e.preventDefault();
+                });
+                
+                // 监听input事件，进行后期验证和格式化
+                input.addEventListener('input', function() {
+                    // 确保值不为空且是有效数字
+                    if (this.value && isNaN(parseFloat(this.value))) {
+                        // 如果不是有效数字，尝试清理
+                        let cleanValue = this.value.replace(/[^\d.]/g, '');
+                        const parts = cleanValue.split('.');
+                        if (parts.length > 2) {
+                            cleanValue = parts[0] + '.' + parts.slice(1).join('');
+                        }
+                        this.value = cleanValue;
                     }
                 });
             });
