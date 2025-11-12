@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>税费计算工具</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#4080FF',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F',
+                        info: '#86909C',
+                        dark: '#1D2129',
+                        'dark-100': '#4E5969',
+                        'dark-200': '#86909C',
+                        'dark-300': '#C9CDD4',
+                        'light-100': '#F2F3F5',
+                        'light-200': '#F7F8FA',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+            .input-focus {
+                @apply focus:ring-2 focus:ring-primary/50 focus:border-primary;
+            }
+            .btn-hover {
+                @apply hover:shadow-lg hover:scale-[1.01] transition-all duration-200;
+            }
+        }
+    </style>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        .form-input {
+            transition: all 0.3s ease;
+        }
+        .form-input:focus {
+            border-color: #165DFF;
+            box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f2f3f5;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- 页面标题 -->
+        <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark mb-6 text-center">税费计算工具</h1>
+        
+        <!-- 返回按钮 -->
+        <div class="mb-6">
+            <button id="back-to-home" class="px-4 py-2 bg-gray-200 text-dark rounded-lg btn-hover">
+                <i class="fa fa-arrow-left mr-2"></i>返回主页
+            </button>
+        </div>
+        
+        <!-- 税费计算工具卡片 -->
+        <div id="anti-dumping-calculator" class="bg-white rounded-xl p-6 card-shadow mb-8">
+            <!-- 基本信息输入区 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="space-y-4">
+                    <h2 class="text-lg font-semibold text-dark">基本信息输入</h2>
+                    
+                    <!-- 发票价格计算方式 -->
+                    <div class="p-4 bg-light-200 rounded-lg">
+                        <label class="block text-dark-100 mb-2 font-medium">发票价格计算方式</label>
+                        <div class="flex items-center space-x-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="invoice-type" value="total" checked class="w-4 h-4 text-primary focus:ring-primary">
+                                <span class="ml-2 text-dark-100">总价</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="invoice-type" value="formula" class="w-4 h-4 text-primary focus:ring-primary">
+                                <span class="ml-2 text-dark-100">单价 × 数量</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- 单价和净重（当选择单价×数量时显示） -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="ad-unit-price" class="block text-dark-100 mb-1 text-sm">单价</label>
+                            <input type="number" id="ad-unit-price" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入单价" disabled>
+                        </div>
+                        <div>
+                            <label for="ad-net-weight" class="block text-dark-100 mb-1 text-sm">净重 (kg)</label>
+                            <input type="number" id="ad-net-weight" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入净重">
+                        </div>
+                    </div>
+                    
+                    <!-- 发票价格 -->
+                    <div>
+                        <label for="ad-invoice-price" class="block text-dark-100 mb-1 text-sm">发票价格</label>
+                        <input type="number" id="ad-invoice-price" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入发票价格">
+                    </div>
+                    
+                    <!-- 保费计算方式 -->
+                    <div class="p-4 bg-light-200 rounded-lg">
+                        <label class="block text-dark-100 mb-2 font-medium">保费计算方式</label>
+                        <div class="flex items-center space-x-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="premium-type" value="rate" checked class="w-4 h-4 text-primary focus:ring-primary">
+                                <span class="ml-2 text-dark-100">按率 (%)</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="premium-type" value="amount" class="w-4 h-4 text-primary focus:ring-primary">
+                                <span class="ml-2 text-dark-100">按金额</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- 保费值 -->
+                    <div>
+                        <label for="premium-value" class="block text-dark-100 mb-1 text-sm">保费</label>
+                        <input type="number" id="premium-value" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入保费">
+                    </div>
+                    
+                    <!-- 海关汇率 -->
+                    <div>
+                        <label for="exchange-rate" class="block text-dark-100 mb-1 text-sm">海关汇率</label>
+                        <input type="number" id="exchange-rate" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入海关汇率">
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <!-- 关税率类型 -->
+                    <div class="p-4 bg-light-200 rounded-lg">
+                        <label class="block text-dark-100 mb-2 font-medium">关税率类型</label>
+                        <div class="flex items-center space-x-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="tariff-type" value="ad-valorem" checked class="w-4 h-4 text-primary focus:ring-primary">
+                                <span class="ml-2 text-dark-100">从价 (%)</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="tariff-type" value="specific" class="w-4 h-4 text-primary focus:ring-primary">
+                                <span class="ml-2 text-dark-100">从量</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- 关税率 -->
+                    <div>
+                        <label for="tariff-rate" class="block text-dark-100 mb-1 text-sm">关税率</label>
+                        <input type="number" id="tariff-rate" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入关税率">
+                    </div>
+                    
+                    <!-- 增值税率 -->
+                    <div>
+                        <label for="vat-rate" class="block text-dark-100 mb-1 text-sm">增值税率 (%)</label>
+                        <input type="number" id="vat-rate" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入增值税率" value="13">
+                    </div>
+                    
+                    <!-- 反倾销保证金率 -->
+                    <div>
+                        <label for="dumping-rate" class="block text-dark-100 mb-1 text-sm">反倾销保证金率 (%)</label>
+                        <input type="number" id="dumping-rate" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入反倾销保证金率">
+                    </div>
+                    
+                    <!-- 备注 -->
+                    <div>
+                        <label for="ad-remark" class="block text-dark-100 mb-1 text-sm">备注</label>
+                        <textarea id="ad-remark" rows="3" class="w-full px-3 py-2 border border-dark-300 rounded-lg form-input" placeholder="输入备注信息"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 计算结果显示区 -->
+            <div class="bg-light-200 rounded-xl p-6 mb-6">
+                <h2 class="text-lg font-semibold text-dark mb-4">计算结果</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <div class="result-item">
+                            <span class="text-dark-100">完税价格</span>
+                            <span id="paid-price" class="font-medium text-dark">¥ 0.00</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="text-dark-100">关税</span>
+                            <span id="tariff-amount" class="font-medium text-dark">¥ 0.00</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="text-dark-100">增值税</span>
+                            <span id="vat-amount" class="font-medium text-dark">¥ 0.00</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="text-dark-100">反倾销保证金</span>
+                            <span id="dumping-amount" class="font-medium text-dark">¥ 0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 计算公式说明 -->
+            <div class="bg-light-100 rounded-lg p-4 mb-6">
+                <h3 class="text-sm font-semibold text-dark-100 mb-2">计算公式说明</h3>
+                <ul class="text-sm text-dark-200 space-y-1">
+                    <li>• 发票价格：选择总价则直接使用输入值，选择单价×数量则为单价×净重</li>
+                    <li>• 完税价格：(发票价格 × 海关汇率) × (1 + 保费率) 或 (发票价格 × 海关汇率) + 保费金额</li>
+                    <li>• 关税：完税价格 × 关税率(从价) 或 净重 × 关税率(从量)</li>
+                    <li>• 增值税：(完税价格 + 关税) × 增值税率</li>
+                    <li>• 反倾销保证金：完税价格 × 保证金比率 × (1 + 增值税率)</li>
+                </ul>
+            </div>
+            
+            <!-- 操作按钮 -->
+            <div class="flex justify-center space-x-4">
+                <button id="ad-calculate-btn" class="px-6 py-2 bg-primary text-white rounded-lg btn-hover">
+                    <i class="fa fa-calculator mr-2"></i> 计算
+                </button>
+                <button id="ad-reset-btn" class="px-6 py-2 bg-white text-dark border border-dark-300 rounded-lg btn-hover">
+                    <i class="fa fa-refresh mr-2"></i> 重置
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 税费计算函数
+        function calculateAntiDumpingDuty() {
+            // 获取输入值
+            const invoiceType = document.querySelector('input[name="invoice-type"]:checked').value;
+            const unitPrice = parseFloat(document.getElementById('ad-unit-price').value) || 0;
+            const netWeight = parseFloat(document.getElementById('ad-net-weight').value) || 0;
+            let invoicePrice = parseFloat(document.getElementById('ad-invoice-price').value) || 0;
+            const premiumType = document.querySelector('input[name="premium-type"]:checked').value;
+            const premiumValue = parseFloat(document.getElementById('premium-value').value) || 0;
+            const exchangeRate = parseFloat(document.getElementById('exchange-rate').value) || 0;
+            const tariffType = document.querySelector('input[name="tariff-type"]:checked').value;
+            const tariffRate = parseFloat(document.getElementById('tariff-rate').value) || 0;
+            const vatRate = parseFloat(document.getElementById('vat-rate').value) || 13;
+            const dumpingRate = parseFloat(document.getElementById('dumping-rate').value) || 0;
+            
+            // 验证必要的输入
+            if (invoiceType === 'total' && invoicePrice <= 0) {
+                alert('请输入有效的发票价格');
+                return;
+            }
+            if (invoiceType === 'formula' && (unitPrice <= 0 || netWeight <= 0)) {
+                alert('请输入有效的单价和净重');
+                return;
+            }
+            if (exchangeRate <= 0) {
+                alert('请输入有效的海关汇率');
+                return;
+            }
+            
+            // 计算发票价格
+            if (invoiceType === 'formula') {
+                invoicePrice = unitPrice * netWeight;
+            }
+            
+            // 计算完税价格
+            let paidPrice = 0;
+            if (premiumType === 'rate') {
+                // 保费按率：(发票价格 × 海关汇率) × (1 + 保费率)
+                paidPrice = invoicePrice * exchangeRate * (1 + premiumValue / 100);
+            } else {
+                // 保费按总价：(发票价格 × 海关汇率) + 保费金额
+                paidPrice = invoicePrice * exchangeRate + premiumValue;
+            }
+            // 四舍五入到两位小数
+            paidPrice = Math.round(paidPrice * 100) / 100;
+            
+            // 计算关税
+            let tariffAmount = 0;
+            if (tariffType === 'ad-valorem') {
+                // 从价：完税价格 × 关税率
+                tariffAmount = paidPrice * (tariffRate / 100);
+            } else {
+                // 从量：净重 × 关税率
+                tariffAmount = netWeight * tariffRate;
+            }
+            // 四舍五入到两位小数
+            tariffAmount = Math.round(tariffAmount * 100) / 100;
+            
+            // 计算增值税
+            // (完税价格 + 关税) × 增值税率
+            const vatAmount = (paidPrice + tariffAmount) * (vatRate / 100);
+            // 四舍五入到两位小数
+            const roundedVatAmount = Math.round(vatAmount * 100) / 100;
+            
+            // 计算反倾销保证金
+            // 完税价格 × 保证金比率 × (1 + 增值税率)
+            const dumpingAmount = paidPrice * (dumpingRate / 100) * (1 + vatRate / 100);
+            // 四舍五入到两位小数
+            const roundedDumpingAmount = Math.round(dumpingAmount * 100) / 100;
+            
+            // 显示结果
+            document.getElementById('paid-price').textContent = `¥ ${paidPrice.toFixed(2)}`;
+            document.getElementById('tariff-amount').textContent = `¥ ${tariffAmount.toFixed(2)}`;
+            document.getElementById('vat-amount').textContent = `¥ ${roundedVatAmount.toFixed(2)}`;
+            document.getElementById('dumping-amount').textContent = `¥ ${roundedDumpingAmount.toFixed(2)}`;
+        }
+        
+        // 重置税费计算器
+        function resetAntiDumpingCalculator() {
+            // 重置单选按钮
+            document.querySelector('input[name="invoice-type"][value="total"]').checked = true;
+            document.querySelector('input[name="premium-type"][value="rate"]').checked = true;
+            document.querySelector('input[name="tariff-type"][value="ad-valorem"]').checked = true;
+            
+            // 重置输入字段，所有录入项默认为空
+            document.getElementById('ad-unit-price').value = '';
+            document.getElementById('ad-unit-price').disabled = true; // 总价模式下禁用单价输入框
+            document.getElementById('ad-net-weight').value = '';
+            // 净重输入框始终启用
+            document.getElementById('ad-invoice-price').value = '';
+            document.getElementById('ad-invoice-price').disabled = false; // 总价模式下启用发票价格输入框
+            document.getElementById('premium-value').value = '';
+            document.getElementById('exchange-rate').value = '';
+            document.getElementById('tariff-rate').value = '';
+            document.getElementById('vat-rate').value = '13';
+            document.getElementById('dumping-rate').value = '';
+            document.getElementById('ad-remark').value = '';
+            
+            // 重置结果显示
+            document.getElementById('paid-price').textContent = '¥ 0.00';
+            document.getElementById('tariff-amount').textContent = '¥ 0.00';
+            document.getElementById('vat-amount').textContent = '¥ 0.00';
+            document.getElementById('dumping-amount').textContent = '¥ 0.00';
+        }
+        
+        // 设置字段交互逻辑
+        function setupFieldInteractions() {
+            // 发票价格计算方式切换
+            const invoiceTypeRadios = document.querySelectorAll('input[name="invoice-type"]');
+            invoiceTypeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const unitPriceInput = document.getElementById('ad-unit-price');
+                    const invoicePriceInput = document.getElementById('ad-invoice-price');
+                    
+                    if (this.value === 'total') {
+                        // 总价模式
+                        unitPriceInput.disabled = true;
+                        invoicePriceInput.disabled = false;
+                    } else {
+                        // 单价×数量模式
+                        unitPriceInput.disabled = false;
+                        invoicePriceInput.disabled = true;
+                    }
+                });
+            });
+            
+            // 保费计算方式切换
+            const premiumTypeRadios = document.querySelectorAll('input[name="premium-type"]');
+            premiumTypeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const premiumValueInput = document.getElementById('premium-value');
+                    
+                    if (this.value === 'rate') {
+                        premiumValueInput.placeholder = '输入保费率(%)';
+                    } else {
+                        premiumValueInput.placeholder = '输入保费金额';
+                    }
+                });
+            });
+            
+            // 关税率类型切换
+            const tariffTypeRadios = document.querySelectorAll('input[name="tariff-type"]');
+            tariffTypeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const tariffRateInput = document.getElementById('tariff-rate');
+                    
+                    if (this.value === 'ad-valorem') {
+                        tariffRateInput.placeholder = '输入关税率(%)';
+                    } else {
+                        tariffRateInput.placeholder = '输入从量关税';
+                    }
+                });
+            });
+            
+            // 数字输入验证
+            const numberInputs = document.querySelectorAll('input[type="number"]');
+            numberInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    // 只允许输入数字和小数点
+                    this.value = this.value.replace(/[^\d.]/g, '');
+                    // 确保只有一个小数点
+                    const parts = this.value.split('.');
+                    if (parts.length > 2) {
+                        this.value = parts[0] + '.' + parts.slice(1).join('');
+                    }
+                    // 限制小数位数为6位
+                    if (parts.length === 2 && parts[1].length > 6) {
+                        this.value = parts[0] + '.' + parts[1].substring(0, 6);
+                    }
+                });
+            });
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置字段交互
+            setupFieldInteractions();
+            
+            // 绑定计算按钮事件
+            document.getElementById('ad-calculate-btn').addEventListener('click', calculateAntiDumpingDuty);
+            
+            // 绑定重置按钮事件
+            document.getElementById('ad-reset-btn').addEventListener('click', resetAntiDumpingCalculator);
+            
+            // 绑定返回主页按钮事件
+            document.getElementById('back-to-home').addEventListener('click', function() {
+                window.location.href = 'index.html';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -187,6 +187,22 @@
                         </button>
                     </div>
                 </div>
+                
+                <!-- 海关税费计算器卡片 -->
+                <div class="card glass-effect rounded-xl overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="p-3 rounded-lg bg-accent/20 text-purple-400">
+                                <i class="fa fa-percent text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold">海关税费计算器</h3>
+                        </div>
+                        <p class="text-gray-300 mb-4">计算进口货物的关税、增值税及反倾销保证金等税费。</p>
+                        <button id="customs-duty-btn" class="w-full py-3 rounded-lg bg-accent text-white font-medium hover:bg-accent/90 transition-all">
+                            立即使用
+                        </button>
+                    </div>
+                </div>
             </div>
         </section>
         
@@ -904,6 +920,13 @@
                 navLinks.length = 0;
                 JSON.parse(savedNavLinks).forEach(link => navLinks.push(link));
             }
+            
+            // 海关税费计算器跳转
+            const customsDutyBtn = document.getElementById('customs-duty-btn');
+            customsDutyBtn.addEventListener('click', () => {
+                // 跳转到税费计算器页面
+                window.location.href = 'anti-dumping-calculator.html';
+            });
             
             // 清除默认值，保持为空
             
