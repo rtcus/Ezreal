@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件管理系统</title>
+    <script src="https://unpkg.com/leancloud-storage@4.13.2/dist/av-min.js"></script>
+    <style>
+        /* 所有CSS样式保持不变 */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --gray-color: #6c757d;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px 0;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .back-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-size: 16px;
+        }
+        
+        .back-btn:hover {
+            background-color: white;
+            color: var(--primary-color);
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .auth-section {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 6px;
+        }
+        
+        .auth-section input {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            margin-right: 10px;
+            width: 200px;
+        }
+        
+        .auth-section button {
+            background-color: white;
+            color: var(--primary-color);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .auth-section button:hover {
+            background-color: var(--light-color);
+        }
+        
+        .main-content {
+            display: none;
+        }
+        
+        .toolbar {
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .search-box {
+            display: flex;
+            align-items: center;
+        }
+        
+        .search-box input {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            width: 300px;
+        }
+        
+        .search-box button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        
+        .upload-btn {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .batch-delete-btn {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            display: none;
+        }
+        
+        .select-all {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background-color: var(--light-color);
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .file-list {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .file-header {
+            display: grid;
+            grid-template-columns: 50px 3fr 1fr 1fr 1fr;
+            padding: 15px 20px;
+            background-color: var(--light-color);
+            font-weight: bold;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .file-item {
+            display: grid;
+            grid-template-columns: 50px 3fr 1fr 1fr 1fr;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        
+        .file-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .file-item.selected {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        
+        .file-checkbox {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .file-name {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .file-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-color);
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .btn-preview {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-download {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .btn-delete {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        .upload-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            width: 500px;
+            max-width: 90%;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray-color);
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+        
+        .close-btn:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 6px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .upload-area.dragover {
+            border-color: var(--primary-color);
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+        
+        .upload-area p {
+            margin-bottom: 15px;
+            color: var(--gray-color);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-label {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-block;
+        }
+        
+        .selected-files {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .selected-file {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background-color: var(--light-color);
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn-cancel {
+            background-color: var(--gray-color);
+            color: white;
+        }
+        
+        .btn-upload {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .preview-content {
+            background-color: white;
+            border-radius: 8px;
+            width: 90%;
+            height: 90%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .preview-body {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .preview-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        .preview-text {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ddd;
+            padding: 15px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow: auto;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-color);
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            color: white;
+            z-index: 1002;
+            display: none;
+        }
+        
+        .notification.success {
+            background-color: var(--success-color);
+        }
+        
+        .notification.error {
+            background-color: var(--danger-color);
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        .selected-count {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        
+        .preview-office {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .preview-notice {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray-color);
+        }
+        
+        .preview-notice i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .toolbar {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .toolbar-left, .toolbar-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .search-box input {
+                width: 200px;
+            }
+            
+            .file-header, .file-item {
+                grid-template-columns: 40px 2fr 1fr 1fr;
+            }
+            
+            .file-header div:nth-child(4),
+            .file-item div:nth-child(4) {
+                display: none;
+            }
+            
+            .file-actions {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="header-left">
+                    <button id="backToHome" class="back-btn">返回主页</button>
+                    <div class="logo">文件管理系统</div>
+                </div>
+                <div class="auth-section">
+                    <input type="text" id="accessCode" placeholder="请输入访问码">
+                    <button id="loginBtn">进入系统</button>
+                </div>
+            </div>
+        </header>
+        
+        <div class="main-content" id="mainContent">
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <div class="select-all">
+                        <input type="checkbox" id="selectAll">
+                        <label for="selectAll">全选</label>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="搜索文件...">
+                        <button id="searchBtn">搜索</button>
+                    </div>
+                </div>
+                <div class="toolbar-right">
+                    <button class="batch-delete-btn" id="batchDeleteBtn">
+                        <i>🗑️</i> 批量删除 <span class="selected-count" id="selectedCount">0</span>
+                    </button>
+                    <button class="upload-btn" id="uploadBtn">
+                        <i>📁</i> 上传文件
+                    </button>
+                </div>
+            </div>
+            
+            <div class="file-list">
+                <div class="file-header">
+                    <div></div>
+                    <div>文件名</div>
+                    <div>大小</div>
+                    <div>类型</div>
+                    <div>操作</div>
+                </div>
+                <div id="fileListContainer">
+                    <!-- 文件列表将在这里动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 上传文件模态框 -->
+    <div class="upload-modal" id="uploadModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">上传文件</div>
+                <button class="close-btn" id="closeUploadModal">&times;</button>
+            </div>
+            <div class="upload-area" id="uploadArea">
+                <p>拖拽文件到此处或点击选择文件</p>
+                <input type="file" id="fileInput" class="file-input" multiple>
+                <label for="fileInput" class="file-label">选择文件</label>
+            </div>
+            <div class="selected-files" id="selectedFiles">
+                <!-- 选择的文件将在这里显示 -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" id="cancelUpload">取消</button>
+                <button class="btn btn-upload" id="confirmUpload">上传</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 文件预览模态框 -->
+    <div class="preview-modal" id="previewModal">
+        <div class="preview-content">
+            <div class="preview-header">
+                <div class="modal-title" id="previewTitle">文件预览</div>
+                <button class="close-btn" id="closePreviewModal">&times;</button>
+            </div>
+            <div class="preview-body" id="previewBody">
+                <!-- 预览内容将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 通知消息 -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // 检查LeanCloud SDK是否加载成功
+        if (typeof AV === 'undefined') {
+            console.error('LeanCloud SDK 加载失败，使用UNPKG备用方案');
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/leancloud-storage@4.13.2/dist/av-min.js';
+            script.onload = initApp;
+            document.head.appendChild(script);
+        } else {
+            initApp();
+        }
+
+        function initApp() {
+            // LeanCloud 初始化
+            const APP_ID = 'YCLFSSQlNHQTWPCJdgvxdLHu-gzGzoHsz';
+            const APP_KEY = 'gkGobpPGAlbagBRXWRtzFnxy';
+            const MASTER_KEY = 'VvS6IYb85OICs2ah6YeDkdtV';
+            const SERVER_URL = 'https://yclfssql.lc-cn-n1-shared.com';
+            
+            AV.init({
+                appId: APP_ID,
+                appKey: APP_KEY,
+                serverURLs: SERVER_URL
+            });
+            
+            // DOM 元素
+            const accessCodeInput = document.getElementById('accessCode');
+            const loginBtn = document.getElementById('loginBtn');
+            const mainContent = document.getElementById('mainContent');
+            const backToHomeBtn = document.getElementById('backToHome');
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const fileListContainer = document.getElementById('fileListContainer');
+            const uploadModal = document.getElementById('uploadModal');
+            const closeUploadModal = document.getElementById('closeUploadModal');
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const selectedFiles = document.getElementById('selectedFiles');
+            const cancelUpload = document.getElementById('cancelUpload');
+            const confirmUpload = document.getElementById('confirmUpload');
+            const previewModal = document.getElementById('previewModal');
+            const closePreviewModal = document.getElementById('closePreviewModal');
+            const previewBody = document.getElementById('previewBody');
+            const previewTitle = document.getElementById('previewTitle');
+            const notification = document.getElementById('notification');
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+            const selectedCount = document.getElementById('selectedCount');
+            
+            // 全局变量
+            let selectedFilesList = [];
+            let currentFiles = [];
+            let selectedFileIds = new Set();
+            
+            // 访问码验证
+            const ACCESS_CODE = 'Hh20140114';
+            
+            // 显示通知
+            function showNotification(message, type = 'success') {
+                notification.textContent = message;
+                notification.className = `notification ${type}`;
+                notification.style.display = 'block';
+                
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
+            
+            // 更新选中文件计数
+            function updateSelectedCount() {
+                const count = selectedFileIds.size;
+                selectedCount.textContent = count;
+                
+                if (count > 0) {
+                    batchDeleteBtn.style.display = 'flex';
+                } else {
+                    batchDeleteBtn.style.display = 'none';
+                }
+                
+                selectAllCheckbox.checked = count > 0 && count === currentFiles.length;
+                selectAllCheckbox.indeterminate = count > 0 && count < currentFiles.length;
+            }
+            
+            // 切换文件选中状态
+            function toggleFileSelection(fileId, checked) {
+                if (checked) {
+                    selectedFileIds.add(fileId);
+                } else {
+                    selectedFileIds.delete(fileId);
+                }
+                updateSelectedCount();
+            }
+            
+            // 全选/取消全选
+            function toggleSelectAll(checked) {
+                selectedFileIds.clear();
+                if (checked) {
+                    currentFiles.forEach(file => selectedFileIds.add(file.id));
+                }
+                
+                document.querySelectorAll('.file-checkbox input').forEach(checkbox => {
+                    checkbox.checked = checked;
+                });
+                
+                document.querySelectorAll('.file-item').forEach(item => {
+                    if (checked) {
+                        item.classList.add('selected');
+                    } else {
+                        item.classList.remove('selected');
+                    }
+                });
+                
+                updateSelectedCount();
+            }
+            
+            // 登录功能
+            loginBtn.addEventListener('click', () => {
+                if (accessCodeInput.value === ACCESS_CODE) {
+                    mainContent.style.display = 'block';
+                    loadFiles();
+                    showNotification('登录成功！');
+                } else {
+                    showNotification('访问码错误，请重新输入！', 'error');
+                }
+            });
+            
+            // 返回主页功能
+            backToHomeBtn.addEventListener('click', () => {
+                window.location.href = 'index.html';
+            });
+            
+            // 加载文件列表
+            async function loadFiles() {
+                try {
+                    fileListContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="loading"></div>
+                            <p>加载中...</p>
+                        </div>
+                    `;
+                    
+                    const query = new AV.Query('fileType');
+                    query.descending('createdAt');
+                    const results = await query.find();
+                    
+                    currentFiles = results.map(file => ({
+                        id: file.id,
+                        name: file.get('name'),
+                        url: file.get('url'),
+                        size: file.get('size'),
+                        type: file.get('type'),
+                        createdAt: file.createdAt,
+                        objectId: file.id
+                    }));
+                    
+                    renderFileList(currentFiles);
+                } catch (error) {
+                    console.error('加载文件失败:', error);
+                    showNotification('加载文件失败，请检查网络连接或刷新页面重试。', 'error');
+                }
+            }
+            
+            // 渲染文件列表
+            function renderFileList(files) {
+                if (files.length === 0) {
+                    fileListContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i>📁</i>
+                            <p>暂无文件，点击上方按钮上传文件</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                fileListContainer.innerHTML = files.map(file => `
+                    <div class="file-item ${selectedFileIds.has(file.id) ? 'selected' : ''}">
+                        <div class="file-checkbox">
+                            <input type="checkbox" data-id="${file.id}" ${selectedFileIds.has(file.id) ? 'checked' : ''}>
+                        </div>
+                        <div class="file-name">
+                            <div class="file-icon">${getFileIcon(file.type)}</div>
+                            <div>${file.name}</div>
+                        </div>
+                        <div>${formatFileSize(file.size)}</div>
+                        <div>${getFileTypeName(file.type)}</div>
+                        <div class="file-actions">
+                            <button class="btn btn-preview" data-id="${file.id}">预览</button>
+                            <button class="btn btn-download" data-id="${file.id}">下载</button>
+                            <button class="btn btn-delete" data-id="${file.id}">删除</button>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // 添加事件监听
+                document.querySelectorAll('.file-checkbox input').forEach(checkbox => {
+                    checkbox.addEventListener('change', (e) => {
+                        const fileId = e.target.getAttribute('data-id');
+                        const checked = e.target.checked;
+                        toggleFileSelection(fileId, checked);
+                        
+                        const fileItem = e.target.closest('.file-item');
+                        if (checked) {
+                            fileItem.classList.add('selected');
+                        } else {
+                            fileItem.classList.remove('selected');
+                        }
+                    });
+                });
+                
+                document.querySelectorAll('.btn-preview').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const fileId = e.target.getAttribute('data-id');
+                        previewFile(fileId);
+                    });
+                });
+                
+                document.querySelectorAll('.btn-download').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const fileId = e.target.getAttribute('data-id');
+                        downloadFile(fileId, e.target);
+                    });
+                });
+                
+                document.querySelectorAll('.btn-delete').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const fileId = e.target.getAttribute('data-id');
+                        deleteFile(fileId, e.target);
+                    });
+                });
+            }
+            
+            // 获取文件图标
+            function getFileIcon(fileType) {
+                const type = fileType.toLowerCase();
+                if (type.includes('image')) return '🖼️';
+                if (type.includes('pdf')) return '📕';
+                if (type.includes('word') || type.includes('doc')) return '📄';
+                if (type.includes('excel') || type.includes('xls')) return '📊';
+                if (type.includes('powerpoint') || type.includes('ppt')) return '📑';
+                if (type.includes('text') || type.includes('txt')) return '📝';
+                if (type.includes('zip') || type.includes('rar')) return '📦';
+                return '📁';
+            }
+            
+            // 获取文件类型名称
+            function getFileTypeName(fileType) {
+                const type = fileType.toLowerCase();
+                if (type.includes('image')) return '图片';
+                if (type.includes('pdf')) return 'PDF';
+                if (type.includes('word') || type.includes('doc')) return 'Word文档';
+                if (type.includes('excel') || type.includes('xls')) return 'Excel文档';
+                if (type.includes('powerpoint') || type.includes('ppt')) return 'PPT文档';
+                if (type.includes('text') || type.includes('txt')) return '文本文件';
+                if (type.includes('zip') || type.includes('rar')) return '压缩文件';
+                return '文件';
+            }
+            
+            // 格式化文件大小
+            function formatFileSize(bytes) {
+                if (!bytes || bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+            
+            // 搜索文件
+            searchBtn.addEventListener('click', () => {
+                const keyword = searchInput.value.trim().toLowerCase();
+                if (keyword) {
+                    const filteredFiles = currentFiles.filter(file => 
+                        file.name.toLowerCase().includes(keyword)
+                    );
+                    renderFileList(filteredFiles);
+                } else {
+                    renderFileList(currentFiles);
+                }
+            });
+            
+            // 上传文件相关功能
+            uploadBtn.addEventListener('click', () => {
+                uploadModal.style.display = 'flex';
+            });
+            
+            // 修复：确保关闭按钮事件监听器正确绑定
+            function setupModalEvents() {
+                // 上传模态框关闭
+                closeUploadModal.addEventListener('click', () => {
+                    uploadModal.style.display = 'none';
+                    resetUploadModal();
+                });
+                
+                cancelUpload.addEventListener('click', () => {
+                    uploadModal.style.display = 'none';
+                    resetUploadModal();
+                });
+                
+                // 预览模态框关闭
+                closePreviewModal.addEventListener('click', () => {
+                    previewModal.style.display = 'none';
+                    previewBody.innerHTML = '';
+                });
+                
+                // 点击模态框外部关闭
+                window.addEventListener('click', (e) => {
+                    if (e.target === uploadModal) {
+                        uploadModal.style.display = 'none';
+                        resetUploadModal();
+                    }
+                    if (e.target === previewModal) {
+                        previewModal.style.display = 'none';
+                        previewBody.innerHTML = '';
+                    }
+                });
+            }
+            
+            // 初始化模态框事件
+            setupModalEvents();
+            
+            // 拖拽上传功能
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                handleSelectedFiles(files);
+            });
+            
+            fileInput.addEventListener('change', (e) => {
+                handleSelectedFiles(e.target.files);
+            });
+            
+            // 处理选择的文件
+            function handleSelectedFiles(files) {
+                selectedFilesList = Array.from(files);
+                updateSelectedFilesList();
+            }
+            
+            // 更新选择的文件列表显示
+            function updateSelectedFilesList() {
+                selectedFiles.innerHTML = selectedFilesList.map(file => `
+                    <div class="selected-file">
+                        <span>${file.name}</span>
+                        <span>${formatFileSize(file.size)}</span>
+                    </div>
+                `).join('');
+            }
+            
+            // 重置上传模态框
+            function resetUploadModal() {
+                selectedFilesList = [];
+                selectedFiles.innerHTML = '';
+                fileInput.value = '';
+            }
+            
+            // 确认上传
+            confirmUpload.addEventListener('click', async () => {
+                if (selectedFilesList.length === 0) {
+                    showNotification('请先选择要上传的文件！', 'error');
+                    return;
+                }
+                
+                try {
+                    confirmUpload.innerHTML = '<div class="loading"></div> 上传中...';
+                    confirmUpload.disabled = true;
+                    
+                    for (const file of selectedFilesList) {
+                        await uploadFile(file);
+                    }
+                    
+                    uploadModal.style.display = 'none';
+                    resetUploadModal();
+                    loadFiles();
+                    showNotification(`成功上传 ${selectedFilesList.length} 个文件！`);
+                } catch (error) {
+                    console.error('上传文件失败:', error);
+                    showNotification('文件上传失败，请重试！', 'error');
+                } finally {
+                    confirmUpload.innerHTML = '上传';
+                    confirmUpload.disabled = false;
+                }
+            });
+            
+            // 上传文件到 LeanCloud
+            async function uploadFile(file) {
+                const avFile = new AV.File(file.name, file);
+                await avFile.save();
+                
+                const FileType = AV.Object.extend('fileType');
+                const fileType = new FileType();
+                
+                fileType.set('name', file.name);
+                fileType.set('url', avFile.url());
+                fileType.set('size', file.size);
+                fileType.set('type', file.type);
+                fileType.set('fileId', avFile.id);
+                
+                await fileType.save();
+            }
+            
+            // 预览文件 - 支持Office文档
+            async function previewFile(fileId) {
+                const file = currentFiles.find(f => f.id === fileId);
+                if (!file) return;
+                
+                previewTitle.textContent = `预览: ${file.name}`;
+                previewBody.innerHTML = '<div class="loading"></div><p>加载中...</p>';
+                previewModal.style.display = 'flex';
+                
+                const fileType = file.type.toLowerCase();
+                const fileExt = file.name.split('.').pop().toLowerCase();
+                
+                try {
+                    if (fileType.includes('image')) {
+                        previewBody.innerHTML = `<img src="${file.url}" class="preview-image" alt="${file.name}" onerror="handlePreviewError('${fileId}')">`;
+                    } else if (fileType.includes('pdf')) {
+                        previewBody.innerHTML = `<iframe src="${file.url}" class="preview-iframe" onerror="handlePreviewError('${fileId}')"></iframe>`;
+                    } else if (fileType.includes('text') || fileType.includes('txt')) {
+                        const response = await fetch(file.url);
+                        if (response.ok) {
+                            const text = await response.text();
+                            previewBody.innerHTML = `<pre class="preview-text">${text}</pre>`;
+                        } else {
+                            throw new Error('加载失败');
+                        }
+                    } else if (isOfficeDocument(fileType, fileExt)) {
+                        previewOfficeDocument(file);
+                    } else {
+                        showUnsupportedPreview(fileId);
+                    }
+                } catch (error) {
+                    console.error('预览失败:', error);
+                    showErrorPreview(fileId, error.message);
+                }
+            }
+            
+            // 预览错误处理
+            function handlePreviewError(fileId) {
+                previewBody.innerHTML = `
+                    <div class="preview-notice">
+                        <i>❌</i>
+                        <p>预览加载失败</p>
+                        <button class="btn btn-download" onclick="downloadFile('${fileId}')">下载文件</button>
+                    </div>
+                `;
+            }
+            
+            // 判断是否为Office文档
+            function isOfficeDocument(fileType, fileExt) {
+                const officeTypes = [
+                    'word', 'doc', 'docx', 
+                    'excel', 'xls', 'xlsx', 'xlsm',
+                    'powerpoint', 'ppt', 'pptx'
+                ];
+                
+                return officeTypes.some(type => 
+                    fileType.includes(type) || fileExt.includes(type)
+                );
+            }
+            
+            // 预览Office文档
+            function previewOfficeDocument(file) {
+                const officeOnlineUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(file.url)}`;
+                
+                previewBody.innerHTML = `
+                    <div style="width: 100%; height: 100%; display: flex; flex-direction: column;">
+                        <div style="padding: 10px; background: #f5f5f5; border-bottom: 1px solid #ddd; font-size: 14px;">
+                            <strong>提示：</strong> 这是一个在线预览，某些功能可能受限。如需完整功能，请下载后使用本地Office软件打开。
+                        </div>
+                        <iframe 
+                            src="${officeOnlineUrl}" 
+                            class="preview-office" 
+                            frameborder="0"
+                            onerror="handlePreviewError('${file.id}')">
+                        </iframe>
+                    </div>
+                `;
+            }
+            
+            // 显示不支持预览的提示
+            function showUnsupportedPreview(fileId) {
+                previewBody.innerHTML = `
+                    <div class="preview-notice">
+                        <i>📄</i>
+                        <p>此文件类型不支持在线预览</p>
+                        <p>请下载后查看</p>
+                        <button class="btn btn-download" onclick="downloadFile('${fileId}')" style="margin-top: 15px;">下载文件</button>
+                    </div>
+                `;
+            }
+            
+            // 显示预览错误
+            function showErrorPreview(fileId, errorMsg) {
+                previewBody.innerHTML = `
+                    <div class="preview-notice">
+                        <i>❌</i>
+                        <p>预览加载失败</p>
+                        <p style="font-size: 14px; color: #999; margin: 10px 0;">${errorMsg}</p>
+                        <button class="btn btn-download" onclick="downloadFile('${fileId}')">下载文件</button>
+                    </div>
+                `;
+            }
+            
+            // 修复下载功能 - 正确传递按钮元素
+            async function downloadFile(fileId, buttonElement) {
+                const file = currentFiles.find(f => f.id === fileId);
+                if (!file) {
+                    showNotification('文件不存在！', 'error');
+                    return;
+                }
+                
+                // 保存按钮原始状态
+                const originalHTML = buttonElement.innerHTML;
+                const originalDisabled = buttonElement.disabled;
+                
+                try {
+                    // 显示下载中状态
+                    buttonElement.innerHTML = '<div class="loading"></div>';
+                    buttonElement.disabled = true;
+                    
+                    // 使用fetch获取文件并创建下载链接
+                    const response = await fetch(file.url);
+                    if (!response.ok) {
+                        throw new Error('文件下载失败');
+                    }
+                    
+                    const blob = await response.blob();
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    
+                    // 创建下载链接
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = file.name;
+                    a.style.display = 'none';
+                    
+                    // 添加到DOM并触发点击
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    // 清理
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(blobUrl);
+                    
+                    showNotification(`下载成功: ${file.name}`);
+                    
+                } catch (error) {
+                    console.error('下载失败:', error);
+                    
+                    // 备用方案：直接使用原始URL
+                    try {
+                        const a = document.createElement('a');
+                        a.href = file.url;
+                        a.download = file.name;
+                        a.style.display = 'none';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        showNotification(`开始下载: ${file.name}`);
+                    } catch (fallbackError) {
+                        console.error('备用下载方案也失败:', fallbackError);
+                        showNotification('下载失败，请重试！', 'error');
+                    }
+                } finally {
+                    // 确保按钮状态恢复
+                    buttonElement.innerHTML = originalHTML;
+                    buttonElement.disabled = originalDisabled;
+                }
+            }
+            
+            // 单个文件删除
+            async function deleteFile(fileId, buttonElement) {
+                if (!confirm('确定要删除这个文件吗？此操作不可撤销！')) return;
+                
+                // 保存按钮原始状态
+                const originalHTML = buttonElement.innerHTML;
+                const originalDisabled = buttonElement.disabled;
+                
+                try {
+                    buttonElement.innerHTML = '<div class="loading"></div>';
+                    buttonElement.disabled = true;
+                    
+                    await deleteSingleFile(fileId);
+                    
+                    selectedFileIds.delete(fileId);
+                    updateSelectedCount();
+                    
+                    showNotification('文件删除成功！');
+                } catch (error) {
+                    console.error('删除文件失败:', error);
+                    showNotification('文件删除失败，请重试！', 'error');
+                } finally {
+                    // 确保按钮状态恢复
+                    buttonElement.innerHTML = originalHTML;
+                    buttonElement.disabled = originalDisabled;
+                }
+            }
+            
+            // 批量删除文件
+            batchDeleteBtn.addEventListener('click', async () => {
+                if (selectedFileIds.size === 0) {
+                    showNotification('请先选择要删除的文件！', 'error');
+                    return;
+                }
+                
+                if (!confirm(`确定要删除选中的 ${selectedFileIds.size} 个文件吗？此操作不可撤销！`)) return;
+                
+                // 保存按钮原始状态
+                const originalHTML = batchDeleteBtn.innerHTML;
+                const originalDisabled = batchDeleteBtn.disabled;
+                
+                try {
+                    batchDeleteBtn.innerHTML = '<div class="loading"></div> 删除中...';
+                    batchDeleteBtn.disabled = true;
+                    
+                    const fileIds = Array.from(selectedFileIds);
+                    let successCount = 0;
+                    
+                    for (const fileId of fileIds) {
+                        try {
+                            await deleteSingleFile(fileId);
+                            successCount++;
+                        } catch (error) {
+                            console.error(`删除文件 ${fileId} 失败:`, error);
+                        }
+                    }
+                    
+                    selectedFileIds.clear();
+                    updateSelectedCount();
+                    
+                    showNotification(`成功删除 ${successCount} 个文件！`);
+                } catch (error) {
+                    console.error('批量删除失败:', error);
+                    showNotification('批量删除失败，请重试！', 'error');
+                } finally {
+                    // 确保按钮状态恢复
+                    batchDeleteBtn.innerHTML = originalHTML;
+                    batchDeleteBtn.disabled = originalDisabled;
+                }
+            });
+            
+            // 删除单个文件
+            async function deleteSingleFile(fileId) {
+                const fileObj = AV.Object.createWithoutData('fileType', fileId);
+                const fileData = await fileObj.fetch();
+                const avFileId = fileData.get('fileId');
+                
+                await fileObj.destroy();
+                
+                if (avFileId) {
+                    await deleteFileFromStorage(avFileId);
+                }
+                
+                currentFiles = currentFiles.filter(file => file.id !== fileId);
+                renderFileList(currentFiles);
+            }
+            
+            // 从LeanCloud存储中删除文件
+            async function deleteFileFromStorage(fileId) {
+                try {
+                    const response = await fetch(`${SERVER_URL}/1.1/files/${fileId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-LC-Id': APP_ID,
+                            'X-LC-Key': `${MASTER_KEY},master`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    return response.ok;
+                } catch (error) {
+                    console.warn('文件存储清理失败:', error);
+                    return false;
+                }
+            }
+            
+            // 全选复选框事件
+            selectAllCheckbox.addEventListener('change', (e) => {
+                toggleSelectAll(e.target.checked);
+            });
+            
+            // 按回车键搜索
+            searchInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    searchBtn.click();
+                }
+            });
+            
+            // 按回车键登录
+            accessCodeInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    loginBtn.click();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

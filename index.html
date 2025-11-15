@@ -155,7 +155,7 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- 空运成本计算卡片 -->
                 <div class="card glass-effect rounded-xl overflow-hidden">
                     <div class="p-6">
@@ -199,6 +199,21 @@
                         </div>
                         <p class="text-gray-300 mb-4">计算进口货物的关税、增值税及反倾销保证金等税费。</p>
                         <button id="customs-duty-btn" class="w-full py-3 rounded-lg bg-accent text-white font-medium hover:bg-accent/90 transition-all">
+                            立即使用
+                        </button>
+                    </div>
+                </div>
+                <!-- 文件管理系统卡片 -->
+                <div class="card glass-effect rounded-xl overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="p-3 rounded-lg bg-primary/20 text-blue-400">
+                                <i class="fa fa-folder-open text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold">Ezreal的文件夹</h3>
+                        </div>
+                        <p class="text-gray-300 mb-4">支持文件分类、搜索。</p>
+                        <button id="file-manager-btn" class="w-full py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-all">
                             立即使用
                         </button>
                     </div>
@@ -926,6 +941,13 @@
             customsDutyBtn.addEventListener('click', () => {
                 // 跳转到税费计算器页面
                 window.location.href = 'anti-dumping-calculator.html';
+            });
+            
+            // 文件管理系统跳转
+            const fileManagerBtn = document.getElementById('file-manager-btn');
+            fileManagerBtn.addEventListener('click', () => {
+                // 跳转到文件管理系统页面
+                window.location.href = 'file-manager.html';
             });
             
             // 清除默认值，保持为空
