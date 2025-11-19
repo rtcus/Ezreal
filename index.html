@@ -203,6 +203,7 @@
                         </button>
                     </div>
                 </div>
+                
                 <!-- 文件管理系统卡片 -->
                 <div class="card glass-effect rounded-xl overflow-hidden">
                     <div class="p-6">
@@ -214,6 +215,22 @@
                         </div>
                         <p class="text-gray-300 mb-4">支持文件分类、搜索。</p>
                         <button id="file-manager-btn" class="w-full py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-all">
+                            立即使用
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Ezreal的工作台卡片 -->
+                <div class="card glass-effect rounded-xl overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="p-3 rounded-lg bg-secondary/20 text-secondary">
+                                <i class="fa fa-desktop text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold">Ezreal的工作台</h3>
+                        </div>
+                        <p class="text-gray-300 mb-4">集成多种实用工具，提高工作效率。</p>
+                        <button id="workbench-btn" class="w-full py-3 rounded-lg bg-secondary text-white font-medium hover:bg-secondary/90 transition-all">
                             立即使用
                         </button>
                     </div>
@@ -619,7 +636,8 @@
         const navItemsList = document.getElementById('nav-items-list');
         const saveAllChangesBtn = document.getElementById('save-all-changes');
         const navGrid = document.getElementById('nav-grid');
-          const navSearch = document.getElementById('nav-search');
+        const navSearch = document.getElementById('nav-search');
+        const workbenchBtn = document.getElementById('workbench-btn');
     
         
         // 修改码
@@ -891,9 +909,13 @@
         
         saveAllChangesBtn.addEventListener('click', saveAllChanges);
           
-          navSearch.addEventListener('input', searchNav);
+        navSearch.addEventListener('input', searchNav);
         
-    
+        // 工作台按钮点击事件 - 修改为在新页面打开
+        workbenchBtn.addEventListener('click', () => {
+            // 在新页面打开工作台页面
+            window.open('r-workbench.html', '_blank');
+        });
         
         // 计价方式切换
         document.querySelectorAll('input[name="pricing-type"]').forEach(radio => {
