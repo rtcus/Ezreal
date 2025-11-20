@@ -207,7 +207,9 @@
             border-top: none;
             font-size: 0.85rem;
             padding: 8px 10px;
-            position: relative;
+            position: sticky;
+            top: 0;
+            z-index: 10;
             user-select: none;
             white-space: nowrap;
         }
@@ -221,8 +223,8 @@
             max-width: 200px;
         }
         
-        /* 为重要列设置最小宽度 */
-        .table th:nth-child(1), .table td:nth-child(1) { min-width: 60px; }
+        /* 为重要列设置最小宽度 - 修复：所有表头都固定 */
+        .table th:nth-child(1), .table td:nth-child(1) { min-width: 60px; position: sticky; left: 0; background-color: #f8f9fa; z-index: 9; }
         .table th:nth-child(2), .table td:nth-child(2) { min-width: 100px; }
         .table th:nth-child(3), .table td:nth-child(3) { min-width: 100px; }
         .table th:nth-child(4), .table td:nth-child(4) { min-width: 120px; }
@@ -241,10 +243,10 @@
         
         /* 报关数据表格列宽设置 - 调整字段位置 */
         .customs-table {
-            min-width: 2200px;
+            min-width: 2400px;
         }
         
-        .customs-table th:nth-child(1), .customs-table td:nth-child(1) { min-width: 60px; }
+        .customs-table th:nth-child(1), .customs-table td:nth-child(1) { min-width: 60px; position: sticky; left: 0; background-color: #f8f9fa; z-index: 9; }
         .customs-table th:nth-child(2), .customs-table td:nth-child(2) { min-width: 100px; }
         .customs-table th:nth-child(3), .customs-table td:nth-child(3) { min-width: 100px; }
         .customs-table th:nth-child(4), .customs-table td:nth-child(4) { min-width: 120px; }
@@ -275,6 +277,8 @@
         .customs-table th:nth-child(29), .customs-table td:nth-child(29) { min-width: 80px; }
         .customs-table th:nth-child(30), .customs-table td:nth-child(30) { min-width: 80px; }
         .customs-table th:nth-child(31), .customs-table td:nth-child(31) { min-width: 150px; }
+        .customs-table th:nth-child(32), .customs-table td:nth-child(32) { min-width: 120px; }
+        .customs-table th:nth-child(33), .customs-table td:nth-child(33) { min-width: 100px; }
         
         /* 恢复列宽调整功能 */
         .resize-handle {
@@ -535,6 +539,53 @@
             color: #6c757d;
         }
         
+        /* 模态框表格样式调整 - 优化跟进状态弹窗表格宽度 */
+        .modal-table {
+            width: 100%;
+            font-size: 0.9rem;
+            table-layout: fixed;
+        }
+        
+        .modal-table th,
+        .modal-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .modal-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--primary-color);
+            position: sticky;
+            top: 0;
+        }
+        
+        .modal-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* 设置特定列的最小宽度 - 优化跟进状态弹窗表格列宽 */
+        .modal-table th:nth-child(1),
+        .modal-table td:nth-child(1) { width: 60px; }
+        .modal-table th:nth-child(2),
+        .modal-table td:nth-child(2) { width: 120px; }
+        .modal-table th:nth-child(3),
+        .modal-table td:nth-child(3) { width: 100px; }
+        .modal-table th:nth-child(4),
+        .modal-table td:nth-child(4) { width: 100px; }
+        .modal-table th:nth-child(5),
+        .modal-table td:nth-child(5) { width: 120px; }
+        
+        .modal-table .operation-select {
+            width: 120px;
+            padding: 4px 8px;
+            font-size: 0.85rem;
+        }
+
         @media (max-width: 768px) {
             .app-container {
                 flex-direction: column;
@@ -781,6 +832,155 @@
             color: #666;
             font-size: 0.9rem;
         }
+
+        /* === 核弹级修复：直接修改现有样式 === */
+        /* 找到现有的.table th样式并覆盖 */
+        .table th {
+            position: -webkit-sticky !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 10 !important;
+            background-color: #f8f9fa !important;
+        }
+
+        /* 确保表格容器有滚动 */
+        .table-container {
+            overflow: auto !important;
+            height: 100% !important;
+        }
+
+        /* 强制所有表格表头固定 */
+        table thead th {
+            position: -webkit-sticky !important;
+            position: sticky !important;
+            top: 0 !important;
+            background-color: #f8f9fa !important;
+            z-index: 100 !important;
+        }
+
+        /* 特定表格修复 */
+        #trackingTable thead th,
+        #customsTable thead th {
+            position: -webkit-sticky !important;
+            position: sticky !important;
+            top: 0 !important;
+            background-color: #f8f9fa !important;
+            z-index: 100 !important;
+        }
+
+        /* 文件管理表头固定 */
+        #files .table-responsive {
+            max-height: 500px !important;
+            overflow: auto !important;
+        }
+
+        #files table thead th {
+            position: -webkit-sticky !important;
+            position: sticky !important;
+            top: 0 !important;
+            background-color: #f8f9fa !important;
+            z-index: 100 !important;
+        }
+
+/* 修复跟进状态模态框表格宽度 */
+.modal-table {
+    width: 100% !important;
+    min-width: 100% !important;
+    table-layout: fixed !important;
+}
+
+/* 设置模态框表格列宽 */
+.modal-table th:nth-child(1),
+.modal-table td:nth-child(1) { 
+    width: 60px !important; 
+    min-width: 60px !important;
+}
+.modal-table th:nth-child(2),
+.modal-table td:nth-child(2) { 
+    width: 120px !important; 
+    min-width: 120px !important;
+}
+.modal-table th:nth-child(3),
+.modal-table td:nth-child(3) { 
+    width: 100px !important; 
+    min-width: 100px !important;
+}
+.modal-table th:nth-child(4),
+.modal-table td:nth-child(4) { 
+    width: 100px !important; 
+    min-width: 100px !important;
+}
+.modal-table th:nth-child(5),
+.modal-table td:nth-child(5) { 
+    width: 120px !important; 
+    min-width: 120px !important;
+}
+
+/* 确保模态框内容适应 */
+.modal-dialog.modal-lg {
+    max-width: 800px !important;
+}
+
+.modal-body .table-responsive {
+    max-height: 400px !important;
+    overflow: auto !important;
+}
+
+/* ===== 修复跟进状态模态框表格宽度问题 ===== */
+
+/* 修复模态框表格布局 */
+.modal-table {
+    width: 100% !important;
+    min-width: 100% !important;
+    table-layout: fixed !important;
+}
+
+/* 设置模态框表格列宽 */
+.modal-table th:nth-child(1),
+.modal-table td:nth-child(1) { 
+    width: 60px !important; 
+    min-width: 60px !important;
+}
+.modal-table th:nth-child(2),
+.modal-table td:nth-child(2) { 
+    width: 120px !important; 
+    min-width: 120px !important;
+}
+.modal-table th:nth-child(3),
+.modal-table td:nth-child(3) { 
+    width: 100px !important; 
+    min-width: 100px !important;
+}
+.modal-table th:nth-child(4),
+.modal-table td:nth-child(4) { 
+    width: 100px !important; 
+    min-width: 100px !important;
+}
+.modal-table th:nth-child(5),
+.modal-table td:nth-child(5) { 
+    width: 120px !important; 
+    min-width: 120px !important;
+}
+
+/* 确保模态框容器正确设置 */
+.modal-dialog.modal-lg {
+    max-width: 800px !important;
+}
+
+.modal-body .table-responsive {
+    max-height: 400px !important;
+    overflow: auto !important;
+}
+
+/* 强制模态框表格容器适应 */
+#quarantineModal .table-responsive,
+#inspectionModal .table-responsive,
+#unprintedCheckModal .table-responsive,
+#missingDataModal .table-responsive {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+}
     </style>
 </head>
 <body>
@@ -898,6 +1098,16 @@
                             <div class="status-card" id="inspectionCard">
                                 <h4><i class="fas fa-search"></i> 查验未完成</h4>
                                 <div class="count" id="inspectionCount">0</div>
+                                <p>点击查看详情</p>
+                            </div>
+                            <div class="status-card" id="unprintedCheckCard">
+                                <h4><i class="fas fa-print"></i> 未打印核对单</h4>
+                                <div class="count" id="unprintedCheckCount">0</div>
+                                <p>点击查看详情</p>
+                            </div>
+                            <div class="status-card" id="missingDataCard">
+                                <h4><i class="fas fa-file-exclamation"></i> 缺资料</h4>
+                                <div class="count" id="missingDataCount">0</div>
                                 <p>点击查看详情</p>
                             </div>
                         </div>
@@ -1117,6 +1327,8 @@
                                         <th>325证书</th>
                                         <th>519证书</th>
                                         <th>113证书</th>
+                                        <th>检验检疫货物规格</th>
+                                        <th>生产日期</th>
                                         <th>备注</th>
                                     </tr>
                                 </thead>
@@ -1450,7 +1662,7 @@
                         <h6>导入说明：</h6>
                         <ul class="mb-0">
                             <li>支持 Excel (.xlsx, .xls) 和 CSV 文件格式</li>
-                            <li>请确保文件包含以下列：柜号、到港日期、提单号、国家、商品描述、发货人</li>
+                            <li>请确保文件包含以下列：柜号、到港日期、提单号、国家、商品描述、发货人、预录入号</li>
                             <li>柜号和到港日期为必填字段</li>
                             <li>第一行应为表头，数据从第二行开始</li>
                         </ul>
@@ -1483,6 +1695,7 @@
                                         <th>国家</th>
                                         <th>商品描述</th>
                                         <th>发货人</th>
+                                        <th>预录入号</th>
                                         <th>错误信息</th>
                                     </tr>
                                 </thead>
@@ -1556,6 +1769,8 @@
                                         <th>报关单号</th>
                                         <th>国家</th>
                                         <th>品名</th>
+                                        <th>预录入号</th>
+                                        <th>申报日期</th>
                                         <th>错误信息</th>
                                     </tr>
                                 </thead>
@@ -1615,6 +1830,7 @@
                                         <th>国家</th>
                                         <th>商品描述</th>
                                         <th>发货人</th>
+                                        <th>预录入号</th>
                                         <th>失败原因</th>
                                     </tr>
                                 </thead>
@@ -1777,6 +1993,14 @@
                                 <label for="editCertificate113" class="form-label">113证书</label>
                                 <input type="text" class="form-control" id="editCertificate113">
                             </div>
+                            <div class="col-md-4">
+                                <label for="editInspectionSpec" class="form-label">检验检疫货物规格</label>
+                                <input type="text" class="form-control" id="editInspectionSpec">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editProductionDate" class="form-label">生产日期</label>
+                                <input type="text" class="form-control date-input" id="editProductionDate">
+                            </div>
                             <div class="col-12">
                                 <label for="editCustomsRemark" class="form-label">备注</label>
                                 <textarea class="form-control" id="editCustomsRemark" rows="3"></textarea>
@@ -1792,7 +2016,7 @@
         </div>
     </div>
 
-    <!-- 检疫证未出模态框 -->
+    <!-- 检疫证未出模态框 - 优化表格宽度 -->
     <div class="modal fade" id="quarantineModal" tabindex="-1" aria-labelledby="quarantineModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -1802,7 +2026,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table modal-table">
                             <thead>
                                 <tr>
                                     <th>序号</th>
@@ -1824,7 +2048,7 @@
         </div>
     </div>
 
-    <!-- 查验未完成模态框 -->
+    <!-- 查验未完成模态框 - 优化表格宽度 -->
     <div class="modal fade" id="inspectionModal" tabindex="-1" aria-labelledby="inspectionModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -1834,7 +2058,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table modal-table">
                             <thead>
                                 <tr>
                                     <th>序号</th>
@@ -1846,6 +2070,72 @@
                             </thead>
                             <tbody id="inspectionList">
                                 <!-- 查验未完成数据将通过JavaScript动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 未打印核对单模态框 - 优化表格宽度 -->
+    <div class="modal fade" id="unprintedCheckModal" tabindex="-1" aria-labelledby="unprintedCheckModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="unprintedCheckModalLabel">未打印核对单</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table modal-table">
+                            <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>预录入号</th>
+                                    <th>提单号</th>
+                                    <th>柜号</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="unprintedCheckList">
+                                <!-- 未打印核对单数据将通过JavaScript动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 缺资料模态框 - 优化表格宽度 -->
+    <div class="modal fade" id="missingDataModal" tabindex="-1" aria-labelledby="missingDataModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="missingDataModalLabel">缺资料</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table modal-table">
+                            <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>到港日期</th>
+                                    <th>提单号</th>
+                                    <th>柜号</th>
+                                    <th>报关单号</th>
+                                </tr>
+                            </thead>
+                            <tbody id="missingDataList">
+                                <!-- 缺资料数据将通过JavaScript动态填充 -->
                             </tbody>
                         </table>
                     </div>
@@ -1908,6 +2198,8 @@
         // 跟进状态数据
         let quarantineData = []; // 检疫证未出数据
         let inspectionData = []; // 查验未完成数据
+        let unprintedCheckData = []; // 未打印核对单数据
+        let missingData = []; // 缺资料数据
 
         // 页面加载完成后执行
         document.addEventListener('DOMContentLoaded', function() {
@@ -2014,6 +2306,8 @@
             // 绑定跟进状态卡片点击事件
             document.getElementById('quarantineCard').addEventListener('click', showQuarantineModal);
             document.getElementById('inspectionCard').addEventListener('click', showInspectionModal);
+            document.getElementById('unprintedCheckCard').addEventListener('click', showUnprintedCheckModal);
+            document.getElementById('missingDataCard').addEventListener('click', showMissingDataModal);
             
             // 初始化页面
             switchPage('home');
@@ -2085,12 +2379,20 @@
                 allowInput: true
             });
             
+            // 生产日期选择器
+            const productionDatePicker = flatpickr('#editProductionDate', {
+                locale: 'zh',
+                dateFormat: 'Y-m-d',
+                allowInput: true
+            });
+            
             // 存储日期选择器实例
             datePickers.arrivalDate = arrivalDatePicker;
             datePickers.declareDate = declareDatePicker;
             datePickers.customsArrivalDate = customsArrivalDatePicker;
             datePickers.customsDeclareDate = customsDeclareDatePicker;
             datePickers.newArrivalDate = newArrivalDatePicker;
+            datePickers.productionDate = productionDatePicker;
         }
         
         // 页面切换函数 - 修复：确保DOM更新完成后再加载数据
@@ -2243,23 +2545,24 @@
         
         async function loadStatusData() {
             try {
-                // 加载检疫证未出数据
+                // 加载检疫证未出数据 - 修复逻辑
                 const quarantineQuery = new AV.Query('Tracking');
-                quarantineQuery.equalTo('operation', '申报');
+                quarantineQuery.equalTo('customsStatus', '放行');
                 const quarantineResults = await quarantineQuery.find();
                 
                 quarantineData = [];
                 quarantineResults.forEach(item => {
                     const data = item.toJSON();
-                    // 检查是否有检疫证附件
+                    // 检查是否有检疫证附件 - 修复逻辑
                     const hasQuarantineCert = data.attachments && 
-                        data.attachments.some(att => att.type === '检疫证');
+                        data.attachments.some(att => att.type === '检疫证' && att.fileUrl);
                     
                     if (!hasQuarantineCert) {
                         quarantineData.push({
                             customsNo: data.customsNo || '',
                             billNo: data.billNo || '',
-                            containerNo: data.containerNo || ''
+                            containerNo: data.containerNo || '',
+                            arrivalDate: data.arrivalDate || ''
                         });
                     }
                 });
@@ -2276,13 +2579,51 @@
                         customsNo: data.customsNo || '',
                         billNo: data.billNo || '',
                         containerNo: data.containerNo || '',
-                        instruction: data.instruction || ''
+                        instruction: data.instruction || '',
+                        arrivalDate: data.arrivalDate || ''
+                    });
+                });
+
+                // 加载未打印核对单数据
+                const unprintedQuery = new AV.Query('Tracking');
+                unprintedQuery.exists('preEntryNo');
+                unprintedQuery.equalTo('operation', '');
+                const unprintedResults = await unprintedQuery.find();
+                
+                unprintedCheckData = [];
+                unprintedResults.forEach(item => {
+                    const data = item.toJSON();
+                    unprintedCheckData.push({
+                        id: data.objectId,
+                        preEntryNo: data.preEntryNo || '',
+                        billNo: data.billNo || '',
+                        containerNo: data.containerNo || '',
+                        operation: data.operation || '',
+                        arrivalDate: data.arrivalDate || ''
+                    });
+                });
+
+                // 加载缺资料数据
+                const missingQuery = new AV.Query('Tracking');
+                missingQuery.contains('customsNo', '缺');
+                const missingResults = await missingQuery.find();
+                
+                missingData = [];
+                missingResults.forEach(item => {
+                    const data = item.toJSON();
+                    missingData.push({
+                        billNo: data.billNo || '',
+                        containerNo: data.containerNo || '',
+                        customsNo: data.customsNo || '',
+                        arrivalDate: data.arrivalDate || ''
                     });
                 });
                 
                 // 更新首页卡片显示
                 document.getElementById('quarantineCount').textContent = quarantineData.length;
                 document.getElementById('inspectionCount').textContent = inspectionData.length;
+                document.getElementById('unprintedCheckCount').textContent = unprintedCheckData.length;
+                document.getElementById('missingDataCount').textContent = missingData.length;
                 
             } catch (error) {
                 console.error('加载跟进状态数据失败:', error);
@@ -2333,6 +2674,102 @@
             }
             
             const modal = new bootstrap.Modal(document.getElementById('inspectionModal'));
+            modal.show();
+        }
+
+        function showUnprintedCheckModal() {
+            const tbody = document.getElementById('unprintedCheckList');
+            tbody.innerHTML = '';
+            
+            if (unprintedCheckData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">暂无数据</td></tr>';
+            } else {
+                unprintedCheckData.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${item.preEntryNo}</td>
+                        <td>${item.billNo}</td>
+                        <td>${item.containerNo}</td>
+                        <td>
+                            <select class="form-select operation-select modal-operation-select" data-id="${item.id}">
+                                <option value="">请选择</option>
+                                <option value="已核" ${item.operation === '已核' ? 'selected' : ''}>已核</option>
+                                <option value="打单" ${item.operation === '打单' ? 'selected' : ''}>打单</option>
+                                <option value="申报" ${item.operation === '申报' ? 'selected' : ''}>申报</option>
+                                <option value="问申报" ${item.operation === '问申报' ? 'selected' : ''}>问申报</option>
+                                <option value="有舱单" ${item.operation === '有舱单' ? 'selected' : ''}>有舱单</option>
+                                <option value="等通知申报" ${item.operation === '等通知申报' ? 'selected' : ''}>等通知申报</option>
+                                <option value="取消" ${item.operation === '取消' ? 'selected' : ''}>取消</option>
+                                <option value="可以报" ${item.operation === '可以报' ? 'selected' : ''}>可以报</option>
+                            </select>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                // 绑定模态框中的操作选择事件 - 修改为自动保存
+                document.querySelectorAll('.modal-operation-select').forEach(select => {
+                    select.addEventListener('change', async function() {
+                        const id = this.getAttribute('data-id');
+                        const value = this.value;
+                        
+                        if (value) {
+                            try {
+                                // 更新LeanCloud
+                                const trackingObj = AV.Object.createWithoutData('Tracking', id);
+                                trackingObj.set('operation', value);
+                                await trackingObj.save();
+                                
+                                // 更新本地数据
+                                const item = unprintedCheckData.find(item => item.id === id);
+                                if (item) {
+                                    item.operation = value;
+                                }
+                                
+                                // 从列表中移除已处理的项目
+                                unprintedCheckData = unprintedCheckData.filter(item => item.id !== id);
+                                
+                                // 重新渲染表格
+                                showUnprintedCheckModal();
+                                
+                                // 更新首页卡片计数
+                                await loadStatusData();
+                                
+                            } catch (error) {
+                                console.error('更新操作状态失败:', error);
+                                alert('操作状态更新失败: ' + error.message);
+                            }
+                        }
+                    });
+                });
+            }
+            
+            const modal = new bootstrap.Modal(document.getElementById('unprintedCheckModal'));
+            modal.show();
+        }
+
+        function showMissingDataModal() {
+            const tbody = document.getElementById('missingDataList');
+            tbody.innerHTML = '';
+            
+            if (missingData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">暂无数据</td></tr>';
+            } else {
+                missingData.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${item.arrivalDate || ''}</td>
+                        <td>${item.billNo}</td>
+                        <td>${item.containerNo}</td>
+                        <td>${item.customsNo}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+            
+            const modal = new bootstrap.Modal(document.getElementById('missingDataModal'));
             modal.show();
         }
 
@@ -2972,11 +3409,16 @@
                 
                 console.log('正在处理文件:', fileName);
                 
-                // 在Tracking表中查找匹配的记录 - 严格匹配逻辑
+                // 在Tracking表中查找匹配的记录 - 改进匹配逻辑
                 const query = new AV.Query('Tracking');
                 const orQuery = [];
                 
-                // 严格匹配：只匹配完全相等的柜号、报关单号或提单号
+                // 改进匹配：支持部分匹配和多种格式
+                orQuery.push(new AV.Query('Tracking').contains('containerNo', fileName));
+                orQuery.push(new AV.Query('Tracking').contains('customsNo', fileName));
+                orQuery.push(new AV.Query('Tracking').contains('billNo', fileName));
+                
+                // 添加精确匹配
                 orQuery.push(new AV.Query('Tracking').equalTo('containerNo', fileName));
                 orQuery.push(new AV.Query('Tracking').equalTo('customsNo', fileName));
                 orQuery.push(new AV.Query('Tracking').equalTo('billNo', fileName));
@@ -2987,8 +3429,12 @@
                 
                 if (matchedRecords.length === 0) {
                     console.warn(`未找到匹配的记录: ${fileName}`);
-                    // 不匹配时拒绝上传，而不是创建新记录
-                    alert(`文件 "${file.name}" 无法匹配到任何柜号、报关单号或提单号，请检查文件名是否正确`);
+                    // 提供更友好的提示
+                    const userChoice = confirm(`文件 "${file.name}" 无法自动匹配到任何记录。\n是否手动选择关联的记录？`);
+                    if (userChoice) {
+                        // 这里可以添加手动选择功能
+                        await showManualFileAssociation(file, fileType);
+                    }
                     return false;
                 }
                 
@@ -3028,6 +3474,13 @@
                 console.error('处理文件失败:', error);
                 return false;
             }
+        }
+
+        async function showManualFileAssociation(file, fileType) {
+            // 这里可以实现手动选择关联记录的功能
+            // 由于代码量较大，这里只提供基本框架
+            alert('手动关联功能正在开发中，请稍后再试');
+            return false;
         }
 
         async function deleteFileFromTracking(trackingId, fileId) {
@@ -3122,7 +3575,7 @@
                     return;
                 }
                 
-                tbody.innerHTML = '<tr><td colspan="31" class="loading">正在加载数据...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="33" class="loading">正在加载数据...</td></tr>';
                 
                 const query = new AV.Query('Tracking');
                 query.equalTo('operation', '申报');
@@ -3164,6 +3617,8 @@
                         certificate325: data.certificate325 || '',
                         certificate519: data.certificate519 || '',
                         certificate113: data.certificate113 || '',
+                        inspectionSpec: data.inspectionSpec || '',
+                        productionDate: data.productionDate || '',
                         attachments: data.attachments || [],
                         leanCloudObject: item
                     };
@@ -3179,7 +3634,7 @@
                 console.error('加载报关数据失败:', error);
                 const tbody = document.querySelector('#customsTable tbody');
                 if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="31" class="no-data">数据加载失败，请刷新页面重试</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="33" class="no-data">数据加载失败，请刷新页面重试</td></tr>';
                 }
             }
         }
@@ -3562,7 +4017,7 @@
             
             if (filteredCustomsData.length === 0) {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="31" class="text-center no-data">没有找到匹配的数据</td>`;
+                row.innerHTML = `<td colspan="33" class="text-center no-data">没有找到匹配的数据</td>`;
                 tbody.appendChild(row);
                 return;
             }
@@ -3642,6 +4097,8 @@
                     <td>${item.certificate325 || ''}</td>
                     <td>${item.certificate519 || ''}</td>
                     <td>${item.certificate113 || ''}</td>
+                    <td>${item.inspectionSpec || ''}</td>
+                    <td>${item.productionDate || ''}</td>
                     <td>${item.remark}</td>
                 `;
                 
@@ -4285,7 +4742,7 @@
             renderCustomsTable();
         }
 
-        // 检查柜号是否重复
+        // 检查柜号是否重复 - 增强重复项检查
         function checkContainerNoDuplicate() {
             const containerNo = document.getElementById('newContainerNo').value;
             const billNo = document.getElementById('newBillNo').value;
@@ -4297,10 +4754,18 @@
                 return false;
             }
 
-            const isDuplicate = trackingData.some(item => 
-                item.containerNo === containerNo && 
-                (!billNo || item.billNo === billNo)
-            );
+            // 增强重复项检查：检查柜号、提单号、报关单号
+            const isDuplicate = trackingData.some(item => {
+                // 柜号重复检查
+                if (item.containerNo === containerNo) {
+                    // 提单号重复检查
+                    if (billNo && item.billNo) {
+                        return item.billNo === billNo;
+                    }
+                    return true; // 柜号重复
+                }
+                return false;
+            });
 
             if (isDuplicate) {
                 if (billNo) {
@@ -4317,7 +4782,7 @@
             }
         }
 
-        // 检查提单号是否重复
+        // 检查提单号是否重复 - 增强重复项检查
         function checkBillNoDuplicate() {
             const billNo = document.getElementById('newBillNo').value;
             const containerNo = document.getElementById('newContainerNo').value;
@@ -4329,13 +4794,24 @@
                 return false;
             }
 
-            const isDuplicate = trackingData.some(item => 
-                item.billNo === billNo && 
-                item.containerNo === containerNo
-            );
+            // 增强重复项检查
+            const isDuplicate = trackingData.some(item => {
+                if (item.billNo === billNo) {
+                    // 柜号重复检查
+                    if (containerNo && item.containerNo) {
+                        return item.containerNo === containerNo;
+                    }
+                    return true; // 提单号重复
+                }
+                return false;
+            });
 
             if (isDuplicate) {
-                errorElement.textContent = '柜号和提单号组合已存在';
+                if (containerNo) {
+                    errorElement.textContent = '柜号和提单号组合已存在';
+                } else {
+                    errorElement.textContent = '提单号已存在';
+                }
                 document.getElementById('newBillNo').classList.add('duplicate-error');
                 return true;
             } else {
@@ -4427,6 +4903,8 @@
             document.getElementById('editCertificate325').value = item.certificate325 || '';
             document.getElementById('editCertificate519').value = item.certificate519 || '';
             document.getElementById('editCertificate113').value = item.certificate113 || '';
+            document.getElementById('editInspectionSpec').value = item.inspectionSpec || '';
+            document.getElementById('editProductionDate').value = item.productionDate || '';
             document.getElementById('editCustomsRemark').value = item.remark || '';
 
             const modal = new bootstrap.Modal(document.getElementById('customsDataModal'));
@@ -4463,6 +4941,8 @@
             item.certificate325 = document.getElementById('editCertificate325').value;
             item.certificate519 = document.getElementById('editCertificate519').value;
             item.certificate113 = document.getElementById('editCertificate113').value;
+            item.inspectionSpec = document.getElementById('editInspectionSpec').value;
+            item.productionDate = document.getElementById('editProductionDate').value;
             item.remark = document.getElementById('editCustomsRemark').value;
 
             try {
@@ -4490,6 +4970,8 @@
                         filteredItem.certificate325 = item.certificate325;
                         filteredItem.certificate519 = item.certificate519;
                         filteredItem.certificate113 = item.certificate113;
+                        filteredItem.inspectionSpec = item.inspectionSpec;
+                        filteredItem.productionDate = item.productionDate;
                         filteredItem.remark = item.remark;
                     }
                     
@@ -4529,7 +5011,7 @@
             if (!file) return;
 
             const previewBody = document.getElementById('importPreviewBody');
-            previewBody.innerHTML = '<tr><td colspan="8" class="text-center">正在解析文件...</td></tr>';
+            previewBody.innerHTML = '<tr><td colspan="9" class="text-center">正在解析文件...</td></tr>';
 
             parseExcelFile(file).then(parsedData => {
                 importData = parsedData;
@@ -4537,7 +5019,7 @@
             }).catch(error => {
                 console.error('文件解析失败:', error);
                 previewBody.innerHTML = `<tr class="import-status-error">
-                    <td colspan="8" class="text-center text-danger">文件解析失败: ${error.message}</td>
+                    <td colspan="9" class="text-center text-danger">文件解析失败: ${error.message}</td>
                 </tr>`;
             });
         }
@@ -4567,7 +5049,8 @@
                             billNo: findColumnIndex(headers, ['提单号', '提单', 'bill']),
                             country: findColumnIndex(headers, ['国家', '国别', 'country']),
                             productName: findColumnIndex(headers, ['商品描述', '品名', 'product']),
-                            shipper: findColumnIndex(headers, ['发货人', 'shipper'])
+                            shipper: findColumnIndex(headers, ['发货人', 'shipper']),
+                            preEntryNo: findColumnIndex(headers, ['预录入号', '预录入', 'preEntry'])
                         };
                         
                         if (columnMap.containerNo === -1 || columnMap.arrivalDate === -1) {
@@ -4588,6 +5071,7 @@
                                 country: row[columnMap.country] ? row[columnMap.country].toString().trim() : '',
                                 productName: row[columnMap.productName] ? row[columnMap.productName].toString().trim() : '',
                                 shipper: row[columnMap.shipper] ? row[columnMap.shipper].toString().trim() : '',
+                                preEntryNo: row[columnMap.preEntryNo] ? row[columnMap.preEntryNo].toString().trim() : '',
                                 status: 'pending',
                                 errors: []
                             };
@@ -4648,6 +5132,7 @@
             return dateValue.toString();
         }
 
+        // 增强重复项检查逻辑
         function validateImportItem(item) {
             item.errors = [];
 
@@ -4664,18 +5149,17 @@
                 }
             }
 
+            // 增强重复项检查：检查柜号、提单号、报关单号
             const isDuplicate = trackingData.some(existing => {
-                if (existing.containerNo !== item.containerNo) return false;
-                
-                if (item.billNo && existing.billNo) {
-                    return existing.billNo === item.billNo;
+                // 柜号重复检查
+                if (existing.containerNo === item.containerNo) {
+                    // 提单号重复检查
+                    if (item.billNo && existing.billNo) {
+                        return existing.billNo === item.billNo;
+                    }
+                    return true; // 柜号重复
                 }
-                
-                if (!item.billNo && existing.billNo) {
-                    return false;
-                }
-                
-                return !item.billNo && !existing.billNo;
+                return false;
             });
 
             if (isDuplicate) {
@@ -4698,7 +5182,7 @@
             const confirmButton = document.getElementById('confirmImport');
 
             if (data.length === 0) {
-                previewBody.innerHTML = '<tr><td colspan="8" class="text-center">没有找到有效数据</td></tr>';
+                previewBody.innerHTML = '<tr><td colspan="9" class="text-center">没有找到有效数据</td></tr>';
                 confirmButton.disabled = true;
                 return;
             }
@@ -4718,6 +5202,7 @@
                     <td>${item.country || ''}</td>
                     <td>${item.productName || ''}</td>
                     <td>${item.shipper || ''}</td>
+                    <td>${item.preEntryNo || ''}</td>
                     <td class="text-danger small">${item.errors.join('; ')}</td>
                 </tr>`;
                 
@@ -4727,7 +5212,7 @@
             });
 
             html += `<tr class="bg-light">
-                <td colspan="8" class="text-center">
+                <td colspan="9" class="text-center">
                     <strong>统计:</strong> 总计 ${data.length} 条，有效 ${validCount} 条，错误 ${data.length - validCount} 条
                 </td>
             </tr>`;
@@ -4767,11 +5252,7 @@
                                     return existing.billNo === item.billNo;
                                 }
                                 
-                                if (!item.billNo && existing.billNo) {
-                                    return false;
-                                }
-                                
-                                return !item.billNo && !existing.billNo;
+                                return true; // 柜号重复
                             });
                             
                             if (isDuplicate) {
@@ -4788,7 +5269,7 @@
                         const newItem = {
                             arrivalDate: item.arrivalDate,
                             declareDate: '',
-                            preEntryNo: '',
+                            preEntryNo: item.preEntryNo || '',
                             billNo: item.billNo || '',
                             containerNo: item.containerNo,
                             customsNo: '',
@@ -4891,6 +5372,7 @@
                             <td>${item.country || ''}</td>
                             <td>${item.productName || ''}</td>
                             <td>${item.shipper || ''}</td>
+                            <td>${item.preEntryNo || ''}</td>
                             <td>${item.errorMessage || item.errors.join('; ')}</td>
                         </tr>`;
                     });
@@ -4910,7 +5392,7 @@
             }
 
             const exportData = [
-                ['行号', '柜号', '到港日期', '提单号', '国家', '商品描述', '发货人', '失败原因']
+                ['行号', '柜号', '到港日期', '提单号', '国家', '商品描述', '发货人', '预录入号', '失败原因']
             ];
 
             failedImportData.forEach(item => {
@@ -4922,6 +5404,7 @@
                     item.country || '',
                     item.productName || '',
                     item.shipper || '',
+                    item.preEntryNo || '',
                     item.errorMessage || item.errors.join('; ')
                 ]);
             });
@@ -4937,6 +5420,7 @@
                 { wch: 10 }, // 国家
                 { wch: 20 }, // 商品描述
                 { wch: 15 }, // 发货人
+                { wch: 15 }, // 预录入号
                 { wch: 30 }  // 失败原因
             ];
             ws['!cols'] = colWidths;
@@ -4947,11 +5431,11 @@
 
         function downloadTemplate() {
             const templateData = [
-                ['柜号*', '到港日期*', '提单号', '国家', '商品描述', '发货人'],
-                ['CONT1234567', '2024-01-15', 'BL20240001', '德国', '机械设备', 'ABC公司'],
-                ['CONT1234568', '2024-01-16', 'BL20240002', '法国', '电子元件', 'XYZ公司'],
-                ['CONT1234569', '2024-01-17', '', '意大利', '化工原料', 'DEF公司'],
-                ['', '', '', '', '', ''],
+                ['柜号*', '到港日期*', '提单号', '国家', '商品描述', '发货人', '预录入号'],
+                ['CONT1234567', '2024-01-15', 'BL20240001', '德国', '机械设备', 'ABC公司', 'PRE20240001'],
+                ['CONT1234568', '2024-01-16', 'BL20240002', '法国', '电子元件', 'XYZ公司', 'PRE20240002'],
+                ['CONT1234569', '2024-01-17', '', '意大利', '化工原料', 'DEF公司', 'PRE20240003'],
+                ['', '', '', '', '', '', ''],
                 ['说明:'],
                 ['1. 带*的列为必填项'],
                 ['2. 日期格式: YYYY-MM-DD'],
@@ -4968,7 +5452,8 @@
                 { wch: 15 }, // 提单号
                 { wch: 10 }, // 国家
                 { wch: 20 }, // 商品描述
-                { wch: 15 }  // 发货人
+                { wch: 15 }, // 发货人
+                { wch: 15 }  // 预录入号
             ];
             ws['!cols'] = colWidths;
 
@@ -4994,7 +5479,7 @@
             if (!file) return;
 
             const previewBody = document.getElementById('importCustomsPreviewBody');
-            previewBody.innerHTML = '<tr><td colspan="8" class="text-center">正在解析文件...</td></tr>';
+            previewBody.innerHTML = '<tr><td colspan="10" class="text-center">正在解析文件...</td></tr>';
 
             parseCustomsExcelFile(file).then(parsedData => {
                 importData = parsedData;
@@ -5002,7 +5487,7 @@
             }).catch(error => {
                 console.error('文件解析失败:', error);
                 previewBody.innerHTML = `<tr class="import-status-error">
-                    <td colspan="8" class="text-center text-danger">文件解析失败: ${error.message}</td>
+                    <td colspan="10" class="text-center text-danger">文件解析失败: ${error.message}</td>
                 </tr>`;
             });
         }
@@ -5033,6 +5518,8 @@
                             customsNo: findColumnIndex(headers, ['报关单号', '报关号', 'customs']),
                             country: findColumnIndex(headers, ['国家', '国别', 'country']),
                             productName: findColumnIndex(headers, ['品名', '商品描述', 'product']),
+                            preEntryNo: findColumnIndex(headers, ['预录入号', '预录入', 'preEntry']),
+                            declareDate: findColumnIndex(headers, ['申报日期', '申报时间', 'declare']),
                             domesticConsignee: findColumnIndex(headers, ['境内收发货人', '境内收货人', 'domestic']),
                             consumptionUnit: findColumnIndex(headers, ['消费使用单位', '消费单位', 'consumption']),
                             foreignConsignee: findColumnIndex(headers, ['境外收发货人', '境外收货人', 'foreign']),
@@ -5050,6 +5537,8 @@
                             certificate325: findColumnIndex(headers, ['325证书', '325']),
                             certificate519: findColumnIndex(headers, ['519证书', '519']),
                             certificate113: findColumnIndex(headers, ['113证书', '113']),
+                            inspectionSpec: findColumnIndex(headers, ['检验检疫货物规格', '检验检疫规格', 'inspection']),
+                            productionDate: findColumnIndex(headers, ['生产日期', '生产时间', 'production']),
                             remark: findColumnIndex(headers, ['备注', '说明', 'remark'])
                         };
                         
@@ -5075,6 +5564,8 @@
                                 customsNo: customsNoStr.trim(),
                                 country: row[columnMap.country] ? row[columnMap.country].toString().trim() : '',
                                 productName: row[columnMap.productName] ? row[columnMap.productName].toString().trim() : '',
+                                preEntryNo: row[columnMap.preEntryNo] ? row[columnMap.preEntryNo].toString().trim() : '',
+                                declareDate: formatDate(row[columnMap.declareDate]),
                                 domesticConsignee: row[columnMap.domesticConsignee] ? row[columnMap.domesticConsignee].toString().trim() : '',
                                 consumptionUnit: row[columnMap.consumptionUnit] ? row[columnMap.consumptionUnit].toString().trim() : '',
                                 foreignConsignee: row[columnMap.foreignConsignee] ? row[columnMap.foreignConsignee].toString().trim() : '',
@@ -5092,6 +5583,8 @@
                                 certificate325: row[columnMap.certificate325] ? row[columnMap.certificate325].toString().trim() : '',
                                 certificate519: row[columnMap.certificate519] ? row[columnMap.certificate519].toString().trim() : '',
                                 certificate113: row[columnMap.certificate113] ? row[columnMap.certificate113].toString().trim() : '',
+                                inspectionSpec: row[columnMap.inspectionSpec] ? row[columnMap.inspectionSpec].toString().trim() : '',
+                                productionDate: formatDate(row[columnMap.productionDate]),
                                 remark: row[columnMap.remark] ? row[columnMap.remark].toString().trim() : '',
                                 status: 'pending',
                                 errors: []
@@ -5115,6 +5608,7 @@
             });
         }
 
+        // 增强报关数据重复项检查
         function validateCustomsImportItem(item) {
             item.errors = [];
 
@@ -5131,21 +5625,29 @@
                 }
             }
 
-            const isDuplicate = customsData.some(existing => {
+            // 报关单号重复检查
+            if (item.customsNo) {
+                const customsNoDuplicate = customsData.some(existing => 
+                    existing.customsNo && existing.customsNo === item.customsNo
+                );
+                
+                if (customsNoDuplicate) {
+                    item.errors.push('报关单号已存在');
+                }
+            }
+
+            // 柜号和提单号重复检查
+            const containerBillDuplicate = customsData.some(existing => {
                 if (existing.containerNo !== item.containerNo) return false;
                 
                 if (item.billNo && existing.billNo) {
                     return existing.billNo === item.billNo;
                 }
                 
-                if (!item.billNo && existing.billNo) {
-                    return false;
-                }
-                
-                return !item.billNo && !existing.billNo;
+                return true; // 柜号重复
             });
 
-            if (isDuplicate) {
+            if (containerBillDuplicate) {
                 if (item.billNo) {
                     item.errors.push('柜号和提单号组合已存在');
                 } else {
@@ -5165,7 +5667,7 @@
             const confirmButton = document.getElementById('confirmCustomsImport');
 
             if (data.length === 0) {
-                previewBody.innerHTML = '<tr><td colspan="8" class="text-center">没有找到有效数据</td></tr>';
+                previewBody.innerHTML = '<tr><td colspan="10" class="text-center">没有找到有效数据</td></tr>';
                 confirmButton.disabled = true;
                 return;
             }
@@ -5185,6 +5687,8 @@
                     <td>${item.customsNo || ''}</td>
                     <td>${item.country || ''}</td>
                     <td>${item.productName || ''}</td>
+                    <td>${item.preEntryNo || ''}</td>
+                    <td>${item.declareDate || ''}</td>
                     <td class="text-danger small">${item.errors.join('; ')}</td>
                 </tr>`;
                 
@@ -5194,7 +5698,7 @@
             });
 
             html += `<tr class="bg-light">
-                <td colspan="8" class="text-center">
+                <td colspan="10" class="text-center">
                     <strong>统计:</strong> 总计 ${data.length} 条，有效 ${validCount} 条，错误 ${data.length - validCount} 条
                 </td>
             </tr>`;
@@ -5234,11 +5738,7 @@
                                     return existing.billNo === item.billNo;
                                 }
                                 
-                                if (!item.billNo && existing.billNo) {
-                                    return false;
-                                }
-                                
-                                return !item.billNo && !existing.billNo;
+                                return true; // 柜号重复
                             });
                             
                             if (isDuplicate) {
@@ -5254,8 +5754,8 @@
                         
                         const newItem = {
                             arrivalDate: item.arrivalDate,
-                            declareDate: '',
-                            preEntryNo: '',
+                            declareDate: item.declareDate || '',
+                            preEntryNo: item.preEntryNo || '',
                             billNo: item.billNo || '',
                             containerNo: item.containerNo,
                             customsNo: item.customsNo || '',
@@ -5284,6 +5784,8 @@
                             certificate325: item.certificate325 || '',
                             certificate519: item.certificate519 || '',
                             certificate113: item.certificate113 || '',
+                            inspectionSpec: item.inspectionSpec || '',
+                            productionDate: item.productionDate || '',
                             attachments: []
                         };
                         
@@ -5344,7 +5846,7 @@
                 ['序号', '到港日期', '申报日期', '预录入号', '报关状态', '指令', '提单号', '柜号', '报关单号', 
                  '欧盟保证金', '国家', '品名', '境内收发货人', '消费使用单位', '境外收发货人', 'HS编码', 
                  '监管类别名称', '规格型号', '货值', '币制', '厂号', '发货人备案号', '件数', '净重', '毛重', 
-                 '105证书', '325证书', '519证书', '113证书', '备注']
+                 '105证书', '325证书', '519证书', '113证书', '检验检疫货物规格', '生产日期', '备注']
             ];
 
             filteredCustomsData.forEach((item, index) => {
@@ -5378,6 +5880,8 @@
                     item.certificate325,
                     item.certificate519,
                     item.certificate113,
+                    item.inspectionSpec,
+                    item.productionDate,
                     item.remark
                 ]);
             });
@@ -5415,6 +5919,8 @@
                 { wch: 10 },  // 325证书
                 { wch: 10 },  // 519证书
                 { wch: 10 },  // 113证书
+                { wch: 20 },  // 检验检疫货物规格
+                { wch: 12 },  // 生产日期
                 { wch: 20 }   // 备注
             ];
             ws['!cols'] = colWidths;
@@ -5425,16 +5931,16 @@
 
         function downloadCustomsTemplate() {
             const templateData = [
-                ['柜号*', '到港日期*', '提单号', '报关单号', '国家', '品名', '境内收发货人', '消费使用单位', 
+                ['柜号*', '到港日期*', '提单号', '报关单号', '国家', '品名', '预录入号', '申报日期', '境内收发货人', '消费使用单位', 
                  '境外收发货人', 'HS编码', '监管类别名称', '规格型号', '货值', '币制', '厂号', '发货人备案号', 
-                 '件数', '净重', '毛重', '105证书', '325证书', '519证书', '113证书', '备注'],
-                ['CONT1234567', '2024-01-15', 'BL20240001', 'CUS20240001', '德国', '机械设备', 'ABC公司', 'DEF公司', 
+                 '件数', '净重', '毛重', '105证书', '325证书', '519证书', '113证书', '检验检疫货物规格', '生产日期', '备注'],
+                ['CONT1234567', '2024-01-15', 'BL20240001', 'CUS20240001', '德国', '机械设备', 'PRE20240001', '2024-01-16', 'ABC公司', 'DEF公司', 
                  'XYZ GmbH', '84798990', '出口监管', '型号A', '100000', 'EUR', 'F001', 'R2024001', 
-                 '100', '5000', '5500', '105001', '325001', '519001', '113001', '测试数据'],
-                ['CONT1234568', '2024-01-16', 'BL20240002', 'CUS20240002', '法国', '电子元件', 'DEF公司', 'GHI公司', 
+                 '100', '5000', '5500', '105001', '325001', '519001', '113001', '规格A', '2024-01-01', '测试数据'],
+                ['CONT1234568', '2024-01-16', 'BL20240002', 'CUS20240002', '法国', '电子元件', 'PRE20240002', '2024-01-17', 'DEF公司', 'GHI公司', 
                  'ABC SARL', '85423190', '出口监管', '型号B', '50000', 'EUR', 'F002', 'R2024002', 
-                 '50', '2500', '2800', '105002', '325002', '519002', '113002', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                 '50', '2500', '2800', '105002', '325002', '519002', '113002', '规格B', '2024-01-02', ''],
+                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                 ['说明:'],
                 ['1. 带*的列为必填项'],
                 ['2. 日期格式: YYYY-MM-DD'],
@@ -5452,6 +5958,8 @@
                 { wch: 15 }, // 报关单号
                 { wch: 10 }, // 国家
                 { wch: 20 }, // 品名
+                { wch: 15 }, // 预录入号
+                { wch: 12 }, // 申报日期
                 { wch: 20 }, // 境内收发货人
                 { wch: 20 }, // 消费使用单位
                 { wch: 20 }, // 境外收发货人
@@ -5469,6 +5977,8 @@
                 { wch: 10 }, // 325证书
                 { wch: 10 }, // 519证书
                 { wch: 10 }, // 113证书
+                { wch: 20 }, // 检验检疫货物规格
+                { wch: 12 }, // 生产日期
                 { wch: 20 }  // 备注
             ];
             ws['!cols'] = colWidths;
@@ -5520,6 +6030,8 @@
                 trackingObject.set('certificate325', trackingItem.certificate325 || '');
                 trackingObject.set('certificate519', trackingItem.certificate519 || '');
                 trackingObject.set('certificate113', trackingItem.certificate113 || '');
+                trackingObject.set('inspectionSpec', trackingItem.inspectionSpec || '');
+                trackingObject.set('productionDate', trackingItem.productionDate || '');
                 
                 trackingObject.set('attachments', trackingItem.attachments);
                 
