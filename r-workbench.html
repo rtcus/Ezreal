@@ -1999,7 +1999,8 @@
                             </div>
                             <div class="col-md-4">
                                 <label for="editProductionDate" class="form-label">生产日期</label>
-                                <input type="text" class="form-control date-input" id="editProductionDate">
+                                <!-- 修改：将日期选择器改为普通文本输入框 -->
+                                <input type="text" class="form-control" id="editProductionDate" placeholder="输入生产日期">
                             </div>
                             <div class="col-12">
                                 <label for="editCustomsRemark" class="form-label">备注</label>
@@ -2379,12 +2380,8 @@
                 allowInput: true
             });
             
-            // 生产日期选择器
-            const productionDatePicker = flatpickr('#editProductionDate', {
-                locale: 'zh',
-                dateFormat: 'Y-m-d',
-                allowInput: true
-            });
+            // 修改：移除生产日期的日期选择器初始化
+            // 生产日期现在使用普通文本输入框
             
             // 存储日期选择器实例
             datePickers.arrivalDate = arrivalDatePicker;
@@ -2392,7 +2389,6 @@
             datePickers.customsArrivalDate = customsArrivalDatePicker;
             datePickers.customsDeclareDate = customsDeclareDatePicker;
             datePickers.newArrivalDate = newArrivalDatePicker;
-            datePickers.productionDate = productionDatePicker;
         }
         
         // 页面切换函数 - 修复：确保DOM更新完成后再加载数据
@@ -3618,7 +3614,7 @@
                         certificate519: data.certificate519 || '',
                         certificate113: data.certificate113 || '',
                         inspectionSpec: data.inspectionSpec || '',
-                        productionDate: data.productionDate || '',
+                        productionDate: data.productionDate || '', // 修改：生产日期现在存储为文本
                         attachments: data.attachments || [],
                         leanCloudObject: item
                     };
@@ -4098,7 +4094,7 @@
                     <td>${item.certificate519 || ''}</td>
                     <td>${item.certificate113 || ''}</td>
                     <td>${item.inspectionSpec || ''}</td>
-                    <td>${item.productionDate || ''}</td>
+                    <td>${item.productionDate || ''}</td> <!-- 修改：生产日期现在显示为文本 -->
                     <td>${item.remark}</td>
                 `;
                 
@@ -4904,6 +4900,7 @@
             document.getElementById('editCertificate519').value = item.certificate519 || '';
             document.getElementById('editCertificate113').value = item.certificate113 || '';
             document.getElementById('editInspectionSpec').value = item.inspectionSpec || '';
+            // 修改：生产日期字段现在使用普通文本输入框
             document.getElementById('editProductionDate').value = item.productionDate || '';
             document.getElementById('editCustomsRemark').value = item.remark || '';
 
@@ -4942,6 +4939,7 @@
             item.certificate519 = document.getElementById('editCertificate519').value;
             item.certificate113 = document.getElementById('editCertificate113').value;
             item.inspectionSpec = document.getElementById('editInspectionSpec').value;
+            // 修改：生产日期现在保存为文本
             item.productionDate = document.getElementById('editProductionDate').value;
             item.remark = document.getElementById('editCustomsRemark').value;
 
@@ -5584,7 +5582,7 @@
                                 certificate519: row[columnMap.certificate519] ? row[columnMap.certificate519].toString().trim() : '',
                                 certificate113: row[columnMap.certificate113] ? row[columnMap.certificate113].toString().trim() : '',
                                 inspectionSpec: row[columnMap.inspectionSpec] ? row[columnMap.inspectionSpec].toString().trim() : '',
-                                productionDate: formatDate(row[columnMap.productionDate]),
+                                productionDate: row[columnMap.productionDate] ? row[columnMap.productionDate].toString().trim() : '', // 修改：生产日期现在作为文本处理
                                 remark: row[columnMap.remark] ? row[columnMap.remark].toString().trim() : '',
                                 status: 'pending',
                                 errors: []
@@ -5785,7 +5783,7 @@
                             certificate519: item.certificate519 || '',
                             certificate113: item.certificate113 || '',
                             inspectionSpec: item.inspectionSpec || '',
-                            productionDate: item.productionDate || '',
+                            productionDate: item.productionDate || '', // 修改：生产日期现在作为文本存储
                             attachments: []
                         };
                         
@@ -5881,7 +5879,7 @@
                     item.certificate519,
                     item.certificate113,
                     item.inspectionSpec,
-                    item.productionDate,
+                    item.productionDate, // 修改：生产日期作为文本导出
                     item.remark
                 ]);
             });
@@ -6031,7 +6029,7 @@
                 trackingObject.set('certificate519', trackingItem.certificate519 || '');
                 trackingObject.set('certificate113', trackingItem.certificate113 || '');
                 trackingObject.set('inspectionSpec', trackingItem.inspectionSpec || '');
-                trackingObject.set('productionDate', trackingItem.productionDate || '');
+                trackingObject.set('productionDate', trackingItem.productionDate || ''); // 修改：生产日期现在存储为文本
                 
                 trackingObject.set('attachments', trackingItem.attachments);
                 
