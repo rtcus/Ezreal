@@ -1,0 +1,1007 @@
+:root {
+    --primary-color: #1a3c8b;
+    --secondary-color: #2d5aa0;
+    --accent-color: #4a90e2;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --border-radius: 6px;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7fa;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+}
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.4rem;
+}
+
+.nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 120px);
+}
+
+.nav-links li {
+    margin: 5px 0;
+}
+
+.nav-links a {
+    display: block;
+    padding: 12px 20px;
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    transition: all 0.3s;
+    border-left: 3px solid transparent;
+}
+
+.nav-links a:hover, .nav-links a.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-left: 3px solid var(--accent-color);
+}
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    position: relative;
+}
+
+.page-header {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.page-header h2 {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 1.5rem;
+}
+
+.card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    margin-bottom: 15px;
+}
+
+.card-header {
+    background-color: white;
+    border-bottom: 1px solid #eaeaea;
+    padding: 12px 15px;
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 0.95rem;
+}
+
+.form-control, .form-select {
+    border-radius: var(--border-radius);
+    border: 1px solid #ddd;
+    padding: 6px 10px;
+    font-size: 0.9rem;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    border-radius: var(--border-radius);
+    padding: 6px 12px;
+    font-size: 0.9rem;
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    border-radius: var(--border-radius);
+    font-size: 0.9rem;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* 表格容器设置固定高度和滚动 */
+.table-card-container {
+    display: flex;
+    flex-direction: column;
+    height: 600px;
+    border-radius: var(--border-radius);
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.table-card-header {
+    background-color: white;
+    border-bottom: 1px solid #eaeaea;
+    padding: 12px 15px;
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.table-content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 修复表格横向滚动条和内容显示问题 */
+.table-container {
+    border-radius: 0;
+    overflow-x: auto;
+    overflow-y: auto;
+    width: 100%;
+    flex: 1;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.table {
+    width: 100%;
+    min-width: 1400px;
+    margin-bottom: 0;
+    table-layout: auto;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    color: var(--primary-color);
+    font-weight: 600;
+    border-top: none;
+    font-size: 0.85rem;
+    padding: 8px 10px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.table td {
+    font-size: 0.85rem;
+    padding: 8px 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.table-warning {
+    background-color: #fff3cd !important;
+}
+
+.fee-edit-input {
+    min-width: 80px;
+    text-align: center;
+}
+
+.preview-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.sticky-header {
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    z-index: 10;
+}
+
+/* 为重要列设置最小宽度 - 修复：所有表头都固定 */
+.table th:nth-child(1), .table td:nth-child(1) { min-width: 60px; position: sticky; left: 0; background-color: #f8f9fa; z-index: 9; }
+.table th:nth-child(2), .table td:nth-child(2) { min-width: 100px; }
+.table th:nth-child(3), .table td:nth-child(3) { min-width: 100px; }
+.table th:nth-child(4), .table td:nth-child(4) { min-width: 120px; }
+.table th:nth-child(5), .table td:nth-child(5) { min-width: 120px; }
+.table th:nth-child(6), .table td:nth-child(6) { min-width: 120px; }
+.table th:nth-child(7), .table td:nth-child(7) { min-width: 120px; }
+.table th:nth-child(8), .table td:nth-child(8) { min-width: 100px; }
+.table th:nth-child(9), .table td:nth-child(9) { min-width: 80px; }
+.table th:nth-child(10), .table td:nth-child(10) { min-width: 150px; }
+.table th:nth-child(11), .table td:nth-child(11) { min-width: 100px; }
+.table th:nth-child(12), .table td:nth-child(12) { min-width: 100px; }
+.table th:nth-child(13), .table td:nth-child(13) { min-width: 100px; }
+.table th:nth-child(14), .table td:nth-child(14) { min-width: 150px; }
+.table th:nth-child(15), .table td:nth-child(15) { min-width: 80px; }
+.table th:nth-child(16), .table td:nth-child(16) { min-width: 80px; }
+
+/* 报关数据表格列宽设置 - 调整字段位置 */
+.customs-table {
+    min-width: 2400px;
+}
+
+.customs-table th:nth-child(1), .customs-table td:nth-child(1) { min-width: 60px; position: sticky; left: 0; background-color: #f8f9fa; z-index: 9; }
+.customs-table th:nth-child(2), .customs-table td:nth-child(2) { min-width: 100px; }
+.customs-table th:nth-child(3), .customs-table td:nth-child(3) { min-width: 100px; }
+.customs-table th:nth-child(4), .customs-table td:nth-child(4) { min-width: 120px; }
+.customs-table th:nth-child(5), .customs-table td:nth-child(5) { min-width: 100px; }
+.customs-table th:nth-child(6), .customs-table td:nth-child(6) { min-width: 100px; }
+.customs-table th:nth-child(7), .customs-table td:nth-child(7) { min-width: 80px; }
+.customs-table th:nth-child(8), .customs-table td:nth-child(8) { min-width: 120px; }
+.customs-table th:nth-child(9), .customs-table td:nth-child(9) { min-width: 120px; }
+.customs-table th:nth-child(10), .customs-table td:nth-child(10) { min-width: 120px; }
+.customs-table th:nth-child(11), .customs-table td:nth-child(11) { min-width: 100px; }
+.customs-table th:nth-child(12), .customs-table td:nth-child(12) { min-width: 80px; }
+.customs-table th:nth-child(13), .customs-table td:nth-child(13) { min-width: 150px; }
+.customs-table th:nth-child(14), .customs-table td:nth-child(14) { min-width: 120px; }
+.customs-table th:nth-child(15), .customs-table td:nth-child(15) { min-width: 120px; }
+.customs-table th:nth-child(16), .customs-table td:nth-child(16) { min-width: 120px; }
+.customs-table th:nth-child(17), .customs-table td:nth-child(17) { min-width: 100px; }
+.customs-table th:nth-child(18), .customs-table td:nth-child(18) { min-width: 100px; }
+.customs-table th:nth-child(19), .customs-table td:nth-child(19) { min-width: 120px; }
+.customs-table th:nth-child(20), .customs-table td:nth-child(20) { min-width: 80px; }
+.customs-table th:nth-child(21), .customs-table td:nth-child(21) { min-width: 60px; }
+.customs-table th:nth-child(22), .customs-table td:nth-child(22) { min-width: 80px; }
+.customs-table th:nth-child(23), .customs-table td:nth-child(23) { min-width: 100px; }
+.customs-table th:nth-child(24), .customs-table td:nth-child(24) { min-width: 60px; }
+.customs-table th:nth-child(25), .customs-table td:nth-child(25) { min-width: 60px; }
+.customs-table th:nth-child(26), .customs-table td:nth-child(26) { min-width: 60px; }
+.customs-table th:nth-child(27), .customs-table td:nth-child(27) { min-width: 80px; }
+.customs-table th:nth-child(28), .customs-table td:nth-child(28) { min-width: 80px; }
+.customs-table th:nth-child(29), .customs-table td:nth-child(29) { min-width: 80px; }
+.customs-table th:nth-child(30), .customs-table td:nth-child(30) { min-width: 80px; }
+.customs-table th:nth-child(31), .customs-table td:nth-child(31) { min-width: 150px; }
+.customs-table th:nth-child(32), .customs-table td:nth-child(32) { min-width: 120px; }
+.customs-table th:nth-child(33), .customs-table td:nth-child(33) { min-width: 100px; }
+
+/* 恢复列宽调整功能 */
+.resize-handle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 5px;
+    height: 100%;
+    background-color: transparent;
+    cursor: col-resize;
+    z-index: 10;
+}
+
+.resize-handle:hover {
+    background-color: var(--accent-color);
+}
+
+.resize-handle.active {
+    background-color: var(--accent-color);
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status-已核 { background-color: #e8f5e9; color: #2e7d32; }
+.status-打单 { background-color: #fff3e0; color: #ef6c00; }
+.status-申报 { background-color: #e3f2fd; color: #1565c0; }
+.status-问申报 { background-color: #fce4ec; color: #c2185b; }
+.status-有舱单 { background-color: #e8eaf6; color: #3949ab; }
+.status-等通知申报 { background-color: #fff8e1; color: #ff8f00; }
+.status-取消 { background-color: #ffebee; color: #c62828; }
+.status-可以报 { background-color: #e0f2f1; color: #00695c; }
+
+.custom-select {
+    border: none;
+    background: transparent;
+    width: 100%;
+    cursor: pointer;
+}
+
+.custom-select:focus {
+    outline: none;
+}
+
+.editable-cell {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.editable-cell:hover {
+    background-color: #f0f7ff;
+}
+
+.editable-cell.disabled {
+    cursor: not-allowed;
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+.editable-cell.disabled:hover {
+    background-color: #f8f9fa;
+}
+
+.quick-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.quick-link {
+    flex: 1;
+    min-width: 200px;
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.quick-link:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.quick-link h4 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.quick-link p {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* 分页控件固定在容器底部 */
+.pagination-container {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-top: 1px solid #eaeaea;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.pagination {
+    margin: 0;
+    justify-content: center;
+    flex: 1;
+}
+
+.pagination-info {
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    margin-right: 20px;
+}
+
+.page-size-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.page-size-selector select {
+    width: auto;
+    padding: 4px 8px;
+}
+
+.hidden {
+    display: none;
+}
+
+.modal-content {
+    border-radius: var(--border-radius);
+    border: none;
+}
+
+.modal-header {
+    background-color: var(--primary-color);
+    color: white;
+    border-bottom: none;
+}
+
+.modal-footer {
+    border-top: 1px solid #eaeaea;
+}
+
+.file-upload-area {
+    border: 2px dashed #ddd;
+    border-radius: var(--border-radius);
+    padding: 30px;
+    text-align: center;
+    margin-bottom: 20px;
+    transition: border-color 0.3s;
+}
+
+.file-upload-area:hover {
+    border-color: var(--accent-color);
+}
+
+.file-list {
+    list-style: none;
+    padding: 0;
+}
+
+.file-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.file-list li:last-child {
+    border-bottom: none;
+}
+
+.file-name {
+    color: var(--primary-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.file-name:hover {
+    text-decoration: underline;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+/* 导入相关样式 */
+.import-status-valid { background-color: #e8f5e9; }
+.import-status-error { background-color: #ffebee; }
+.import-status-warning { background-color: #fff3e0; }
+.import-status-failed { background-color: #ffebee; color: #dc3545; }
+
+.import-preview-table th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 10;
+}
+
+.fas {
+    margin-right: 4px;
+}
+
+/* 文件上传区域样式 */
+.file-upload-box {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.file-upload-box:hover {
+    border-color: #0d6efd;
+    background-color: #e7f1ff;
+}
+
+.file-upload-box.dragover {
+    border-color: #0d6efd;
+    background-color: #d4edda;
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.file-info {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+/* 模态框表格样式调整 - 优化跟进状态弹窗表格宽度 */
+.modal-table {
+    width: 100%;
+    font-size: 0.9rem;
+    table-layout: fixed;
+}
+
+.modal-table th,
+.modal-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.modal-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: var(--primary-color);
+    position: sticky;
+    top: 0;
+}
+
+.modal-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* 设置特定列的最小宽度 - 优化跟进状态弹窗表格列宽 */
+.modal-table th:nth-child(1),
+.modal-table td:nth-child(1) { width: 60px; }
+.modal-table th:nth-child(2),
+.modal-table td:nth-child(2) { width: 120px; }
+.modal-table th:nth-child(3),
+.modal-table td:nth-child(3) { width: 100px; }
+.modal-table th:nth-child(4),
+.modal-table td:nth-child(4) { width: 100px; }
+.modal-table th:nth-child(5),
+.modal-table td:nth-child(5) { width: 120px; }
+
+.modal-table .operation-select {
+    width: 120px;
+    padding: 4px 8px;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: auto;
+    }
+    
+    .nav-links {
+        display: flex;
+        overflow-x: auto;
+    }
+    
+    .nav-links li {
+        flex: 0 0 auto;
+    }
+    
+    .nav-links a {
+        border-left: none;
+        border-bottom: 3px solid transparent;
+    }
+    
+    .nav-links a:hover, .nav-links a.active {
+        border-left: none;
+        border-bottom: 3px solid var(--accent-color);
+    }
+    
+    .search-form .row {
+        margin-bottom: 8px;
+    }
+    
+    .search-form .col-md-3 {
+        margin-bottom: 10px;
+    }
+    
+    /* 移动端分页样式调整 */
+    .pagination-container {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px 15px;
+    }
+    
+    .pagination-info {
+        margin-right: 0;
+        order: 1;
+    }
+    
+    .pagination {
+        order: 2;
+    }
+    
+    .page-size-selector {
+        order: 3;
+    }
+    
+    /* 移动端表格容器高度调整 */
+    .table-card-container {
+        height: 500px;
+    }
+}
+
+.search-form .row {
+    margin-bottom: 0;
+}
+
+.search-form .col-md-3 {
+    margin-bottom: 10px;
+}
+
+.duplicate-error {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.duplicate-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.delete-btn {
+    color: #dc3545;
+    border-color: #dc3545;
+    font-size: 0.8rem;
+    padding: 4px 8px;
+}
+
+.delete-btn:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+.delete-btn:disabled {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.attachment-count {
+    background-color: var(--accent-color);
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    margin-left: 4px;
+}
+
+.no-data {
+    text-align: center;
+    padding: 20px;
+    color: #6c757d;
+}
+
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: #6c757d;
+}
+
+.date-input {
+    cursor: pointer;
+    background-color: white;
+}
+
+.non-release-status {
+    background-color: #fff3cd !important;
+}
+
+.no-electronic-info {
+    background-color: #ffebee !important;
+}
+
+.page-item.active .page-link {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.page-link {
+    color: var(--primary-color);
+    font-size: 0.85rem;
+    padding: 6px 12px;
+}
+
+.form-select-sm {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+}
+
+/* 导入结果模态框样式 */
+.import-result-modal .modal-dialog {
+    max-width: 90%;
+}
+
+.import-result-table {
+    font-size: 0.8rem;
+}
+
+.import-result-table th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+}
+
+/* 预录入号可点击样式 */
+.pre-entry-clickable {
+    cursor: pointer;
+    color: var(--primary-color);
+    text-decoration: underline;
+    transition: all 0.2s;
+}
+
+.pre-entry-clickable:hover {
+    background-color: #f0f7ff;
+    color: var(--secondary-color);
+}
+
+/* 登录模态框样式 */
+#loginModal .modal-content {
+    border-radius: 10px;
+}
+
+#loginModal .modal-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+}
+
+#loginModal .modal-body {
+    padding: 2rem;
+}
+
+#loginBtn {
+    width: 100%;
+    padding: 10px;
+    font-size: 1.1rem;
+}
+
+.user-info {
+    padding: 10px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: auto;
+}
+
+/* 跟进状态卡片样式 */
+.status-card {
+    flex: 1;
+    min-width: 200px;
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.status-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.status-card h4 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.status-card .count {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--accent-color);
+    margin: 10px 0;
+}
+
+.status-card p {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* === 核弹级修复：直接修改现有样式 === */
+/* 找到现有的.table th样式并覆盖 */
+.table th {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+    background-color: #f8f9fa !important;
+}
+
+/* 确保表格容器有滚动 */
+.table-container {
+    overflow: auto !important;
+    height: 100% !important;
+}
+
+/* 强制所有表格表头固定 */
+table thead th {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0 !important;
+    background-color: #f8f9fa !important;
+    z-index: 100 !important;
+}
+
+/* 特定表格修复 */
+#trackingTable thead th,
+#customsTable thead th {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0 !important;
+    background-color: #f8f9fa !important;
+    z-index: 100 !important;
+}
+
+/* 文件管理表头固定 */
+#files .table-responsive {
+    max-height: 500px !important;
+    overflow: auto !important;
+}
+
+#files table thead th {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0 !important;
+    background-color: #f8f9fa !important;
+    z-index: 100 !important;
+}
+
+/* 修复跟进状态模态框表格宽度 */
+.modal-table {
+    width: 100% !important;
+    min-width: 100% !important;
+    table-layout: fixed !important;
+}
+
+/* 设置模态框表格列宽 */
+.modal-table th:nth-child(1),
+.modal-table td:nth-child(1) { 
+    width: 60px !important; 
+    min-width: 60px !important;
+}
+.modal-table th:nth-child(2),
+.modal-table td:nth-child(2) { 
+    width: 120px !important; 
+    min-width: 120px !important;
+}
+.modal-table th:nth-child(3),
+.modal-table td:nth-child(3) { 
+    width: 100px !important; 
+    min-width: 100px !important;
+}
+.modal-table th:nth-child(4),
+.modal-table td:nth-child(4) { 
+    width: 100px !important; 
+    min-width: 100px !important;
+}
+.modal-table th:nth-child(5),
+.modal-table td:nth-child(5) { 
+    width: 120px !important; 
+    min-width: 120px !important;
+}
+
+/* 确保模态框内容适应 */
+.modal-dialog.modal-lg {
+    max-width: 800px !important;
+}
+
+.modal-body .table-responsive {
+    max-height: 400px !important;
+    overflow: auto !important;
+}
+
+/* ===== 修复跟进状态模态框表格宽度问题 ===== */
+
+/* 修复模态框表格布局 */
+.modal-table {
+    width: 100% !important;
+    min-width: 100% !important;
+    table-layout: fixed !important;
+}
+
+/* 设置模态框表格列宽 */
+.modal-table th:nth-child(1),
+.modal-table td:nth-child(1) { 
+    width: 60px !important; 
+    min-width: 60px !important;
+}
+.modal-table th:nth-child(2),
+.modal-table td:nth-child(2) { 
+    width: 120px !important; 
+    min-width: 120px !important;
+}
+.modal-table th:nth-child(3),
+.modal-table td:nth-child(3) { 
+    width: 100px !important; 
+    min-width: 100px !important;
+}
+.modal-table th:nth-child(4),
+.modal-table td:nth-child(4) { 
+    width: 100px !important; 
+    min-width: 100px !important;
+}
+.modal-table th:nth-child(5),
+.modal-table td:nth-child(5) { 
+    width: 120px !important; 
+    min-width: 120px !important;
+}
+
+/* 确保模态框容器正确设置 */
+.modal-dialog.modal-lg {
+    max-width: 800px !important;
+}
+
+.modal-body .table-responsive {
+    max-height: 400px !important;
+    overflow: auto !important;
+}
+
+/* 强制模态框表格容器适应 */
+#quarantineModal .table-responsive,
+#inspectionModal .table-responsive,
+#unprintedCheckModal .table-responsive,
+#missingDataModal .table-responsive {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+}
+
+/* 生成账单模态框尺寸调整 */
+#generateBillModal .modal-dialog {
+    max-width: 95%;
+    width: 95%;
+}
+
+/* 预览表格样式优化 */
+.preview-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.sticky-header {
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    z-index: 10;
+}
