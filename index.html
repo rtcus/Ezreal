@@ -8,6 +8,8 @@
     <!-- 引入外部资源 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 添加Leancloud SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.13.2/dist/av-min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -485,12 +487,16 @@
                     </button>
                 </div>
                 
-                <!-- 密码输入 -->
-                <div id="password-check" class="mb-4">
-                    <label for="admin-password" class="block text-sm font-medium mb-2">请输入修改码</label>
-                    <input type="password" id="admin-password" class="w-full px-4 py-2 rounded-lg glass-effect input-focus outline-none">
-                    <p id="password-error" class="text-red-500 text-sm mt-1 hidden">修改码错误，请重试</p>
-                    <button id="verify-password" class="mt-2 px-4 py-2 bg-primary rounded-lg text-white">验证</button>
+                <!-- 登录表单 -->
+                <div id="login-form" class="mb-4">
+                    <label for="username" class="block text-sm font-medium mb-2">用户名</label>
+                    <input type="text" id="username" class="w-full px-4 py-2 rounded-lg glass-effect input-focus outline-none mb-3">
+                    
+                    <label for="password" class="block text-sm font-medium mb-2">密码</label>
+                    <input type="password" id="password" class="w-full px-4 py-2 rounded-lg glass-effect input-focus outline-none">
+                    
+                    <p id="login-error" class="text-red-500 text-sm mt-1 hidden">用户名或密码错误</p>
+                    <button id="login-btn" class="mt-4 px-4 py-2 bg-primary rounded-lg text-white">登录</button>
                 </div>
                 
                 <!-- 编辑内容 (默认隐藏) -->
@@ -542,74 +548,12 @@
     <div class="fixed inset-0 bg-grid pointer-events-none z-0 opacity-30"></div>
     
     <script>
-        // 导航链接数据
-        const navLinks = [
-            { name: '舱单信息查询', url: 'http://query.customs.gov.cn/MNFTQ/MQuery.aspx' },
-            { name: '519进口食品境外生产企业注册', url: 'https://ciferquery.singlewindow.cn/' },
-            { name: '动植司', url: 'http://dzs.customs.gov.cn/dzs/2747042/3995815/3995850/index.html' },
-            { name: '进出口食品安全局', url: 'http://jckspj.customs.gov.cn/' },
-            { name: '进境动植物检疫注册', url: 'http://scintl.chinaport.gov.cn/aprwebserver/pages/apr/public/html/companyList.html' },
-            { name: '海关信用公示系统', url: 'http://credit.customs.gov.cn/ccppwebserver/pages/ccpp/html/ccppindex.html' },
-            { name: '输华食品目录', url: 'http://43.248.49.223/' },
-            { name: '商品税率查询', url: 'http://www.customs.gov.cn/customs/302427/302442/shangpinshuilv/index.html?from=singlemessage&isappinstalled=0' },
-            { name: 'Track Trace', url: 'http://www.track-trace.com/' },
-            { name: 'GOCT ePortal', url: 'http://eportal.goct.com.cn/Account/?ReturnUrl=%2f#/Services/AR/E_Confirm/' },
-            { name: '中外运', url: 'http://sc.y2t.com/' },
-            { name: '南沙三期', url: 'http://e.gznict.com/system.view.MainFrame.d|' },
-            { name: '南沙二期', url: 'http://eportal.goct.com.cn/PublicInquire/berthplan/' },
-            { name: '南沙一期', url: 'https://www.gnict.cn/Iport/#/publicquery' },
-            { name: '对美加征关税商品排除申报系统', url: 'https://gszx.mof.gov.cn/?from=https%3A%2F%2Fgszx.mof.gov.cn%2Ftrade%2Fproject%2Flist' },
-            { name: '上海浦东国际机场货站理货查询', url: 'https://www.pactl.com.cn/cn/index.html' },
-            { name: '海链网', url: 'https://hailian.gz-eport.com/' },
-            { name: '泰国草虾养殖场', url: 'https://www4.fisheries.go.th/local/index.php/main/view_blog2/176/11684/503' },
-            { name: '西贝港口代码', url: 'https://www.seabay.cn/cn/code/apl-nampula-airport.html' },
-            { name: '农业农村部政务服务', url: 'https://zwfw.moa.gov.cn/#/service/particulars?id=ab67eefbabeb4549aea48e7e8ba2b3fc' },
-            { name: '商务部', url: 'http://www.mofcom.gov.cn/' },
-            { name: '人工繁育国家二级保护水生野生动物的审核、审批', url: 'https://www.gdzwfw.gov.cn/portal/v2/guide/11440104MB2C9470XT4440117055003' },
-            { name: '出售、购买、利用国家二级及省重点保护水生野生动物及其制品的审核、审批', url: 'https://www.gdzwfw.gov.cn/portal/v2/guide/11440104MB2C9470XT4440117055004' },
-            { name: 'CMA CGM提单查询', url: 'https://www.cma-cgm.com.cn/LaraToolkit/ImportBLInquery' },
-            { name: '泰国渔业TDOC', url: 'https://fsw.fisheries.go.th/TDOC' },
-            { name: '国航', url: 'https://www.byact.net/bycs/login.html#/dashboard' },
-            { name: '国航车牌新系统', url: 'https://login.byact.net:8113/#/login' },
-            { name: '白云机场货运安保系统', url: 'http://www.gzhuabiao.cn:8084/' },
-            { name: '中国土蓄进出口商会', url: 'https://www.cccfna.org.cn/' },
-            { name: '国际贸易单一窗口', url: 'https://www.singlewindow.cn/#' },
-            { name: '电子口岸', url: 'https://www.chinaport.gov.cn/' },
-            { name: '中国海关总署', url: 'http://www.customs.gov.cn/' },
-            { name: '联运通登录', url: 'https://passport.ewinlu.com/login' },
-            { name: '俊励', url: 'http://www.szjoint.com.cn/' },
-            { name: '南航-物流信息平台', url: 'https://airlog.csair.com/byuser/page/login-1.html' },
-            { name: '海关编码查询', url: 'https://www.hscode.net/IntegrateQueries/QueryYS/?q1' },
-            { name: '知识产权-海关保护备案子系统', url: 'http://202.127.48.145:8888/#' },
-            { name: '港口搜索', url: 'https://gangkou.bmcx.com/UMM__gangkousou/' },
-            { name: '国家企业信用信息公式', url: 'https://www.gsxt.gov.cn/index.html' },
-            { name: 'USDA美国农业部PCIT', url: 'https://pcit.aphis.usda.gov/pcit/faces/signIn.jsf' },
-            { name: 'FAO渔业区域', url: 'http://www.fao.org/fishery/area/search/zh' },
-
-            { name: '查验箱信息查询', url: 'https://cyzx.gzport.com/webresources/search/VPortCntrQry/vportcntrqry3.htm' },
-            { name: '中远无纸化', url: 'https://cargorelease.lines.coscoshipping.com/' },
-            { name: 'OOCL无纸化', url: 'https://exiamfw.home.oocl.com/auth/realms/oocl-prd/protocol/openid-connect/auth?client_id=5c787141-ccde-484f-9625-eaa34f56657f&response_type=code&redirect_uri=https%3A%2F%2Fcargo-release.digital.oocl.com%2Fhome%2Fauth%2Fcallback&response_mode=form_post&scope=gbcr.basicAccess%20openid&state=f778f065-7ed6-4fe1-a22c-f962b22e1322&nonce=8bcbb299-1672-462c-8c73-da834b860922' },
-            { name: '印尼海关产地证电子信息查询', url: 'https://e-ska.kemendag.go.id/home.php/custom' },
-            { name: 'ZIM集装箱跟踪', url: 'https://www.zimchina.com/tools/track-a-shipment' },
-            { name: 'Cloudflare WARP', url: 'https://developers.cloudflare.com/cloudflare-one/team-and-resources/devices/warp/download-warp/' },
-            { name: 'CITES中国', url: 'http://www.cites.org.cn/' },
-            { name: '刘明野工具', url: 'http://tool.liumingye.cn/' },
-            { name: '关务小二', url: 'https://www.guanwuxiaoer.com/hscode.php' },
-            { name: 'FESXO货物跟踪', url: 'https://cn.fesco.com/' },
-            { name: '德翔海运电放查询', url: 'https://www.tslines.com.cn/cn/exportservice/telex_released_query' },
-            { name: '海关指定场所查询', url: 'https://customs.chinaport.gov.cn/carpubquerywebserver/views/queryAppointPlace.html' },
-            { name: '泰国航空SkyChain', url: 'https://chorus.thaicargo.com/skychain/app?service=page/nwp:Trackshipmt' },
-            { name: '德翔海运跟踪', url: 'https://www.tslines.com.cn/cn/tracking?nowmenu=Search%20by%20BL%20number' },
-            { name: '航空物流公共信息平台', url: 'https://gz.gd.singlewindow.cn/airport/index.jsp' },
-            { name: '长荣海运电放查询', url: 'https://www.evergreen-shipping.cn/cn/eer1/jsp/EER1_emailReleaseQuery.jsp' },
-            { name: '关于发布《食品安全国家标准 食品添加剂使用标准》（GB 2760-2024）等47项食品安全国家标准和6项修改单的公告（2024年 第1号）', url: 'https://www.nhc.gov.cn/sps/c100088/202403/bda120e678df4a49a8beb90852559d7c.shtml' },
-            { name: '食品安全国家标准数据检索平台', url: 'https://sppt.cfsa.net.cn:8086/db' },
-            { name: '安福物流跟踪', url: 'https://www.safetransline.com/#/tracking' },
-            { name: '中国银行外汇牌价', url: 'https://srh.bankofchina.com/search/whpj/search_cn.jsp' },
-            { name: 'SWIFT BIC查询', url: 'https://www2.swift.com/bsl/' },
-            { name: '中国港口船舶跟踪', url: 'http://www.chinaports.com/shiptracker/olv3/index.jsp' },
-            { name: '海港物流智慧联动平台[客户端]', url: 'https://nsggkh.gzport.com/login?redirect=%2Findex' }
-        ];
+        // Leancloud初始化
+        AV.init({
+            appId: 'YCLFSSQlNHQTWPCJdgvxdLHu-gzGzoHsz',
+            appKey: 'gkGobpPGAlbagBRXWRtzFnxy',
+            serverURL: 'https://yclfssql.lc-cn-n1-shared.com'
+        });
         
         // 页面元素
         const mainSection = document.querySelector('main > section:first-of-type');
@@ -624,10 +568,11 @@
         const editNavBtn = document.getElementById('edit-nav-btn');
         const editNavModal = document.getElementById('edit-nav-modal');
         const closeModalBtn = document.getElementById('close-modal');
-        const verifyPasswordBtn = document.getElementById('verify-password');
-        const adminPasswordInput = document.getElementById('admin-password');
-        const passwordError = document.getElementById('password-error');
-        const passwordCheck = document.getElementById('password-check');
+        const loginBtn = document.getElementById('login-btn');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginError = document.getElementById('login-error');
+        const loginForm = document.getElementById('login-form');
         const editContent = document.getElementById('edit-content');
         const addNewSiteBtn = document.getElementById('add-new-site');
         const newSiteForm = document.getElementById('new-site-form');
@@ -638,55 +583,98 @@
         const navGrid = document.getElementById('nav-grid');
         const navSearch = document.getElementById('nav-search');
         const workbenchBtn = document.getElementById('workbench-btn');
-    
         
-        // 修改码
-        const ADMIN_PASSWORD = 'Hh20140114';
+        // 当前用户
+        let currentUser = null;
+        
+        // 从Leancloud获取导航链接
+        async function fetchNavLinks() {
+            try {
+                const query = new AV.Query('NavLink');
+                query.addAscending('order');
+                const results = await query.find();
+                console.log(`从Leancloud获取到 ${results.length} 条链接`);
+                return results.map(item => ({
+                    id: item.id,
+                    name: item.get('name'),
+                    url: item.get('url'),
+                    order: item.get('order') || 0
+                }));
+            } catch (error) {
+                console.error('获取导航链接失败:', error);
+                return [];
+            }
+        }
         
         // 初始化导航链接
-        function renderNavLinks(links = navLinks) {
-            navGrid.innerHTML = '';
-            links.forEach((link, index) => {
-                const card = document.createElement('div');
-                card.className = 'card glass-effect rounded-lg p-4 glass-hover';
-                card.innerHTML = `
-                    <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center justify-center h-full">
-                        <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mb-3 text-primary">
-                            <i class="fa fa-external-link text-xl"></i>
-                        </div>
-                        <h4 class="text-center font-medium truncate w-full">${link.name}</h4>
-                    </a>
-                `;
-                navGrid.appendChild(card);
-            });
+        async function renderNavLinks(links = null) {
+            try {
+                if (!links) {
+                    links = await fetchNavLinks();
+                }
+                
+                console.log(`渲染 ${links.length} 条链接到页面`);
+                navGrid.innerHTML = '';
+                
+                links.forEach((link) => {
+                    const card = document.createElement('div');
+                    card.className = 'card glass-effect rounded-lg p-4 glass-hover';
+                    card.innerHTML = `
+                        <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center justify-center h-full">
+                            <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mb-3 text-primary">
+                                <i class="fa fa-external-link text-xl"></i>
+                            </div>
+                            <h4 class="text-center font-medium truncate w-full">${link.name}</h4>
+                        </a>
+                    `;
+                    navGrid.appendChild(card);
+                });
+                
+                return links;
+            } catch (error) {
+                console.error('渲染导航链接失败:', error);
+                return [];
+            }
         }
         
         // 初始化导航编辑列表
-        function renderNavEditList() {
-            navItemsList.innerHTML = '';
-            navLinks.forEach((link, index) => {
-                const item = document.createElement('div');
-                item.className = 'flex items-center p-3 rounded-lg bg-white/5';
-                item.innerHTML = `
-                    <input type="text" value="${link.name}" 
-                           class="flex-1 px-3 py-2 rounded-lg glass-effect input-focus outline-none mr-2">
-                    <input type="url" value="${link.url}" 
-                           class="flex-1 px-3 py-2 rounded-lg glass-effect input-focus outline-none mr-2">
-                    <button class="delete-nav-item p-2 rounded-full bg-red-500/20 text-red-400 hover:bg-red-500/30" data-index="${index}">
-                        <i class="fa fa-trash"></i>
-                    </button>
-                `;
-                navItemsList.appendChild(item);
-            });
-            
-            // 添加删除事件监听
-            document.querySelectorAll('.delete-nav-item').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const index = parseInt(e.currentTarget.dataset.index);
-                    navLinks.splice(index, 1);
-                    renderNavEditList();
+        async function renderNavEditList() {
+            try {
+                const links = await fetchNavLinks();
+                navItemsList.innerHTML = '';
+                
+                links.forEach((link, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center p-3 rounded-lg bg-white/5';
+                    item.innerHTML = `
+                        <input type="text" value="${link.name}" 
+                               class="flex-1 px-3 py-2 rounded-lg glass-effect input-focus outline-none mr-2">
+                        <input type="url" value="${link.url}" 
+                               class="flex-1 px-3 py-2 rounded-lg glass-effect input-focus outline-none mr-2">
+                        <button class="delete-nav-item p-2 rounded-full bg-red-500/20 text-red-400 hover:bg-red-500/30" data-id="${link.id}">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    `;
+                    navItemsList.appendChild(item);
                 });
-            });
+                
+                // 添加删除事件监听
+                document.querySelectorAll('.delete-nav-item').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = e.currentTarget.dataset.id;
+                        try {
+                            const link = AV.Object.createWithoutData('NavLink', id);
+                            await link.destroy();
+                            renderNavEditList();
+                        } catch (error) {
+                            console.error('删除导航项失败:', error);
+                            alert('删除失败，请重试');
+                        }
+                    });
+                });
+            } catch (error) {
+                console.error('渲染导航编辑列表失败:', error);
+            }
         }
         
         // 计算空运成本
@@ -796,59 +784,84 @@
             document.getElementById('unit-cost').textContent = '¥ 0.00';
         }
         
-        // 验证管理员密码
-        function verifyPassword() {
-            const password = adminPasswordInput.value;
-            if (password === ADMIN_PASSWORD) {
-                passwordError.classList.add('hidden');
-                passwordCheck.classList.add('hidden');
+        // 用户登录
+        async function login() {
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+            
+            try {
+                currentUser = await AV.User.logIn(username, password);
+                loginError.classList.add('hidden');
+                loginForm.classList.add('hidden');
                 editContent.classList.remove('hidden');
                 renderNavEditList();
-            } else {
-                passwordError.classList.remove('hidden');
+            } catch (error) {
+                console.error('登录失败:', error);
+                loginError.classList.remove('hidden');
             }
         }
         
         // 保存新网站
-        function saveNewSite() {
+        async function saveNewSite() {
             const newSiteName = document.getElementById('new-site-name').value;
             const newSiteUrl = document.getElementById('new-site-url').value;
             
             if (newSiteName && newSiteUrl) {
-                navLinks.push({ name: newSiteName, url: newSiteUrl });
-                // 保存到localStorage
-                localStorage.setItem('navLinks', JSON.stringify(navLinks));
-                document.getElementById('new-site-name').value = '';
-                document.getElementById('new-site-url').value = '';
-                newSiteForm.classList.add('hidden');
-                renderNavEditList();
+                try {
+                    const NavLink = AV.Object.extend('NavLink');
+                    const navLink = new NavLink();
+                    
+                    navLink.set('name', newSiteName);
+                    navLink.set('url', newSiteUrl);
+                    navLink.set('order', 0);
+                    
+                    await navLink.save();
+                    
+                    document.getElementById('new-site-name').value = '';
+                    document.getElementById('new-site-url').value = '';
+                    newSiteForm.classList.add('hidden');
+                    renderNavEditList();
+                } catch (error) {
+                    console.error('保存新网站失败:', error);
+                    alert('保存失败，请重试');
+                }
             }
         }
         
         // 保存所有更改
-        function saveAllChanges() {
-            // 收集编辑后的导航项
-            const inputs = navItemsList.querySelectorAll('input[type="text"], input[type="url"]');
-            for (let i = 0; i < inputs.length; i += 2) {
-                const index = i / 2;
-                if (index < navLinks.length) {
-                    navLinks[index].name = inputs[i].value;
-                    navLinks[index].url = inputs[i + 1].value;
+        async function saveAllChanges() {
+            try {
+                // 收集编辑后的导航项
+                const inputs = navItemsList.querySelectorAll('input[type="text"], input[type="url"]');
+                
+                for (let i = 0; i < inputs.length; i += 2) {
+                    const name = inputs[i].value;
+                    const url = inputs[i + 1].value;
+                    const id = inputs[i].parentElement.querySelector('.delete-nav-item')?.dataset.id;
+                    
+                    if (id) {
+                        const navLink = AV.Object.createWithoutData('NavLink', id);
+                        navLink.set('name', name);
+                        navLink.set('url', url);
+                        await navLink.save();
+                    }
                 }
+                
+                // 重新渲染导航和关闭弹窗
+                renderNavLinks();
+                editNavModal.classList.add('hidden');
+                alert('保存成功！');
+            } catch (error) {
+                console.error('保存更改失败:', error);
+                alert('保存失败，请重试');
             }
-            
-            // 保存到localStorage进行持久化
-            localStorage.setItem('navLinks', JSON.stringify(navLinks));
-            
-            // 重新渲染导航和关闭弹窗
-            renderNavLinks();
-            editNavModal.classList.add('hidden');
         }
         
         // 搜索导航
-        function searchNav() {
+        async function searchNav() {
             const searchTerm = navSearch.value.toLowerCase();
-            const filteredLinks = navLinks.filter(link => 
+            const allLinks = await fetchNavLinks();
+            const filteredLinks = allLinks.filter(link => 
                 link.name.toLowerCase().includes(searchTerm) || 
                 link.url.toLowerCase().includes(searchTerm)
             );
@@ -885,17 +898,18 @@
         
         editNavBtn.addEventListener('click', () => {
             editNavModal.classList.remove('hidden');
-            passwordCheck.classList.remove('hidden');
+            loginForm.classList.remove('hidden');
             editContent.classList.add('hidden');
-            adminPasswordInput.value = '';
-            passwordError.classList.add('hidden');
+            usernameInput.value = '';
+            passwordInput.value = '';
+            loginError.classList.add('hidden');
         });
         
         closeModalBtn.addEventListener('click', () => {
             editNavModal.classList.add('hidden');
         });
         
-        verifyPasswordBtn.addEventListener('click', verifyPassword);
+        loginBtn.addEventListener('click', login);
         
         addNewSiteBtn.addEventListener('click', () => {
             newSiteForm.classList.remove('hidden');
@@ -949,14 +963,9 @@
         });
         
         // 初始化页面
-        document.addEventListener('DOMContentLoaded', () => {
-            // 从localStorage加载导航链接
-            const savedNavLinks = localStorage.getItem('navLinks');
-            if (savedNavLinks) {
-                // 清空原数组并添加所有保存的项
-                navLinks.length = 0;
-                JSON.parse(savedNavLinks).forEach(link => navLinks.push(link));
-            }
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 直接从Leancloud获取并渲染导航链接
+            await renderNavLinks();
             
             // 海关税费计算器跳转
             const customsDutyBtn = document.getElementById('customs-duty-btn');
