@@ -64,6 +64,8 @@
             gap: 10px;
             padding-bottom: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            margin-top: 60px; /* 增加顶部间距，避免被返回按钮遮挡 */
         }
 
         .logo h1 {
@@ -200,7 +202,7 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
-        /* 文件列表样式 - 关键修改部分 */
+        /* 文件列表样式 */
         .file-list-container {
             flex: 1;
             display: flex;
@@ -228,7 +230,6 @@
             overflow-y: auto;
             border-bottom-left-radius: var(--border-radius);
             border-bottom-right-radius: var(--border-radius);
-            /* 关键：设置固定高度，确保内容可以滚动 */
             max-height: calc(100vh - 300px);
         }
 
@@ -400,18 +401,13 @@
 
         /* 拖拽上传区域 */
         .drop-zone {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            width: 300px;
+            width: 100%;
             border: 2px dashed rgba(255, 255, 255, 0.3);
             border-radius: var(--border-radius);
-            padding: 20px;
+            padding: 40px 20px;
             text-align: center;
-            margin-top: 10px;
+            margin: 20px 0;
             transition: all 0.3s ease;
-            display: none;
-            z-index: 100;
         }
 
         .drop-zone.active {
@@ -420,8 +416,8 @@
         }
 
         .drop-zone i {
-            font-size: 2rem;
-            margin-bottom: 10px;
+            font-size: 3rem;
+            margin-bottom: 15px;
             color: var(--primary-color);
         }
 
@@ -480,6 +476,90 @@
             border-radius: 0 6px 6px 0;
         }
 
+        /* 批量操作栏 */
+        .batch-actions {
+            display: none;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius);
+            margin-bottom: 10px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .batch-actions.active {
+            display: flex;
+        }
+
+        .batch-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .batch-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* 复选框样式 */
+        .file-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* 上传模态框 */
+        .upload-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-content {
+            width: 500px;
+            padding: 30px;
+            border-radius: var(--border-radius);
+        }
+
+        .upload-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .upload-option {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .upload-option.active {
+            background: rgba(74, 108, 247, 0.2);
+            border: 1px solid var(--primary-color);
+        }
+
+        .upload-option i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
         /* 响应式设计 */
         @media (max-width: 768px) {
             .container {
@@ -512,6 +592,15 @@
             .sort-controls {
                 width: 100%;
                 justify-content: flex-end;
+            }
+            
+            .batch-actions {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .upload-content {
+                width: 90%;
             }
         }
 
@@ -557,6 +646,7 @@
             gap: 8px;
             z-index: 100;
             transition: all 0.3s ease;
+            text-decoration: none;
         }
 
         .home-btn:hover {
@@ -649,6 +739,23 @@
                 </div>
             </div>
 
+            <!-- 批量操作栏 -->
+            <div class="batch-actions glass-effect" id="batchActions">
+                <div class="batch-info">
+                    <span id="selectedCount">已选择 0 个文件</span>
+                    <button class="btn btn-secondary" id="selectAllBtn">全选</button>
+                    <button class="btn btn-secondary" id="clearSelectionBtn">取消选择</button>
+                </div>
+                <div class="batch-buttons">
+                    <button class="btn btn-primary" id="batchDownloadBtn">
+                        <i class="fas fa-download"></i> 批量下载
+                    </button>
+                    <button class="btn btn-danger" id="batchDeleteBtn">
+                        <i class="fas fa-trash"></i> 批量删除
+                    </button>
+                </div>
+            </div>
+
             <!-- 文件操作栏 -->
             <div class="file-actions glass-effect">
                 <div class="action-buttons">
@@ -658,12 +765,9 @@
                     <button class="btn btn-primary" id="newFolderBtn">
                         <i class="fas fa-folder-plus"></i> 新建文件夹
                     </button>
-                    <!-- 拖拽上传区域 -->
-                    <div class="drop-zone glass-effect" id="dropZone">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        <h3>拖拽文件到此处上传</h3>
-                        <p>支持单个或多个文件上传</p>
-                    </div>
+                    <button class="btn btn-secondary" id="batchManageBtn">
+                        <i class="fas fa-tasks"></i> 批量管理
+                    </button>
                 </div>
                 <div class="sort-controls">
                     <span>排序:</span>
@@ -697,6 +801,52 @@
         <button class="preview-close" id="previewClose">×</button>
         <div class="preview-content" id="previewContent">
             <!-- 预览内容将在这里显示 -->
+        </div>
+    </div>
+
+    <!-- 上传文件模态框 -->
+    <div class="upload-modal" id="uploadModal">
+        <div class="upload-content glass-effect">
+            <div class="modal-header">
+                <h2>上传文件</h2>
+                <p>选择上传方式</p>
+            </div>
+            <div class="upload-options">
+                <div class="upload-option active" id="browseOption">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>浏览文件</h3>
+                    <p>从本地选择文件</p>
+                </div>
+                <div class="upload-option" id="dragOption">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h3>拖拽上传</h3>
+                    <p>拖拽文件到此处</p>
+                </div>
+            </div>
+            
+            <!-- 浏览文件区域 -->
+            <div id="browseArea">
+                <div class="form-group">
+                    <button class="btn btn-primary" id="selectFilesBtn" style="width: 100%;">
+                        <i class="fas fa-folder-open"></i> 选择文件
+                    </button>
+                </div>
+                <div id="selectedFilesList" style="max-height: 200px; overflow-y: auto; margin-top: 15px;"></div>
+            </div>
+            
+            <!-- 拖拽上传区域 -->
+            <div id="dragArea" style="display: none;">
+                <div class="drop-zone glass-effect" id="dropZone">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h3>拖拽文件到此处上传</h3>
+                    <p>支持单个或多个文件上传</p>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelUploadBtn">取消</button>
+                <button class="btn btn-primary" id="confirmUploadBtn">开始上传</button>
+            </div>
         </div>
     </div>
 
@@ -742,6 +892,9 @@
         let currentCategory = 'all';
         let allFiles = [];
         let sortBy = 'name';
+        let selectedFiles = new Set();
+        let batchMode = false;
+        let filesToUpload = [];
 
         // DOM 元素
         const loginModal = document.getElementById('loginModal');
@@ -759,7 +912,6 @@
         const previewModal = document.getElementById('previewModal');
         const previewContent = document.getElementById('previewContent');
         const previewClose = document.getElementById('previewClose');
-        const dropZone = document.getElementById('dropZone');
         const sortSelect = document.getElementById('sortSelect');
         const shareModal = document.getElementById('shareModal');
         const shareLink = document.getElementById('shareLink');
@@ -768,6 +920,23 @@
         const closeShareBtn = document.getElementById('closeShareBtn');
         const generateShareBtn = document.getElementById('generateShareBtn');
         const message = document.getElementById('message');
+        const batchActions = document.getElementById('batchActions');
+        const batchManageBtn = document.getElementById('batchManageBtn');
+        const selectedCount = document.getElementById('selectedCount');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+        const batchDownloadBtn = document.getElementById('batchDownloadBtn');
+        const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+        const uploadModal = document.getElementById('uploadModal');
+        const browseOption = document.getElementById('browseOption');
+        const dragOption = document.getElementById('dragOption');
+        const browseArea = document.getElementById('browseArea');
+        const dragArea = document.getElementById('dragArea');
+        const selectFilesBtn = document.getElementById('selectFilesBtn');
+        const selectedFilesList = document.getElementById('selectedFilesList');
+        const dropZone = document.getElementById('dropZone');
+        const cancelUploadBtn = document.getElementById('cancelUploadBtn');
+        const confirmUploadBtn = document.getElementById('confirmUploadBtn');
 
         // 页面加载时检查登录状态
         document.addEventListener('DOMContentLoaded', function() {
@@ -914,6 +1083,7 @@
                 
                 fileItem.innerHTML = `
                     <div class="file-name">
+                        ${batchMode ? `<input type="checkbox" class="file-checkbox" data-id="${file.id}">` : ''}
                         <span class="file-icon"><i class="${file.icon}"></i></span>
                         <span title="${file.name}">${file.name}</span>
                     </div>
@@ -939,10 +1109,33 @@
                 const downloadBtn = fileItem.querySelector('.download-btn');
                 const deleteBtn = fileItem.querySelector('.delete-btn');
                 
-                fileNameElement.addEventListener('click', () => openFile(file));
+                fileNameElement.addEventListener('click', (e) => {
+                    // 如果是在批量模式下，点击文件名不打开文件，而是选中/取消选中
+                    if (batchMode && !e.target.classList.contains('file-checkbox')) {
+                        const checkbox = fileItem.querySelector('.file-checkbox');
+                        checkbox.checked = !checkbox.checked;
+                        toggleFileSelection(file.id, checkbox.checked);
+                    } else if (!batchMode) {
+                        openFile(file);
+                    }
+                });
+                
                 shareBtn.addEventListener('click', () => shareFile(file));
                 downloadBtn.addEventListener('click', () => downloadFile(file));
                 deleteBtn.addEventListener('click', () => deleteFile(file));
+                
+                // 批量模式下的复选框事件
+                if (batchMode) {
+                    const checkbox = fileItem.querySelector('.file-checkbox');
+                    checkbox.addEventListener('change', (e) => {
+                        toggleFileSelection(file.id, e.target.checked);
+                    });
+                    
+                    // 如果文件已被选中，设置复选框为选中状态
+                    if (selectedFiles.has(file.id)) {
+                        checkbox.checked = true;
+                    }
+                }
                 
                 fileList.appendChild(fileItem);
             });
@@ -1094,6 +1287,28 @@
 
         // 上传文件按钮点击事件
         uploadBtn.addEventListener('click', function() {
+            uploadModal.style.display = 'flex';
+            filesToUpload = [];
+            selectedFilesList.innerHTML = '';
+        });
+
+        // 上传方式选择
+        browseOption.addEventListener('click', function() {
+            browseOption.classList.add('active');
+            dragOption.classList.remove('active');
+            browseArea.style.display = 'block';
+            dragArea.style.display = 'none';
+        });
+
+        dragOption.addEventListener('click', function() {
+            dragOption.classList.add('active');
+            browseOption.classList.remove('active');
+            browseArea.style.display = 'none';
+            dragArea.style.display = 'block';
+        });
+
+        // 选择文件按钮
+        selectFilesBtn.addEventListener('click', function() {
             fileInput.click();
         });
 
@@ -1101,11 +1316,46 @@
         fileInput.addEventListener('change', function() {
             if (this.files.length > 0) {
                 Array.from(this.files).forEach(file => {
-                    uploadFile(file);
+                    addFileToUploadList(file);
                 });
                 this.value = ''; // 重置文件输入
             }
         });
+
+        // 添加文件到上传列表
+        function addFileToUploadList(file) {
+            // 检查是否已存在同名文件
+            if (filesToUpload.some(f => f.name === file.name)) {
+                showMessage(`文件 "${file.name}" 已存在上传列表中`, 'error');
+                return;
+            }
+            
+            filesToUpload.push(file);
+            
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-list-item';
+            fileItem.style.gridTemplateColumns = '3fr 1fr 1fr';
+            fileItem.innerHTML = `
+                <div class="file-name">
+                    <span class="file-icon"><i class="${getFileIcon(file.name)}"></i></span>
+                    <span title="${file.name}">${file.name}</span>
+                </div>
+                <div>${formatFileSize(file.size)}</div>
+                <div>
+                    <button class="btn btn-danger btn-sm remove-file-btn">
+                        <i class="fas fa-times"></i> 移除
+                    </button>
+                </div>
+            `;
+            
+            const removeBtn = fileItem.querySelector('.remove-file-btn');
+            removeBtn.addEventListener('click', function() {
+                filesToUpload = filesToUpload.filter(f => f !== file);
+                fileItem.remove();
+            });
+            
+            selectedFilesList.appendChild(fileItem);
+        }
 
         // 拖拽上传功能
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -1141,10 +1391,33 @@
             
             if (files.length > 0) {
                 Array.from(files).forEach(file => {
-                    uploadFile(file);
+                    addFileToUploadList(file);
                 });
             }
         }
+
+        // 取消上传
+        cancelUploadBtn.addEventListener('click', function() {
+            uploadModal.style.display = 'none';
+            filesToUpload = [];
+        });
+
+        // 确认上传
+        confirmUploadBtn.addEventListener('click', function() {
+            if (filesToUpload.length === 0) {
+                showMessage('请先选择要上传的文件', 'error');
+                return;
+            }
+            
+            uploadModal.style.display = 'none';
+            
+            // 开始上传所有文件
+            filesToUpload.forEach(file => {
+                uploadFile(file);
+            });
+            
+            filesToUpload = [];
+        });
 
         // 上传文件
         function uploadFile(file) {
@@ -1340,22 +1613,110 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // 上传按钮悬停显示拖拽区域
-        uploadBtn.addEventListener('mouseenter', function() {
-            dropZone.style.display = 'block';
-        });
-
-        uploadBtn.addEventListener('mouseleave', function(e) {
-            // 检查鼠标是否移动到拖拽区域
-            if (!dropZone.contains(e.relatedTarget)) {
-                dropZone.style.display = 'none';
+        // 批量管理功能
+        batchManageBtn.addEventListener('click', function() {
+            batchMode = !batchMode;
+            if (batchMode) {
+                batchActions.classList.add('active');
+                batchManageBtn.classList.add('btn-primary');
+                batchManageBtn.classList.remove('btn-secondary');
+                batchManageBtn.innerHTML = '<i class="fas fa-times"></i> 退出批量管理';
+            } else {
+                batchActions.classList.remove('active');
+                batchManageBtn.classList.remove('btn-primary');
+                batchManageBtn.classList.add('btn-secondary');
+                batchManageBtn.innerHTML = '<i class="fas fa-tasks"></i> 批量管理';
+                selectedFiles.clear();
+                updateSelectedCount();
             }
+            renderFiles(allFiles);
         });
 
-        dropZone.addEventListener('mouseleave', function(e) {
-            // 检查鼠标是否移动到上传按钮
-            if (!uploadBtn.contains(e.relatedTarget)) {
-                dropZone.style.display = 'none';
+        // 切换文件选择状态
+        function toggleFileSelection(fileId, selected) {
+            if (selected) {
+                selectedFiles.add(fileId);
+            } else {
+                selectedFiles.delete(fileId);
+            }
+            updateSelectedCount();
+        }
+
+        // 更新已选择文件计数
+        function updateSelectedCount() {
+            selectedCount.textContent = `已选择 ${selectedFiles.size} 个文件`;
+        }
+
+        // 全选按钮
+        selectAllBtn.addEventListener('click', function() {
+            const checkboxes = document.querySelectorAll('.file-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+                toggleFileSelection(checkbox.getAttribute('data-id'), true);
+            });
+        });
+
+        // 取消选择按钮
+        clearSelectionBtn.addEventListener('click', function() {
+            const checkboxes = document.querySelectorAll('.file-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+                toggleFileSelection(checkbox.getAttribute('data-id'), false);
+            });
+        });
+
+        // 批量下载
+        batchDownloadBtn.addEventListener('click', function() {
+            if (selectedFiles.size === 0) {
+                showMessage('请先选择要下载的文件', 'error');
+                return;
+            }
+            
+            // 批量下载选中的文件
+            allFiles.forEach(file => {
+                if (selectedFiles.has(file.id)) {
+                    downloadFile(file);
+                }
+            });
+            
+            showMessage(`开始批量下载 ${selectedFiles.size} 个文件`, 'success');
+        });
+
+        // 批量删除
+        batchDeleteBtn.addEventListener('click', function() {
+            if (selectedFiles.size === 0) {
+                showMessage('请先选择要删除的文件', 'error');
+                return;
+            }
+            
+            if (confirm(`确定要删除选中的 ${selectedFiles.size} 个文件吗？`)) {
+                // 批量删除选中的文件
+                const deletePromises = [];
+                
+                allFiles.forEach(file => {
+                    if (selectedFiles.has(file.id)) {
+                        const FileType = AV.Object.extend('fileType');
+                        const query = new AV.Query(FileType);
+                        
+                        deletePromises.push(
+                            query.get(file.id).then(function(fileObj) {
+                                return fileObj.destroy();
+                            })
+                        );
+                    }
+                });
+                
+                Promise.all(deletePromises).then(function() {
+                    // 从本地文件列表中删除
+                    allFiles = allFiles.filter(f => !selectedFiles.has(f.id));
+                    selectedFiles.clear();
+                    updateSelectedCount();
+                    renderFiles(allFiles);
+                    showMessage(`已成功删除 ${deletePromises.length} 个文件`, 'success');
+                }).catch(function(error) {
+                    console.error('批量删除文件失败:', error);
+                    showMessage('批量删除文件失败: ' + error.message, 'error');
+                });
             }
         });
     </script>
