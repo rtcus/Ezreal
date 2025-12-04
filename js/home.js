@@ -4,7 +4,7 @@ let inspectionData = [];
 let unprintedCheckData = [];
 let missingData = [];
 
-// 加载跟进状态数据
+// 加载跟进状态数据（优化版：只加载数量，点击时才加载详情）
 async function loadStatusData() {
     try {
         console.log('开始加载跟进状态数据...');
@@ -20,101 +20,305 @@ async function loadStatusData() {
             return;
         }
 
-        // 加载检疫证未出数据
-        const quarantineQuery = new AV.Query('Tracking');
-        quarantineQuery.equalTo('customsStatus', '放行');
-        const quarantineResults = await quarantineQuery.find();
+        // 1. 检疫证未出 - 只获取数量
+        console.log('开始统计检疫证未出数量...');
+        const quarantineCountQuery = new AV.Query('Tracking');
+        quarantineCountQuery.equalTo('customsStatus', '放行');
+        const quarantineTotalCount = await quarantineCountQuery.count();
+        console.log('放行记录总数:', quarantineTotalCount);
         
-        quarantineData = [];
-        quarantineResults.forEach(item => {
-            const data = item.toJSON();
-            // 检查是否有检疫证附件
-            const hasQuarantineCert = data.attachments && 
-                data.attachments.some(att => att.type === '检疫证' && att.fileUrl);
+        let quarantineDataCount = 0;
+        if (quarantineTotalCount > 0) {
+            const batchSize = 1000;
+            const batches = Math.ceil(quarantineTotalCount / batchSize);
             
-            if (!hasQuarantineCert) {
-                quarantineData.push({
-                    customsNo: data.customsNo || '',
-                    billNo: data.billNo || '',
-                    containerNo: data.containerNo || '',
-                    arrivalDate: data.arrivalDate || ''
+            for (let i = 0; i < batches; i++) {
+                const skip = i * batchSize;
+                const query = new AV.Query('Tracking');
+                query.equalTo('customsStatus', '放行');
+                query.addDescending('createdAt');
+                query.limit(batchSize);
+                query.skip(skip);
+                
+                const results = await query.find();
+                
+                results.forEach(item => {
+                    const data = item.toJSON();
+                    const hasQuarantineCert = data.attachments && 
+                        data.attachments.some(att => att.type === '检疫证' && att.fileUrl);
+                    
+                    if (!hasQuarantineCert) {
+                        quarantineDataCount++;
+                    }
                 });
+                
+                console.log(`批次 ${i + 1}/${batches}: 处理 ${results.length} 条记录，当前累计 ${quarantineDataCount} 条`);
             }
-        });
+        }
         
-        // 加载查验未完成数据
-        const inspectionQuery = new AV.Query('Tracking');
-        inspectionQuery.containedIn('customsStatus', ['目的地查验', '口岸查验', '合并检查']);
-        const inspectionResults = await inspectionQuery.find();
+        // 2. 查验未完成 - 直接获取数量
+        console.log('开始统计查验未完成数量...');
+        const inspectionCountQuery = new AV.Query('Tracking');
+        inspectionCountQuery.containedIn('customsStatus', ['目的地查验', '口岸查验', '合并检查']);
+        const inspectionCount = await inspectionCountQuery.count();
         
-        inspectionData = [];
-        inspectionResults.forEach(item => {
-            const data = item.toJSON();
-            inspectionData.push({
-                customsNo: data.customsNo || '',
-                billNo: data.billNo || '',
-                containerNo: data.containerNo || '',
-                instruction: data.instruction || '',
-                arrivalDate: data.arrivalDate || ''
-            });
-        });
-
-        // 加载未打印核对单数据
-        const unprintedQuery = new AV.Query('Tracking');
-        unprintedQuery.exists('preEntryNo');
-        unprintedQuery.equalTo('operation', '');
-        const unprintedResults = await unprintedQuery.find();
+        // 3. 未打印核对单 - 直接获取数量
+        console.log('开始统计未打印核对单数量...');
+        const unprintedCountQuery = new AV.Query('Tracking');
+        unprintedCountQuery.exists('preEntryNo');
+        unprintedCountQuery.equalTo('operation', '');
+        const unprintedCount = await unprintedCountQuery.count();
         
-        unprintedCheckData = [];
-        unprintedResults.forEach(item => {
-            const data = item.toJSON();
-            unprintedCheckData.push({
-                id: data.objectId,
-                preEntryNo: data.preEntryNo || '',
-                billNo: data.billNo || '',
-                containerNo: data.containerNo || '',
-                operation: data.operation || '',
-                arrivalDate: data.arrivalDate || ''
-            });
-        });
-
-        // 加载缺资料数据
-        const missingQuery = new AV.Query('Tracking');
-        missingQuery.contains('customsNo', '缺');
-        const missingResults = await missingQuery.find();
+        // 4. 缺资料 - 直接获取数量
+        console.log('开始统计缺资料数量...');
+        const missingCountQuery = new AV.Query('Tracking');
+        missingCountQuery.contains('customsNo', '缺');
+        const missingCount = await missingCountQuery.count();
         
-        missingData = [];
-        missingResults.forEach(item => {
-            const data = item.toJSON();
-            missingData.push({
-                billNo: data.billNo || '',
-                containerNo: data.containerNo || '',
-                customsNo: data.customsNo || '',
-                arrivalDate: data.arrivalDate || ''
-            });
-        });
-        
-        // 更新首页卡片显示 - 添加安全检查
-        if (quarantineCountElement) quarantineCountElement.textContent = quarantineData.length;
-        if (inspectionCountElement) inspectionCountElement.textContent = inspectionData.length;
-        if (unprintedCheckCountElement) unprintedCheckCountElement.textContent = unprintedCheckData.length;
-        if (missingDataCountElement) missingDataCountElement.textContent = missingData.length;
+        // 更新首页卡片显示
+        if (quarantineCountElement) quarantineCountElement.textContent = quarantineDataCount;
+        if (inspectionCountElement) inspectionCountElement.textContent = inspectionCount;
+        if (unprintedCheckCountElement) unprintedCheckCountElement.textContent = unprintedCount;
+        if (missingDataCountElement) missingDataCountElement.textContent = missingCount;
         
         console.log('跟进状态数据加载完成:', {
-            检疫证未出: quarantineData.length,
-            查验未完成: inspectionData.length,
-            未打印核对单: unprintedCheckData.length,
-            缺资料: missingData.length
+            检疫证未出: quarantineDataCount,
+            查验未完成: inspectionCount,
+            未打印核对单: unprintedCount,
+            缺资料: missingCount
         });
+        
+        // 清空详细数据，等点击时再加载
+        quarantineData = [];
+        inspectionData = [];
+        unprintedCheckData = [];
+        missingData = [];
         
     } catch (error) {
         console.error('加载跟进状态数据失败:', error);
     }
 }
 
-// 显示检疫证未出模态框 - 修复版本
-function showQuarantineModal() {
+// 点击时才加载检疫证未出详细数据
+async function loadQuarantineDataDetail() {
+    try {
+        console.log('开始加载检疫证未出详细数据...');
+        
+        const quarantineQuery = new AV.Query('Tracking');
+        quarantineQuery.equalTo('customsStatus', '放行');
+        quarantineQuery.addDescending('createdAt');
+        
+        // 先获取总数
+        const totalCount = await quarantineQuery.count();
+        console.log('需要处理的放行记录总数:', totalCount);
+        
+        const batchSize = 1000;
+        const batches = Math.ceil(totalCount / batchSize);
+        quarantineData = [];
+        
+        // 分批次查询详细数据
+        for (let i = 0; i < batches; i++) {
+            const skip = i * batchSize;
+            const query = new AV.Query('Tracking');
+            query.equalTo('customsStatus', '放行');
+            query.addDescending('createdAt');
+            query.limit(batchSize);
+            query.skip(skip);
+            
+            const batchResults = await query.find();
+            
+            batchResults.forEach(item => {
+                const data = item.toJSON();
+                const hasQuarantineCert = data.attachments && 
+                    data.attachments.some(att => att.type === '检疫证' && att.fileUrl);
+                
+                if (!hasQuarantineCert) {
+                    quarantineData.push({
+                        customsNo: data.customsNo || '',
+                        billNo: data.billNo || '',
+                        containerNo: data.containerNo || '',
+                        arrivalDate: data.arrivalDate || '',
+                        objectId: data.objectId // 添加objectId便于调试
+                    });
+                }
+            });
+            
+            console.log(`批次 ${i + 1}/${batches}: 处理 ${batchResults.length} 条记录，累计 ${quarantineData.length} 条无检疫证记录`);
+        }
+        
+        console.log('检疫证未出详细数据加载完成，共', quarantineData.length, '条记录');
+        
+    } catch (error) {
+        console.error('加载检疫证详细数据失败:', error);
+    }
+}
+
+// 点击时才加载查验未完成详细数据
+async function loadInspectionDataDetail() {
+    try {
+        console.log('开始加载查验未完成详细数据...');
+        
+        const inspectionQuery = new AV.Query('Tracking');
+        inspectionQuery.containedIn('customsStatus', ['目的地查验', '口岸查验', '合并检查']);
+        inspectionQuery.addDescending('createdAt');
+        
+        // 先获取总数
+        const totalCount = await inspectionQuery.count();
+        console.log('需要处理的查验记录总数:', totalCount);
+        
+        const batchSize = 1000;
+        const batches = Math.ceil(totalCount / batchSize);
+        inspectionData = [];
+        
+        // 分批次查询详细数据
+        for (let i = 0; i < batches; i++) {
+            const skip = i * batchSize;
+            const query = new AV.Query('Tracking');
+            query.containedIn('customsStatus', ['目的地查验', '口岸查验', '合并检查']);
+            query.addDescending('createdAt');
+            query.limit(batchSize);
+            query.skip(skip);
+            
+            const batchResults = await query.find();
+            
+            batchResults.forEach(item => {
+                const data = item.toJSON();
+                inspectionData.push({
+                    customsNo: data.customsNo || '',
+                    billNo: data.billNo || '',
+                    containerNo: data.containerNo || '',
+                    instruction: data.instruction || '',
+                    arrivalDate: data.arrivalDate || '',
+                    objectId: data.objectId
+                });
+            });
+            
+            console.log(`批次 ${i + 1}/${batches}: 处理 ${batchResults.length} 条记录，累计 ${inspectionData.length} 条查验记录`);
+        }
+        
+        console.log('查验未完成详细数据加载完成，共', inspectionData.length, '条记录');
+        
+    } catch (error) {
+        console.error('加载查验详细数据失败:', error);
+    }
+}
+
+// 点击时才加载未打印核对单详细数据
+async function loadUnprintedCheckDataDetail() {
+    try {
+        console.log('开始加载未打印核对单详细数据...');
+        
+        const unprintedQuery = new AV.Query('Tracking');
+        unprintedQuery.exists('preEntryNo');
+        unprintedQuery.equalTo('operation', '');
+        unprintedQuery.addDescending('createdAt');
+        
+        // 先获取总数
+        const totalCount = await unprintedQuery.count();
+        console.log('需要处理的未打印核对单记录总数:', totalCount);
+        
+        const batchSize = 1000;
+        const batches = Math.ceil(totalCount / batchSize);
+        unprintedCheckData = [];
+        
+        // 分批次查询详细数据
+        for (let i = 0; i < batches; i++) {
+            const skip = i * batchSize;
+            const query = new AV.Query('Tracking');
+            query.exists('preEntryNo');
+            query.equalTo('operation', '');
+            query.addDescending('createdAt');
+            query.limit(batchSize);
+            query.skip(skip);
+            
+            const batchResults = await query.find();
+            
+            batchResults.forEach(item => {
+                const data = item.toJSON();
+                unprintedCheckData.push({
+                    id: data.objectId,
+                    preEntryNo: data.preEntryNo || '',
+                    billNo: data.billNo || '',
+                    containerNo: data.containerNo || '',
+                    operation: data.operation || '',
+                    arrivalDate: data.arrivalDate || ''
+                });
+            });
+            
+            console.log(`批次 ${i + 1}/${batches}: 处理 ${batchResults.length} 条记录，累计 ${unprintedCheckData.length} 条未打印核对单记录`);
+        }
+        
+        console.log('未打印核对单详细数据加载完成，共', unprintedCheckData.length, '条记录');
+        
+    } catch (error) {
+        console.error('加载未打印核对单详细数据失败:', error);
+    }
+}
+
+// 点击时才加载缺资料详细数据
+async function loadMissingDataDetail() {
+    try {
+        console.log('开始加载缺资料详细数据...');
+        
+        const missingQuery = new AV.Query('Tracking');
+        missingQuery.contains('customsNo', '缺');
+        missingQuery.addDescending('createdAt');
+        
+        // 先获取总数
+        const totalCount = await missingQuery.count();
+        console.log('需要处理的缺资料记录总数:', totalCount);
+        
+        const batchSize = 1000;
+        const batches = Math.ceil(totalCount / batchSize);
+        missingData = [];
+        
+        // 分批次查询详细数据
+        for (let i = 0; i < batches; i++) {
+            const skip = i * batchSize;
+            const query = new AV.Query('Tracking');
+            query.contains('customsNo', '缺');
+            query.addDescending('createdAt');
+            query.limit(batchSize);
+            query.skip(skip);
+            
+            const batchResults = await query.find();
+            
+            batchResults.forEach(item => {
+                const data = item.toJSON();
+                missingData.push({
+                    billNo: data.billNo || '',
+                    containerNo: data.containerNo || '',
+                    customsNo: data.customsNo || '',
+                    arrivalDate: data.arrivalDate || '',
+                    objectId: data.objectId
+                });
+            });
+            
+            console.log(`批次 ${i + 1}/${batches}: 处理 ${batchResults.length} 条记录，累计 ${missingData.length} 条缺资料记录`);
+        }
+        
+        console.log('缺资料详细数据加载完成，共', missingData.length, '条记录');
+        
+    } catch (error) {
+        console.error('加载缺资料详细数据失败:', error);
+    }
+}
+
+// 显示检疫证未出模态框 - 点击时加载数据
+async function showQuarantineModal() {
+    console.log('显示检疫证未出模态框...');
+    
+    // 显示加载提示
     const tbody = document.getElementById('quarantineList');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center">正在加载数据...</td></tr>';
+    }
+    
+    // 如果数据为空，先加载数据
+    if (quarantineData.length === 0) {
+        await loadQuarantineDataDetail();
+    }
+    
     if (!tbody) {
         console.error('检疫证未出模态框表格不存在');
         return;
@@ -140,7 +344,6 @@ function showQuarantineModal() {
     const modalElement = document.getElementById('quarantineModal');
     const modal = new bootstrap.Modal(modalElement);
     
-    // 添加关闭事件监听
     modalElement.addEventListener('hidden.bs.modal', function() {
         console.log('检疫证模态框关闭，恢复界面');
         ensureAppContainerVisible();
@@ -149,9 +352,21 @@ function showQuarantineModal() {
     modal.show();
 }
 
-// 显示查验未完成模态框 - 修复版本
-function showInspectionModal() {
+// 显示查验未完成模态框 - 点击时加载数据
+async function showInspectionModal() {
+    console.log('显示查验未完成模态框...');
+    
+    // 显示加载提示
     const tbody = document.getElementById('inspectionList');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center">正在加载数据...</td></tr>';
+    }
+    
+    // 如果数据为空，先加载数据
+    if (inspectionData.length === 0) {
+        await loadInspectionDataDetail();
+    }
+    
     if (!tbody) {
         console.error('查验未完成模态框表格不存在');
         return;
@@ -185,9 +400,21 @@ function showInspectionModal() {
     modal.show();
 }
 
-// 显示未打印核对单模态框 - 修复版本
-function showUnprintedCheckModal() {
+// 显示未打印核对单模态框 - 点击时加载数据
+async function showUnprintedCheckModal() {
+    console.log('显示未打印核对单模态框...');
+    
+    // 显示加载提示
     const tbody = document.getElementById('unprintedCheckList');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center">正在加载数据...</td></tr>';
+    }
+    
+    // 如果数据为空，先加载数据
+    if (unprintedCheckData.length === 0) {
+        await loadUnprintedCheckDataDetail();
+    }
+    
     if (!tbody) {
         console.error('未打印核对单模态框表格不存在');
         return;
@@ -222,7 +449,7 @@ function showUnprintedCheckModal() {
             tbody.appendChild(row);
         });
 
-        // 绑定模态框中的操作选择事件 - 原有功能不变
+        // 绑定模态框中的操作选择事件
         document.querySelectorAll('.modal-operation-select').forEach(select => {
             select.addEventListener('change', async function() {
                 const id = this.getAttribute('data-id');
@@ -246,7 +473,7 @@ function showUnprintedCheckModal() {
                         
                         console.log('操作状态更新成功，重新渲染表格');
                         
-                        // 重新渲染表格 - 但不重新绑定关闭事件
+                        // 重新渲染表格
                         refreshUnprintedCheckTable();
                         
                         // 更新首页卡片计数
@@ -273,7 +500,7 @@ function showUnprintedCheckModal() {
     modal.show();
 }
 
-// 刷新表格内容但不重新绑定事件
+// 刷新未打印核对单表格
 function refreshUnprintedCheckTable() {
     const tbody = document.getElementById('unprintedCheckList');
     if (!tbody) return;
@@ -340,7 +567,7 @@ function refreshUnprintedCheckTable() {
     }
 }
 
-// 绑定关闭事件（只执行一次）
+// 绑定未打印核对单模态框关闭事件
 function bindUnprintedModalCloseEvents() {
     const modalElement = document.getElementById('unprintedCheckModal');
     if (!modalElement) return;
@@ -376,33 +603,21 @@ function bindUnprintedModalCloseEvents() {
     console.log('✅ 未打印核对单模态框关闭事件绑定完成');
 }
 
-// 重新激活界面元素
-function reactivateInterfaceElements() {
-    console.log('重新激活界面元素...');
+// 显示缺资料模态框 - 点击时加载数据
+async function showMissingDataModal() {
+    console.log('显示缺资料模态框...');
     
-    const clickableElements = [
-        '.nav-link',
-        '.quick-link', 
-        '.status-card',
-        'button',
-        'a',
-        '.form-select',
-        '.form-control'
-    ];
-    
-    clickableElements.forEach(selector => {
-        document.querySelectorAll(selector).forEach(element => {
-            element.style.pointerEvents = 'auto';
-            element.style.opacity = '1';
-        });
-    });
-    
-    console.log('✅ 界面元素重新激活完成');
-}
-
-// 显示缺资料模态框 - 修复版本
-function showMissingDataModal() {
+    // 显示加载提示
     const tbody = document.getElementById('missingDataList');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center">正在加载数据...</td></tr>';
+    }
+    
+    // 如果数据为空，先加载数据
+    if (missingData.length === 0) {
+        await loadMissingDataDetail();
+    }
+    
     if (!tbody) {
         console.error('缺资料模态框表格不存在');
         return;
@@ -436,7 +651,31 @@ function showMissingDataModal() {
     modal.show();
 }
 
-// 确保应用容器可见 - 新增辅助函数
+// 重新激活界面元素
+function reactivateInterfaceElements() {
+    console.log('重新激活界面元素...');
+    
+    const clickableElements = [
+        '.nav-link',
+        '.quick-link', 
+        '.status-card',
+        'button',
+        'a',
+        '.form-select',
+        '.form-control'
+    ];
+    
+    clickableElements.forEach(selector => {
+        document.querySelectorAll(selector).forEach(element => {
+            element.style.pointerEvents = 'auto';
+            element.style.opacity = '1';
+        });
+    });
+    
+    console.log('✅ 界面元素重新激活完成');
+}
+
+// 确保应用容器可见
 function ensureAppContainerVisible() {
     const appContainer = document.querySelector('.app-container');
     if (appContainer) {
