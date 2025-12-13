@@ -60,7 +60,6 @@
                 <li><a href="#" class="nav-link" data-page="hscode">HS编码管理</a></li>
                 <li><a href="#" class="nav-link" data-page="exporter">出口商管理</a></li>
                 <li><a href="#" class="nav-link" data-page="files">文件管理</a></li>
-                <li><a href="#" class="nav-link" data-page="list">账单管理</a></li>
                 <li class="user-info">
                     <div class="d-flex align-items-center">
                         <div class="user-avatar" id="userAvatar">
@@ -80,374 +79,346 @@
         <!-- 主内容区 -->
         <div class="main-content">
             <!-- 首页内容 -->
-<div id="home" class="page-content">
-    <div class="page-header">
-        <h2>首页</h2>
-        <p class="text-muted">系统概览与跟进状态</p>
-    </div>
+            <div id="home" class="page-content">
+                <div class="page-header">
+                    <h2>首页</h2>
+                    <p class="text-muted">系统概览与跟进状态</p>
+                </div>
 
-    <!-- 跟进状态卡片 -->
-    <div class="row mt-4">
-        <div class="col-md-3">
-            <div class="status-card" id="quarantineCard">
-                <h4>检疫证未出</h4>
-                <div class="count text-warning" id="quarantineCount">0</div>
-                <p class="card-text">已放行但无检疫证</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="status-card" id="inspectionCard">
-                <h4>查验未完成</h4>
-                <div class="count text-danger" id="inspectionCount">0</div>
-                <p class="card-text">查验中的报关单</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="status-card" id="unprintedCheckCard">
-                <h4>未打印核对单</h4>
-                <div class="count text-info" id="unprintedCheckCount">0</div>
-                <p class="card-text">待处理核对单</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="status-card" id="missingDataCard">
-                <h4>缺资料</h4>
-                <div class="count text-secondary" id="missingDataCount">0</div>
-                <p class="card-text">资料不完整的报关单</p>
-            </div>
-        </div>
-    </div>
+                <!-- 跟进状态卡片 -->
+                <div class="row mt-4">
+                    <div class="col-md-3">
+                        <div class="status-card" id="quarantineCard">
+                            <h4>检疫证未出</h4>
+                            <div class="count text-warning" id="quarantineCount">0</div>
+                            <p class="card-text">已放行但无检疫证</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="status-card" id="inspectionCard">
+                            <h4>查验未完成</h4>
+                            <div class="count text-danger" id="inspectionCount">0</div>
+                            <p class="card-text">查验中的报关单</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="status-card" id="unprintedCheckCard">
+                            <h4>未打印核对单</h4>
+                            <div class="count text-info" id="unprintedCheckCount">0</div>
+                            <p class="card-text">待处理核对单</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="status-card" id="missingDataCard">
+                            <h4>缺资料</h4>
+                            <div class="count text-secondary" id="missingDataCount">0</div>
+                            <p class="card-text">资料不完整的报关单</p>
+                        </div>
+                    </div>
+                </div>
 
-    <!-- 快速导航 -->
-    <div class="row mt-5">
-        <div class="col-12">
-            <h4>快速导航</h4>
-        </div>
-        <div class="col-md-3">
-            <div class="quick-link" data-page="tracking">
-                <i class="fas fa-tasks fa-3x text-primary mb-3"></i>
-                <h4>跟单工作台</h4>
-                <p>源数据管理与跟踪</p>
+                <!-- 快速导航 -->
+                <div class="row mt-5">
+                    <div class="col-12">
+                        <h4>快速导航</h4>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="quick-link" data-page="tracking">
+                            <i class="fas fa-tasks fa-3x text-primary mb-3"></i>
+                            <h4>跟单工作台</h4>
+                            <p>源数据管理与跟踪</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="quick-link" data-page="customs">
+                            <i class="fas fa-file-alt fa-3x text-success mb-3"></i>
+                            <h4>报关数据</h4>
+                            <p>报关数据管理</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="quick-link" data-page="files">
+                            <i class="fas fa-folder fa-3x text-warning mb-3"></i>
+                            <h4>文件管理</h4>
+                            <p>文件上传与匹配</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- ==================== 在这行后面添加 ==================== -->
+
+<!-- 常用链接模块 -->
+<div class="row mt-5" id="quickLinksSection">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4>常用链接</h4>
+            <div>
+                <button class="btn btn-sm btn-outline-primary me-2" id="refreshQuickLinks">
+                    <i class="fas fa-sync-alt"></i> 刷新
+                </button>
+                <button class="btn btn-sm btn-primary" id="addQuickLink">
+                    <i class="fas fa-plus"></i> 添加链接
+                </button>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="quick-link" data-page="customs">
-                <i class="fas fa-file-alt fa-3x text-success mb-3"></i>
-                <h4>报关数据</h4>
-                <p>报关数据管理</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="quick-link" data-page="files">
-                <i class="fas fa-folder fa-3x text-warning mb-3"></i>
-                <h4>文件管理</h4>
-                <p>文件上传与匹配</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="quick-link" data-page="list">
-                <i class="fas fa-receipt fa-3x text-info mb-3"></i>
-                <h4>账单管理</h4>
-                <p>费用账单管理</p>
+        
+        <div class="quick-links-container" id="quickLinksContainer">
+            <div class="text-center text-muted py-5" id="quickLinksLoading">
+                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                <p>正在加载常用链接...</p>
             </div>
         </div>
     </div>
 </div>
+            </div>
             
             <!-- 跟单工作台内容 -->
-<div id="tracking" class="page-content hidden">
-    <div class="page-header">
-        <h2>跟单工作台</h2>
-        <p class="text-muted">源数据管理</p>
-    </div>
+            <div id="tracking" class="page-content hidden">
+                <div class="page-header">
+                    <h2>跟单工作台</h2>
+                    <p class="text-muted">源数据管理</p>
+                </div>
 
-    <div class="card">
-        <div class="card-header">
-            查询条件
-        </div>
-        <div class="card-body">
-            <div class="row g-2 search-form">
-                <div class="col-md-2">
-                    <label for="arrivalDate" class="form-label">到港日期</label>
-                    <input type="text" class="form-control date-input" id="arrivalDate" placeholder="选择日期范围">
-                </div>
-                <div class="col-md-2">
-                    <label for="billNo" class="form-label">提单号</label>
-                    <input type="text" class="form-control" id="billNo">
-                </div>
-                <div class="col-md-2">
-                    <label for="containerNo" class="form-label">柜号</label>
-                    <input type="text" class="form-control" id="containerNo">
-                </div>
-                <div class="col-md-2">
-                    <label for="declareDate" class="form-label">申报日期</label>
-                    <input type="text" class="form-control date-input" id="declareDate" placeholder="选择日期范围">
-                </div>
-                <div class="col-md-2">
-                    <label for="customsStatusFilter" class="form-label">报关状态</label>
-                    <select class="form-select" id="customsStatusFilter">
-                        <option value="">全部状态</option>
-                        <option value="放行">放行</option>
-                        <option value="目的地查验">目的地查验</option>
-                        <option value="审结">审结</option>
-                        <option value="口岸查验">口岸查验</option>
-                        <option value="无电子信息">无电子信息</option>
-                        <option value="合并检查">合并检查</option>
-                        <option value="挂起">挂起</option>
-                        <option value="非放行">非放行</option>
-                    </select>
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <div class="w-100">
-                        <button class="btn btn-primary w-100" id="searchTracking">查询</button>
-                        <button class="btn btn-outline-secondary w-100 mt-1" id="clearTracking">清空</button>
+                <div class="card">
+                    <div class="card-header">
+                        查询条件
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 表格和分页统一容器 -->
-    <div class="table-card-container">
-        <div class="table-card-header d-flex justify-content-between align-items-center">
-            <span>跟单列表</span>
-            <div>
-                <button class="btn btn-sm btn-outline-primary me-2" id="importTracking">
-                    <i class="fas fa-upload"></i> 导入
-                </button>
-                <button class="btn btn-sm btn-primary" id="addTracking">新增跟单</button>
-            </div>
-        </div>
-        
-        <div class="table-content-wrapper">
-            <!-- 表格内容区域 -->
-            <div class="table-container">
-                <table class="table table-hover" id="trackingTable">
-                    <thead>
-                        <tr>
-                            <th>序号</th>
-                            <th>到港日期</th>
-                            <th>申报日期</th>
-                            <th>预录入号</th>
-                            <th>提单号</th>
-                            <th>柜号</th>
-                            <th>报关单号</th>
-                            <th>欧盟保证金</th>
-                            <th>国家</th>
-                            <th>品名</th>
-                            <th>操作</th>
-                            <th>报关状态</th>
-                            <th>指令</th>
-                            <th>备注</th>
-                            <th>单证信息</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- 数据将通过JavaScript动态填充 -->
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- 固定在容器底部的分页控件 -->
-            <div class="pagination-container" id="paginationContainer">
-                <div class="pagination-info" id="paginationInfo">
-                    共 0 页，每页显示 10 条，共 0 条记录
-                </div>
-                <nav aria-label="Page navigation">
-                    <ul class="pagination" id="pagination">
-                        <!-- 分页将通过JavaScript动态生成 -->
-                    </ul>
-                </nav>
-                <div class="page-size-selector">
-    <span>每页显示：</span>
-    <select class="form-select form-select-sm" id="pageSizeSelect">
-        <option value="20">20条</option>
-        <option value="50">50条</option>
-        <option value="100">100条</option>
-        <option value="300">300条</option>
-    </select>
-</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 新增跟单模态框 -->
-    <div class="modal fade" id="trackingModal" tabindex="-1" aria-labelledby="trackingModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="trackingModalLabel">新增跟单</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="trackingForm">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="newContainerNo" class="form-label">柜号 *</label>
-                                <input type="text" class="form-control" id="newContainerNo" required>
-                                <div class="duplicate-message" id="containerNoError"></div>
+                    <div class="card-body">
+                        <div class="row g-2 search-form">
+                            <div class="col-md-2">
+                                <label for="arrivalDate" class="form-label">到港日期</label>
+                                <input type="text" class="form-control date-input" id="arrivalDate" placeholder="选择日期范围">
                             </div>
-                            <div class="col-md-6">
-                                <label for="newBillNo" class="form-label">提单号</label>
-                                <input type="text" class="form-control" id="newBillNo">
-                                <div class="duplicate-message" id="billNoError"></div>
+                            <div class="col-md-2">
+                                <label for="billNo" class="form-label">提单号</label>
+                                <input type="text" class="form-control" id="billNo">
                             </div>
-                            <div class="col-md-6">
-                                <label for="newArrivalDate" class="form-label">到港日期 *</label>
-                                <input type="text" class="form-control date-input" id="newArrivalDate" required>
+                            <div class="col-md-2">
+                                <label for="containerNo" class="form-label">柜号</label>
+                                <input type="text" class="form-control" id="containerNo">
                             </div>
-                            <div class="col-md-6">
-                                <label for="newCountry" class="form-label">国家</label>
-                                <input type="text" class="form-control" id="newCountry">
+                            <div class="col-md-2">
+                                <label for="declareDate" class="form-label">申报日期</label>
+                                <input type="text" class="form-control date-input" id="declareDate" placeholder="选择日期范围">
                             </div>
-                            <div class="col-md-6">
-                                <label for="newProductName" class="form-label">商品描述</label>
-                                <input type="text" class="form-control" id="newProductName">
+                            <div class="col-md-2">
+                                <label for="customsStatusFilter" class="form-label">报关状态</label>
+                                <select class="form-select" id="customsStatusFilter">
+                                    <option value="">全部状态</option>
+                                    <option value="放行">放行</option>
+                                    <option value="目的地查验">目的地查验</option>
+                                    <option value="审结">审结</option>
+                                    <option value="口岸查验">口岸查验</option>
+                                    <option value="无电子信息">无电子信息</option>
+                                    <option value="合并检查">合并检查</option>
+                                    <option value="挂起">挂起</option>
+                                    <option value="非放行">非放行</option>
+                                    <!-- 新增删单选项 -->
+                                    <option value="删单">删单</option>
+                                </select>
                             </div>
-                            <div class="col-md-6">
-                                <label for="newShipper" class="form-label">发货人</label>
-                                <input type="text" class="form-control" id="newShipper">
+                            <div class="col-md-2 d-flex align-items-end">
+                                <div class="w-100">
+                                    <button class="btn btn-primary w-100" id="searchTracking">查询</button>
+                                    <button class="btn btn-outline-secondary w-100 mt-1" id="clearTracking">清空</button>
+                                </div>
                             </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="saveTracking">保存</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-            
-            <!-- 报关数据管理内容 -->
-<div id="customs" class="page-content hidden">
-    <div class="page-header">
-        <h2>报关数据管理</h2>
-        <p class="text-muted">报关数据列表</p>
-    </div>
 
-    <div class="card">
-        <div class="card-header">
-            查询条件
-        </div>
-        <div class="card-body">
-            <div class="row g-2 search-form">
-                <div class="col-md-2">
-                    <label for="customsArrivalDate" class="form-label">到港日期</label>
-                    <input type="text" class="form-control date-input" id="customsArrivalDate" placeholder="选择日期范围">
-                </div>
-                <div class="col-md-2">
-                    <label for="customsBillNo" class="form-label">提单号</label>
-                    <input type="text" class="form-control" id="customsBillNo">
-                </div>
-                <div class="col-md-2">
-                    <label for="customsContainerNo" class="form-label">柜号</label>
-                    <input type="text" class="form-control" id="customsContainerNo">
-                </div>
-                <div class="col-md-2">
-                    <label for="customsDeclareDate" class="form-label">申报日期</label>
-                    <input type="text" class="form-control date-input" id="customsDeclareDate" placeholder="选择日期范围">
-                </div>
-                <div class="col-md-2">
-                    <label for="customsNoFilter" class="form-label">报关单号</label>
-                    <input type="text" class="form-control" id="customsNoFilter" placeholder="输入报关单号">
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <div class="w-100">
-                        <button class="btn btn-primary w-100" id="searchCustoms">查询</button>
-                        <button class="btn btn-outline-secondary w-100 mt-1" id="clearCustoms">清空</button>
+                <!-- 表格和分页统一容器 -->
+                <div class="table-card-container">
+                    <div class="table-card-header d-flex justify-content-between align-items-center">
+                        <span>跟单列表</span>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary me-2" id="importTracking">
+                                <i class="fas fa-upload"></i> 导入
+                            </button>
+                            <button class="btn btn-sm btn-primary" id="addTracking">新增跟单</button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-content-wrapper">
+                        <!-- 表格内容区域 -->
+                        <div class="table-container">
+                            <table class="table table-hover" id="trackingTable">
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>到港日期</th>
+                                        <th>申报日期</th>
+                                        <th>预录入号</th>
+                                        <th>提单号</th>
+                                        <th>柜号</th>
+                                        <th>报关单号</th>
+                                        <th>欧盟保证金</th>
+                                        <th>国家</th>
+                                        <th>品名</th>
+                                        <th>操作</th>
+                                        <th>报关状态</th>
+                                        <th>指令</th>
+                                        <th>备注</th>
+                                        <th>单证信息</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- 数据将通过JavaScript动态填充 -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 固定在容器底部的分页控件 -->
+                        <div class="pagination-container" id="paginationContainer">
+                            <div class="pagination-info" id="paginationInfo">
+                                共 0 页，每页显示 10 条，共 0 条记录
+                            </div>
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination" id="pagination">
+                                    <!-- 分页将通过JavaScript动态生成 -->
+                                </ul>
+                            </nav>
+                            <div class="page-size-selector">
+                                <span>每页显示：</span>
+                                <select class="form-select form-select-sm" id="pageSizeSelect">
+                                    <option value="20">20条</option>
+                                    <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                    <option value="300">300条</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- 表格和分页统一容器 -->
-    <div class="table-card-container">
-        <div class="table-card-header d-flex justify-content-between align-items-center">
-            <span>报关数据列表</span>
-            <div>
-                <button class="btn btn-sm btn-outline-primary me-2" id="importCustoms">
-                    <i class="fas fa-upload"></i> 导入
-                </button>
-                <button class="btn btn-sm btn-outline-success" id="exportCustoms">
-                    <i class="fas fa-download"></i> 导出
-                </button>
-            </div>
-        </div>
-        
-        <div class="table-content-wrapper">
-            <!-- 表格内容区域 -->
-            <div class="table-container">
-                <table class="table table-hover customs-table" id="customsTable">
-                    <thead>
-                        <tr>
-                            <th>序号</th>
-                            <th>到港日期</th>
-                            <th>申报日期</th>
-                            <th>预录入号</th>
-                            <th>报关状态</th>
-                            <th>指令</th>
-                            <th>单证信息</th>
-                            <th>提单号</th>
-                            <th>柜号</th>
-                            <th>报关单号</th>
-                            <th>欧盟保证金</th>
-                            <th>国家</th>
-                            <th>品名</th>
-                            <th>境内收发货人</th>
-                            <th>消费使用单位</th>
-                            <th>境外收发货人</th>
-                            <th>HS编码</th>
-                            <th>监管类别名称</th>
-                            <th>规格型号</th>
-                            <th>货值</th>
-                            <th>币制</th>
-                            <th>厂号</th>
-                            <th>发货人备案号</th>
-                            <th>件数</th>
-                            <th>净重</th>
-                            <th>毛重</th>
-                            <th>105证书</th>
-                            <th>325证书</th>
-                            <th>519证书</th>
-                            <th>113证书</th>
-                            <th>检验检疫货物规格</th>
-                            <th>生产日期</th>
-                            <th>备注</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- 数据将通过JavaScript动态填充 -->
-                    </tbody>
-                </table>
-            </div>
             
-            <!-- 固定在容器底部的分页控件 -->
-            <div class="pagination-container" id="customsPaginationContainer">
-                <div class="pagination-info" id="customsPaginationInfo">
-                    共 0 页，每页显示 10 条，共 0 条记录
+            <!-- 报关数据管理内容 -->
+            <div id="customs" class="page-content hidden">
+                <div class="page-header">
+                    <h2>报关数据管理</h2>
+                    <p class="text-muted">报关数据列表</p>
                 </div>
-                <nav aria-label="Page navigation">
-                    <ul class="pagination" id="customsPagination">
-                        <!-- 分页将通过JavaScript动态生成 -->
-                    </ul>
-                </nav>
-                <div class="page-size-selector">
-                    <span>每页显示：</span>
-                    <select class="form-select form-select-sm" id="customsPageSizeSelect">
-                        <option value="20">20条</option>
-                        <option value="50">50条</option>
-                        <option value="100">100条</option>
-                        <option value="300">300条</option>
-                    </select>
+
+                <div class="card">
+                    <div class="card-header">
+                        查询条件
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2 search-form">
+                            <div class="col-md-2">
+                                <label for="customsArrivalDate" class="form-label">到港日期</label>
+                                <input type="text" class="form-control date-input" id="customsArrivalDate" placeholder="选择日期范围">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="customsBillNo" class="form-label">提单号</label>
+                                <input type="text" class="form-control" id="customsBillNo">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="customsContainerNo" class="form-label">柜号</label>
+                                <input type="text" class="form-control" id="customsContainerNo">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="customsDeclareDate" class="form-label">申报日期</label>
+                                <input type="text" class="form-control date-input" id="customsDeclareDate" placeholder="选择日期范围">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="customsNoFilter" class="form-label">报关单号</label>
+                                <input type="text" class="form-control" id="customsNoFilter" placeholder="输入报关单号">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <div class="w-100">
+                                    <button class="btn btn-primary w-100" id="searchCustoms">查询</button>
+                                    <button class="btn btn-outline-secondary w-100 mt-1" id="clearCustoms">清空</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 表格和分页统一容器 -->
+                <div class="table-card-container">
+                    <div class="table-card-header d-flex justify-content-between align-items-center">
+                        <span>报关数据列表</span>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary me-2" id="importCustoms">
+                                <i class="fas fa-upload"></i> 导入
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" id="exportCustoms">
+                                <i class="fas fa-download"></i> 导出
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-content-wrapper">
+                        <!-- 表格内容区域 -->
+                        <div class="table-container">
+                            <table class="table table-hover customs-table" id="customsTable">
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>到港日期</th>
+                                        <th>申报日期</th>
+                                        <th>预录入号</th>
+                                        <th>报关状态</th>
+                                        <th>指令</th>
+                                        <th>单证信息</th>
+                                        <th>提单号</th>
+                                        <th>柜号</th>
+                                        <th>报关单号</th>
+                                        <th>欧盟保证金</th>
+                                        <th>国家</th>
+                                        <th>品名</th>
+                                        <th>境内收发货人</th>
+                                        <th>消费使用单位</th>
+                                        <th>境外收发货人</th>
+                                        <th>HS编码</th>
+                                        <th>监管类别名称</th>
+                                        <th>规格型号</th>
+                                        <th>货值</th>
+                                        <th>币制</th>
+                                        <th>厂号</th>
+                                        <th>发货人备案号</th>
+                                        <th>件数</th>
+                                        <th>净重</th>
+                                        <th>毛重</th>
+                                        <th>105证书</th>
+                                        <th>325证书</th>
+                                        <th>519证书</th>
+                                        <th>113证书</th>
+                                        <th>检验检疫货物规格</th>
+                                        <th>生产日期</th>
+                                        <th>备注</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- 数据将通过JavaScript动态填充 -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 固定在容器底部的分页控件 -->
+                        <div class="pagination-container" id="customsPaginationContainer">
+                            <div class="pagination-info" id="customsPaginationInfo">
+                                共 0 页，每页显示 10 条，共 0 条记录
+                            </div>
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination" id="customsPagination">
+                                    <!-- 分页将通过JavaScript动态生成 -->
+                                </ul>
+                            </nav>
+                            <div class="page-size-selector">
+                                <span>每页显示：</span>
+                                <select class="form-select form-select-sm" id="customsPageSizeSelect">
+                                    <option value="20">20条</option>
+                                    <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                    <option value="300">300条</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
             
             <!-- HS编码管理内容 -->
             <div id="hscode" class="page-content hidden">
@@ -524,10 +495,10 @@
                             <div class="page-size-selector">
                                 <span>每页显示：</span>
                                 <select class="form-select form-select-sm" id="hscodePageSizeSelect">
-                                    <option value="10">10条</option>
                                     <option value="20">20条</option>
-                                    <option value="30">30条</option>
                                     <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                    <option value="300">300条</option>
                                 </select>
                             </div>
                         </div>
@@ -608,10 +579,10 @@
                             <div class="page-size-selector">
                                 <span>每页显示：</span>
                                 <select class="form-select form-select-sm" id="exporterPageSizeSelect">
-                                    <option value="10">10条</option>
                                     <option value="20">20条</option>
-                                    <option value="30">30条</option>
                                     <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                    <option value="300">300条</option>
                                 </select>
                             </div>
                         </div>
@@ -682,566 +653,9 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- 账单管理内容 -->
-            <div id="list" class="page-content hidden">
-    <div class="page-header">
-        <h2>账单管理</h2>
-        <p class="text-muted">费用账单管理与统计</p>
-    </div>
-
-    <!-- 查询条件 -->
-<div class="card">
-    <div class="card-header">
-        查询条件
-    </div>
-    <div class="card-body">
-        <div class="row g-2 search-form">
-            <div class="col-md-3">
-                <label for="billDateRange" class="form-label">账单日期</label>
-                <input type="text" class="form-control date-input" id="billDateRange" placeholder="选择日期范围">
-            </div>
-            <div class="col-md-3">
-                <label for="billStatusFilter" class="form-label">账单状态</label>
-                <select class="form-select" id="billStatusFilter">
-                    <option value="">全部状态</option>
-                    <option value="未确认">未确认</option>
-                    <option value="已确认">已确认</option>
-                    <option value="已收款">已收款</option>
-                </select>
-            </div>
-            <div class="col-md-3 d-flex align-items-end">
-                <div class="w-100">
-                    <button class="btn btn-primary w-100" id="searchBills">查询</button>
-                    <button class="btn btn-outline-secondary w-100 mt-1" id="clearBills">清空</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-    <!-- 统计卡片 -->
-    <div class="row mt-3">
-        <div class="col-md-3">
-            <div class="card status-card">
-                <div class="card-body text-center">
-                    <h5 class="card-title">总金额</h5>
-                    <div class="count text-primary" id="totalAmount">¥0.00</div>
-                    <p class="card-text">所有账单总额</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card status-card">
-                <div class="card-body text-center">
-                    <h5 class="card-title">未确认</h5>
-                    <div class="count text-warning" id="unconfirmedAmount">¥0.00</div>
-                    <p class="card-text">待确认金额</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card status-card">
-                <div class="card-body text-center">
-                    <h5 class="card-title">已确认</h5>
-                    <div class="count text-info" id="confirmedAmount">¥0.00</div>
-                    <p class="card-text">已确认金额</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card status-card">
-                <div class="card-body text-center">
-                    <h5 class="card-title">账单数量</h5>
-                    <div class="count text-success" id="billCount">0</div>
-                    <p class="card-text">总账单数</p>
-                </div>
-            </div>
         </div>
     </div>
 
-    <!-- 表格和分页统一容器 -->
-    <div class="table-card-container mt-3">
-        <div class="table-card-header d-flex justify-content-between align-items-center">
-            <span>账单列表</span>
-            <div>
-                <button class="btn btn-sm btn-outline-primary me-2" id="importBills">
-                    <i class="fas fa-upload"></i> 导入
-                </button>
-                <button class="btn btn-sm btn-outline-success me-2" id="exportBills">
-                    <i class="fas fa-download"></i> 导出
-                </button>
-                <button class="btn btn-sm btn-primary" id="generateBill">
-                    <i class="fas fa-plus"></i> 生成账单
-                </button>
-            </div>
-        </div>
-        
-        <div class="table-content-wrapper">
-            <!-- 表格内容区域 -->
-            <div class="table-container">
-                <table class="table table-hover" id="billsTable">
-    <thead>
-        <tr>
-            <th>序号</th>
-            <th>账单编号</th>
-            <th>账单日期</th>
-            <th>公司名称</th>
-            <th>总金额</th>
-            <th>币种</th>
-            <th>账单状态</th>
-            <th>支付日期</th>
-            <th>备注</th>
-            <th>操作</th>
-        </tr>
-    </thead>
-    <tbody>
-        <!-- 数据将通过JavaScript动态填充 -->
-    </tbody>
-</table>
-            </div>
-            
-            <!-- 固定在容器底部的分页控件 -->
-            <div class="pagination-container" id="billsPaginationContainer">
-                <div class="pagination-info" id="billsPaginationInfo">
-                    共 0 页，每页显示 10 条，共 0 条记录
-                </div>
-                <nav aria-label="Page navigation">
-                    <ul class="pagination" id="billsPagination">
-                        <!-- 分页将通过JavaScript动态生成 -->
-                    </ul>
-                </nav>
-                <div class="page-size-selector">
-                    <span>每页显示：</span>
-                    <select class="form-select form-select-sm" id="billsPageSizeSelect">
-                        <option value="10">10条</option>
-                        <option value="50">50条</option>
-                        <option value="100">100条</option>
-                        <option value="200">200条</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 生成账单模态框 -->
-    <div class="modal fade" id="generateBillModal" tabindex="-1" aria-labelledby="generateBillModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="generateBillModalLabel">生成账单</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-4">
-                            <label for="companyName" class="form-label">公司名称 *</label>
-                            <input type="text" class="form-control" id="companyName" placeholder="输入公司名称" required>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="billYear" class="form-label">年份 *</label>
-                            <select class="form-select" id="billYear" required>
-                                <option value="">选择年份</option>
-                                <!-- 年份选项将通过JavaScript动态生成 -->
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="billMonth" class="form-label">月份 *</label>
-                            <select class="form-select" id="billMonth" required>
-                                <option value="">选择月份</option>
-                                <!-- 月份选项将通过JavaScript动态生成 -->
-                            </select>
-                        </div>
-                        <div class="col-md-4 d-flex align-items-end">
-                            <button class="btn btn-primary w-100" id="searchCustomsData">
-                                <i class="fas fa-search"></i> 查询报关数据
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-4">
-                            <label for="searchContainerNo" class="form-label">柜号查询</label>
-                            <input type="text" class="form-control" id="searchContainerNo" placeholder="输入柜号">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="searchBillNo" class="form-label">提单号查询</label>
-                            <input type="text" class="form-control" id="searchBillNo" placeholder="输入提单号">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="searchCustomsNo" class="form-label">报关单号查询</label>
-                            <input type="text" class="form-control" id="searchCustomsNo" placeholder="输入报关单号">
-                        </div>
-                    </div>
-                    
-                    <!-- 报关数据表格 -->
-                    <div class="table-responsive mb-4" style="max-height: 300px;">
-                        <table class="table table-sm table-bordered" id="customsDataTable">
-                            <thead class="table-light">
-                                <tr>
-                                    <th width="50">
-                                        <input type="checkbox" id="selectAllItems">
-                                    </th>
-                                    <th>序号</th>
-                                    <th>到港日期</th>
-                                    <th>申报日期</th>
-                                    <th>提单号</th>
-                                    <th>柜号</th>
-                                    <th>报关单号</th>
-                                    <th>境内收发货人</th>
-                                    <th>消费使用单位</th>
-                                    <th>国家</th>
-                                    <th>品名</th>
-                                </tr>
-                            </thead>
-                            <tbody id="customsDataBody">
-                                <!-- 报关数据将通过JavaScript动态填充 -->
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <!-- 费用输入区域 -->
-                    <div class="card mb-4">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span>费用设置</span>
-                            <button class="btn btn-sm btn-outline-primary" id="applyAllFees">
-                                <i class="fas fa-sync-alt"></i> 应用到所有选中项
-                            </button>
-                        </div>
-                        <div class="card-body">
-                            <div class="row g-3" id="feeInputs">
-                                <div class="col-md-3">
-                                    <label for="customsFee" class="form-label">报关费</label>
-                                    <input type="number" class="form-control fee-input" id="customsFee" step="0.01" min="0" value="0">
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="inspectionFee" class="form-label">查验服务费</label>
-                                    <input type="number" class="form-control fee-input" id="inspectionFee" step="0.01" min="0" value="0">
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="documentFee" class="form-label">代理换单费</label>
-                                    <input type="number" class="form-control fee-input" id="documentFee" step="0.01" min="0" value="0">
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="otherFee1" class="form-label">其他费用1</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="otherFee1Name" placeholder="费用名称" value="其他费用1">
-                                        <input type="number" class="form-control fee-input" id="otherFee1" step="0.01" min="0" value="0">
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="otherFee2" class="form-label">其他费用2</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="otherFee2Name" placeholder="费用名称" value="其他费用2">
-                                        <input type="number" class="form-control fee-input" id="otherFee2" step="0.01" min="0" value="0">
-                                    </div>
-                                </div>
-                                <div class="col-md-3 d-flex align-items-end">
-                                    <button class="btn btn-outline-primary w-100" id="addCustomFee">
-                                        <i class="fas fa-plus"></i> 添加自定义费用
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <!-- 自定义费用区域 -->
-                            <div id="customFeesContainer" class="mt-3">
-                                <!-- 自定义费用将通过JavaScript动态添加 -->
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 账单预览 -->
-                    <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <span>账单预览</span>
-        <div>
-            <!-- 添加搜索框 -->
-            <div class="input-group input-group-sm me-2" style="width: 400px;">
-                <select class="form-select" id="billPreviewSearchType" style="width: 120px;">
-                    <option value="containerNo">柜号</option>
-                    <option value="billNo">提单号</option>
-                    <option value="customsNo">报关单号</option>
-                </select>
-                <input type="text" class="form-control" id="billPreviewSearch" placeholder="输入搜索内容">
-                <button class="btn btn-outline-secondary" type="button" id="billPreviewSearchBtn">
-                    <i class="fas fa-search"></i> 搜索
-                </button>
-            </div>
-            <button class="btn btn-sm btn-outline-success me-2" id="previewBill">
-                <i class="fas fa-eye"></i> 预览
-            </button>
-            <button class="btn btn-sm btn-outline-primary" id="exportBillExcel">
-                <i class="fas fa-file-excel"></i> 导出Excel
-            </button>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="preview-table-container">
-            <table class="table table-sm table-bordered preview-table" id="billPreviewTable">
-                <thead class="table-light sticky-header">
-                    <tr>
-                        <th>序号</th>
-                        <th>到港时间</th>
-                        <th>提单号</th>
-                        <th>柜号</th>
-                        <th>报关费</th>
-                        <th>查验服务费</th>
-                        <th>代理换单费</th>
-                        <th id="otherFee1Header">其他费用1</th>
-                        <th id="otherFee2Header">其他费用2</th>
-                        <th id="otherFee3Header" style="display: none;">其他费用3</th>
-                        <th id="otherFee4Header" style="display: none;">其他费用4</th>
-                        <th>合计</th>
-                        <th>备注</th>
-                    </tr>
-                </thead>
-                <tbody id="billPreviewBody">
-                    <!-- 账单预览数据将通过JavaScript动态填充 -->
-                </tbody>
-                <tfoot>
-                    <tr class="table-primary">
-                        <td colspan="4" class="text-end"><strong>总计：</strong></td>
-                        <td id="totalCustomsFee">0.00</td>
-                        <td id="totalInspectionFee">0.00</td>
-                        <td id="totalDocumentFee">0.00</td>
-                        <td id="totalOtherFee1">0.00</td>
-                        <td id="totalOtherFee2">0.00</td>
-                        <td id="totalOtherFee3" style="display: none;">0.00</td>
-                        <td id="totalOtherFee4" style="display: none;">0.00</td>
-                        <td id="grandTotal">0.00</td>
-                        <td></td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </div>
-</div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="saveGeneratedBill">保存账单</button>
-                    <button type="button" class="btn btn-success" id="exportBillPdf" disabled>
-                        <i class="fas fa-file-pdf"></i> 导出PDF
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 账单详情模态框 -->
-    <div class="modal fade" id="billDetailModal" tabindex="-1" aria-labelledby="billDetailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="billDetailModalLabel">账单详情</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <p><strong>账单编号：</strong><span id="detailBillNo"></span></p>
-                            <p><strong>公司名称：</strong><span id="detailCompanyName"></span></p>
-                            <p><strong>账单日期：</strong><span id="detailBillDate"></span></p>
-                            <p><strong>账单状态：</strong><span id="detailBillStatus"></span></p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>总金额：</strong><span id="detailTotalAmount"></span></p>
-                            <p><strong>收款日期：</strong><span id="detailPaymentDate"></span></p>
-                            <p><strong>收款方：</strong><span id="detailPayee"></span></p>
-                            <p><strong>备注：</strong><span id="detailRemark"></span></p>
-                        </div>
-                    </div>
-                    
-                    <!-- 账单明细 -->
-                    <div class="table-responsive mb-4">
-                        <table class="table table-sm table-bordered">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>序号</th>
-                                    <th>到港时间</th>
-                                    <th>提单号</th>
-                                    <th>柜号</th>
-                                    <th>报关单号</th>
-                                    <th>报关费</th>
-                                    <th>查验服务费</th>
-                                    <th>代理换单费</th>
-                                    <th id="detailOtherFee1Header">其他费用1</th>
-                                    <th id="detailOtherFee2Header">其他费用2</th>
-                                    <th id="detailOtherFee3Header" style="display: none;">其他费用3</th>
-                                    <th id="detailOtherFee4Header" style="display: none;">其他费用4</th>
-                                    <th>合计</th>
-                                    <th>备注</th>
-                                </tr>
-                            </thead>
-                            <tbody id="billDetailItems">
-                                <!-- 账单明细将通过JavaScript动态填充 -->
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <!-- 附件管理 -->
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span>附件管理</span>
-                            <button class="btn btn-sm btn-outline-primary" id="uploadInvoiceBtn">
-                                <i class="fas fa-upload"></i> 上传发票
-                            </button>
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3" id="invoiceUploadSection" style="display: none;">
-                                <label for="invoiceUpload" class="form-label">选择发票文件</label>
-                                <input class="form-control" type="file" id="invoiceUpload" accept=".pdf,.jpg,.jpeg,.png">
-                                <div class="mt-2">
-                                    <button class="btn btn-primary btn-sm" id="confirmUpload">确认上传</button>
-                                    <button class="btn btn-secondary btn-sm" id="cancelUpload">取消</button>
-                                </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>文件名</th>
-                                            <th>文件类型</th>
-                                            <th>上传时间</th>
-                                            <th>操作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="invoiceList">
-                                        <!-- 发票列表将通过JavaScript动态填充 -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
-                    <button type="button" class="btn btn-warning" id="confirmBill">确认账单</button>
-                    <button type="button" class="btn btn-success" id="exportDetailPdf">
-                        <i class="fas fa-file-pdf"></i> 导出PDF
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-                <!-- 新增账单模态框 -->
-                <div class="modal fade" id="billModal" tabindex="-1" aria-labelledby="billModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="billModalLabel">新增账单</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form id="billForm">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label for="newBillDate" class="form-label">账单日期 *</label>
-                                            <input type="text" class="form-control date-input" id="newBillDate" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="newContainerNo" class="form-label">柜号</label>
-                                            <input type="text" class="form-control" id="newContainerNo">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="newCustomsNo" class="form-label">报关单号</label>
-                                            <input type="text" class="form-control" id="newCustomsNo">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="newBillType" class="form-label">费用类型 *</label>
-                                            <select class="form-select" id="newBillType" required>
-                                                <option value="">请选择</option>
-                                                <option value="报关费">报关费</option>
-                                                <option value="查验费">查验费</option>
-                                                <option value="港杂费">港杂费</option>
-                                                <option value="运输费">运输费</option>
-                                                <option value="其他费用">其他费用</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="newAmount" class="form-label">费用金额 *</label>
-                                            <input type="number" class="form-control" id="newAmount" step="0.01" min="0" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="newCurrency" class="form-label">币种 *</label>
-                                            <select class="form-select" id="newCurrency" required>
-                                                <option value="CNY">人民币 (CNY)</option>
-                                                <option value="USD">美元 (USD)</option>
-                                                <option value="EUR">欧元 (EUR)</option>
-                                                <option value="JPY">日元 (JPY)</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="newBillStatus" class="form-label">账单状态 *</label>
-                                            <select class="form-select" id="newBillStatus" required>
-                                                <option value="未支付">未支付</option>
-                                                <option value="已支付">已支付</option>
-                                                <option value="已开票">已开票</option>
-                                                <option value="已核销">已核销</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="newPaymentDate" class="form-label">支付日期</label>
-                                            <input type="text" class="form-control date-input" id="newPaymentDate">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="newPayee" class="form-label">收款方</label>
-                                            <input type="text" class="form-control" id="newPayee">
-                                        </div>
-                                        <div class="col-12">
-                                            <label for="newBillRemark" class="form-label">备注</label>
-                                            <textarea class="form-control" id="newBillRemark" rows="3"></textarea>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                                <button type="button" class="btn btn-primary" id="saveBill">保存</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 账单详情模态框 -->
-                <div class="modal fade" id="billDetailModal" tabindex="-1" aria-labelledby="billDetailModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="billDetailModalLabel">账单详情</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <p><strong>账单日期：</strong><span id="detailBillDate"></span></p>
-                                        <p><strong>柜号：</strong><span id="detailContainerNo"></span></p>
-                                        <p><strong>报关单号：</strong><span id="detailCustomsNo"></span></p>
-                                        <p><strong>费用类型：</strong><span id="detailBillType"></span></p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <p><strong>费用金额：</strong><span id="detailAmount"></span></p>
-                                        <p><strong>币种：</strong><span id="detailCurrency"></span></p>
-                                        <p><strong>账单状态：</strong><span id="detailBillStatus"></span></p>
-                                        <p><strong>支付日期：</strong><span id="detailPaymentDate"></span></p>
-                                    </div>
-                                </div>
-                                <div class="row mt-3">
-                                    <div class="col-12">
-                                        <p><strong>收款方：</strong><span id="detailPayee"></span></p>
-                                        <p><strong>备注：</strong><span id="detailRemark"></span></p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-    
     <!-- 公共模态框 -->
     <!-- 检疫证未出模态框 -->
     <div class="modal fade" id="quarantineModal" tabindex="-1" aria-labelledby="quarantineModalLabel" aria-hidden="true">
@@ -1374,372 +788,420 @@
         </div>
     </div>
 
+    <!-- 新增跟单模态框 -->
+    <div class="modal fade" id="trackingModal" tabindex="-1" aria-labelledby="trackingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="trackingModalLabel">新增跟单</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="trackingForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="newContainerNo" class="form-label">柜号 *</label>
+                                <input type="text" class="form-control" id="newContainerNo" required>
+                                <div class="duplicate-message" id="containerNoError"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="newBillNo" class="form-label">提单号</label>
+                                <input type="text" class="form-control" id="newBillNo">
+                                <div class="duplicate-message" id="billNoError"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="newArrivalDate" class="form-label">到港日期 *</label>
+                                <input type="text" class="form-control date-input" id="newArrivalDate" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="newCountry" class="form-label">国家</label>
+                                <input type="text" class="form-control" id="newCountry">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="newProductName" class="form-label">商品描述</label>
+                                <input type="text" class="form-control" id="newProductName">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="newShipper" class="form-label">发货人</label>
+                                <input type="text" class="form-control" id="newShipper">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveTracking">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 导入跟单模态框 -->
-<div class="modal fade" id="importTrackingModal" tabindex="-1" aria-labelledby="importTrackingModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="importTrackingModalLabel">批量导入跟单数据</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-info">
-                    <h6>导入说明：</h6>
-                    <ul class="mb-0">
-                        <li>支持 Excel (.xlsx, .xls) 和 CSV 文件格式</li>
-                        <li>请确保文件包含以下列：柜号、到港日期、提单号、国家、商品描述、发货人、预录入号</li>
-                        <li>柜号和到港日期为必填字段</li>
-                        <li>第一行应为表头，数据从第二行开始</li>
-                    </ul>
+    <div class="modal fade" id="importTrackingModal" tabindex="-1" aria-labelledby="importTrackingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importTrackingModalLabel">批量导入跟单数据</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                
-                <div class="mb-3">
-                    <label for="importFile" class="form-label">选择文件</label>
-                    <input class="form-control" type="file" id="importFile" accept=".xlsx,.xls,.csv">
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">模板下载</label>
-                    <div>
-                        <button class="btn btn-outline-primary btn-sm" id="downloadTemplate">
-                            <i class="fas fa-download"></i> 下载导入模板
-                        </button>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <h6>导入说明：</h6>
+                        <ul class="mb-0">
+                            <li>支持 Excel (.xlsx, .xls) 和 CSV 文件格式</li>
+                            <li>请确保文件包含以下列：柜号、到港日期、提单号、国家、商品描述、发货人、预录入号</li>
+                            <li>柜号和到港日期为必填字段</li>
+                            <li>第一行应为表头，数据从第二行开始</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="importFile" class="form-label">选择文件</label>
+                        <input class="form-control" type="file" id="importFile" accept=".xlsx,.xls,.csv">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">模板下载</label>
+                        <div>
+                            <button class="btn btn-outline-primary btn-sm" id="downloadTemplate">
+                                <i class="fas fa-download"></i> 下载导入模板
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h6>预览数据</h6>
+                        <div class="table-responsive" style="max-height: 300px;">
+                            <table class="table table-sm table-bordered import-preview-table" id="importPreviewTable">
+                                <thead>
+                                    <tr>
+                                        <th>状态</th>
+                                        <th>柜号</th>
+                                        <th>到港日期</th>
+                                        <th>提单号</th>
+                                        <th>国家</th>
+                                        <th>商品描述</th>
+                                        <th>发货人</th>
+                                        <th>预录入号</th>
+                                        <th>错误信息</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="importPreviewBody">
+                                    <!-- 预览数据将通过JavaScript动态填充 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="skipDuplicates" checked>
+                            <label class="form-check-label" for="skipDuplicates">
+                                跳过重复数据（根据柜号判断）
+                            </label>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="mt-4">
-                    <h6>预览数据</h6>
-                    <div class="table-responsive" style="max-height: 300px;">
-                        <table class="table table-sm table-bordered import-preview-table" id="importPreviewTable">
-                            <thead>
-                                <tr>
-                                    <th>状态</th>
-                                    <th>柜号</th>
-                                    <th>到港日期</th>
-                                    <th>提单号</th>
-                                    <th>国家</th>
-                                    <th>商品描述</th>
-                                    <th>发货人</th>
-                                    <th>预录入号</th>
-                                    <th>错误信息</th>
-                                </tr>
-                            </thead>
-                            <tbody id="importPreviewBody">
-                                <!-- 预览数据将通过JavaScript动态填充 -->
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="confirmImport" disabled>确认导入</button>
                 </div>
-                
-                <div class="mt-3">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="skipDuplicates" checked>
-                        <label class="form-check-label" for="skipDuplicates">
-                            跳过重复数据（根据柜号判断）
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" id="confirmImport" disabled>确认导入</button>
             </div>
         </div>
     </div>
-</div>
 
-<!-- 附件上传模态框 -->
-<div class="modal fade" id="attachmentModal" tabindex="-1" aria-labelledby="attachmentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="attachmentModalLabel">附件管理</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label for="attachmentType" class="form-label">附件类型</label>
-                    <select class="form-select" id="attachmentType">
-                        <option value="报关单">报关单</option>
-                        <option value="核对单">核对单</option>
-                        <option value="报关单证">报关单证</option>
-                        <option value="检疫证">检疫证</option>
-                        <option value="其他">其他</option>
-                    </select>
+    <!-- 附件上传模态框 -->
+    <div class="modal fade" id="attachmentModal" tabindex="-1" aria-labelledby="attachmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="attachmentModalLabel">附件管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="mb-3">
-                    <label for="attachmentFile" class="form-label">选择文件</label>
-                    <input class="form-control" type="file" id="attachmentFile" multiple>
-                </div>
-                <div class="mt-3">
-                    <button class="btn btn-primary" id="uploadAttachment">上传附件</button>
-                </div>
-                
-                <div class="mt-4">
-                    <h6>附件列表</h6>
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>序号</th>
-                                    <th>附件类型</th>
-                                    <th>文件名</th>
-                                    <th>上传时间</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody id="attachmentList">
-                                <!-- 附件列表将通过JavaScript动态填充 -->
-                            </tbody>
-                        </table>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="attachmentType" class="form-label">附件类型</label>
+                        <select class="form-select" id="attachmentType">
+                            <option value="报关单">报关单</option>
+                            <option value="核对单">核对单</option>
+                            <option value="报关单证">报关单证</option>
+                            <option value="检疫证">检疫证</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="attachmentFile" class="form-label">选择文件</label>
+                        <input class="form-control" type="file" id="attachmentFile" multiple>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-primary" id="uploadAttachment">上传附件</button>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h6>附件列表</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>附件类型</th>
+                                        <th>文件名</th>
+                                        <th>上传时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attachmentList">
+                                    <!-- 附件列表将通过JavaScript动态填充 -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- 导入结果模态框 -->
-<div class="modal fade import-result-modal" id="importResultModal" tabindex="-1" aria-labelledby="importResultModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="importResultModalLabel">导入结果</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-success" id="importSuccessAlert" style="display: none;">
-                    <h6><i class="fas fa-check-circle"></i> 导入成功</h6>
-                    <p id="importSuccessMessage"></p>
+    <!-- 导入结果模态框 -->
+    <div class="modal fade import-result-modal" id="importResultModal" tabindex="-1" aria-labelledby="importResultModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importResultModalLabel">导入结果</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                
-                <div class="alert alert-danger" id="importErrorAlert" style="display: none;">
-                    <h6><i class="fas fa-exclamation-triangle"></i> 导入失败</h6>
-                    <p id="importErrorMessage"></p>
-                </div>
-                
-                <div class="mt-4" id="failedDataSection" style="display: none;">
-                    <h6>失败数据详情</h6>
-                    <div class="table-responsive" style="max-height: 400px;">
-                        <table class="table table-sm table-bordered import-result-table">
-                            <thead>
-                                <tr>
-                                    <th>行号</th>
-                                    <th>柜号</th>
-                                    <th>到港日期</th>
-                                    <th>提单号</th>
-                                    <th>国家</th>
-                                    <th>商品描述</th>
-                                    <th>发货人</th>
-                                    <th>预录入号</th>
-                                    <th>失败原因</th>
-                                </tr>
-                            </thead>
-                            <tbody id="failedDataBody">
-                                <!-- 失败数据将通过JavaScript动态填充 -->
-                            </tbody>
-                        </table>
+                <div class="modal-body">
+                    <div class="alert alert-success" id="importSuccessAlert" style="display: none;">
+                        <h6><i class="fas fa-check-circle"></i> 导入成功</h6>
+                        <p id="importSuccessMessage"></p>
+                    </div>
+                    
+                    <div class="alert alert-danger" id="importErrorAlert" style="display: none;">
+                        <h6><i class="fas fa-exclamation-triangle"></i> 导入失败</h6>
+                        <p id="importErrorMessage"></p>
+                    </div>
+                    
+                    <div class="mt-4" id="failedDataSection" style="display: none;">
+                        <h6>失败数据详情</h6>
+                        <div class="table-responsive" style="max-height: 400px;">
+                            <table class="table table-sm table-bordered import-result-table">
+                                <thead>
+                                    <tr>
+                                        <th>行号</th>
+                                        <th>柜号</th>
+                                        <th>到港日期</th>
+                                        <th>提单号</th>
+                                        <th>国家</th>
+                                        <th>商品描述</th>
+                                        <th>发货人</th>
+                                        <th>预录入号</th>
+                                        <th>失败原因</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="failedDataBody">
+                                    <!-- 失败数据将通过JavaScript动态填充 -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
-                <button type="button" class="btn btn-primary" id="exportFailedData" style="display: none;">
-                    <i class="fas fa-download"></i> 导出失败数据
-                </button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="exportFailedData" style="display: none;">
+                        <i class="fas fa-download"></i> 导出失败数据
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- 报关数据录入模态框 -->
-<div class="modal fade" id="customsDataModal" tabindex="-1" aria-labelledby="customsDataModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="customsDataModalLabel">报关数据录入</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="customsDataForm">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label for="editCountry" class="form-label">国家</label>
-                            <input type="text" class="form-control" id="editCountry">
+    <!-- 报关数据录入模态框 -->
+    <div class="modal fade" id="customsDataModal" tabindex="-1" aria-labelledby="customsDataModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="customsDataModalLabel">报关数据录入</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="customsDataForm">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="editCountry" class="form-label">国家</label>
+                                <input type="text" class="form-control" id="editCountry">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editProductName" class="form-label">品名</label>
+                                <input type="text" class="form-control" id="editProductName">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editDomesticConsignee" class="form-label">境内收发货人</label>
+                                <input type="text" class="form-control" id="editDomesticConsignee">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editConsumptionUnit" class="form-label">消费使用单位</label>
+                                <input type="text" class="form-control" id="editConsumptionUnit">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editForeignConsignee" class="form-label">境外收发货人</label>
+                                <input type="text" class="form-control" id="editForeignConsignee">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editHsCode" class="form-label">HS编码</label>
+                                <input type="text" class="form-control" id="editHsCode">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editSupervisionCategory" class="form-label">监管类别名称</label>
+                                <input type="text" class="form-control" id="editSupervisionCategory">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editSpecification" class="form-label">规格型号</label>
+                                <input type="text" class="form-control" id="editSpecification">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editGoodsValue" class="form-label">货值</label>
+                                <input type="text" class="form-control" id="editGoodsValue">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editCurrency" class="form-label">币制</label>
+                                <input type="text" class="form-control" id="editCurrency">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editFactoryNo" class="form-label">厂号</label>
+                                <input type="text" class="form-control" id="editFactoryNo">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editShipperRecordNo" class="form-label">发货人备案号</label>
+                                <input type="text" class="form-control" id="editShipperRecordNo">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editPackageCount" class="form-label">件数</label>
+                                <input type="text" class="form-control" id="editPackageCount">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editNetWeight" class="form-label">净重</label>
+                                <input type="text" class="form-control" id="editNetWeight">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editGrossWeight" class="form-label">毛重</label>
+                                <input type="text" class="form-control" id="editGrossWeight">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editCertificate105" class="form-label">105证书</label>
+                                <input type="text" class="form-control" id="editCertificate105">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editCertificate325" class="form-label">325证书</label>
+                                <input type="text" class="form-control" id="editCertificate325">
+                            </div>
+                            <!-- 补充：519证书字段 -->
+                            <div class="col-md-4">
+                                <label for="editCertificate519" class="form-label">519证书</label>
+                                <input type="text" class="form-control" id="editCertificate519">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editCertificate113" class="form-label">113证书</label>
+                                <input type="text" class="form-control" id="editCertificate113">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editInspectionSpec" class="form-label">检验检疫货物规格</label>
+                                <input type="text" class="form-control" id="editInspectionSpec">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="editProductionDate" class="form-label">生产日期</label>
+                                <input type="text" class="form-control" id="editProductionDate" placeholder="输入生产日期">
+                            </div>
+                            <div class="col-12">
+                                <label for="editCustomsRemark" class="form-label">备注</label>
+                                <textarea class="form-control" id="editCustomsRemark" rows="3"></textarea>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label for="editProductName" class="form-label">品名</label>
-                            <input type="text" class="form-control" id="editProductName">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editDomesticConsignee" class="form-label">境内收发货人</label>
-                            <input type="text" class="form-control" id="editDomesticConsignee">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editConsumptionUnit" class="form-label">消费使用单位</label>
-                            <input type="text" class="form-control" id="editConsumptionUnit">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editForeignConsignee" class="form-label">境外收发货人</label>
-                            <input type="text" class="form-control" id="editForeignConsignee">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editHsCode" class="form-label">HS编码</label>
-                            <input type="text" class="form-control" id="editHsCode">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editSupervisionCategory" class="form-label">监管类别名称</label>
-                            <input type="text" class="form-control" id="editSupervisionCategory">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editSpecification" class="form-label">规格型号</label>
-                            <input type="text" class="form-control" id="editSpecification">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editGoodsValue" class="form-label">货值</label>
-                            <input type="text" class="form-control" id="editGoodsValue">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editCurrency" class="form-label">币制</label>
-                            <input type="text" class="form-control" id="editCurrency">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editFactoryNo" class="form-label">厂号</label>
-                            <input type="text" class="form-control" id="editFactoryNo">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editShipperRecordNo" class="form-label">发货人备案号</label>
-                            <input type="text" class="form-control" id="editShipperRecordNo">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editPackageCount" class="form-label">件数</label>
-                            <input type="text" class="form-control" id="editPackageCount">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editNetWeight" class="form-label">净重</label>
-                            <input type="text" class="form-control" id="editNetWeight">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editGrossWeight" class="form-label">毛重</label>
-                            <input type="text" class="form-control" id="editGrossWeight">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editCertificate105" class="form-label">105证书</label>
-                            <input type="text" class="form-control" id="editCertificate105">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editCertificate325" class="form-label">325证书</label>
-                            <input type="text" class="form-control" id="editCertificate325">
-                        </div>
-                        <!-- 补充：519证书字段 -->
-                        <div class="col-md-4">
-                            <label for="editCertificate519" class="form-label">519证书</label>
-                            <input type="text" class="form-control" id="editCertificate519">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editCertificate113" class="form-label">113证书</label>
-                            <input type="text" class="form-control" id="editCertificate113">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editInspectionSpec" class="form-label">检验检疫货物规格</label>
-                            <input type="text" class="form-control" id="editInspectionSpec">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="editProductionDate" class="form-label">生产日期</label>
-                            <input type="text" class="form-control" id="editProductionDate" placeholder="输入生产日期">
-                        </div>
-                        <div class="col-12">
-                            <label for="editCustomsRemark" class="form-label">备注</label>
-                            <textarea class="form-control" id="editCustomsRemark" rows="3"></textarea>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" id="saveCustomsData">保存</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveCustomsData">保存</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- 导入报关数据模态框 -->
-<div class="modal fade" id="importCustomsModal" tabindex="-1" aria-labelledby="importCustomsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="importCustomsModalLabel">批量导入报关数据</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-info">
-                    <h6>导入说明：</h6>
-                    <ul class="mb-0">
-                        <li>支持 Excel (.xlsx, .xls) 和 CSV 文件格式</li>
-                        <li>请确保文件包含报关数据相关字段</li>
-                        <li>柜号和到港日期为必填字段</li>
-                        <li>第一行应为表头，数据从第二行开始</li>
-                    </ul>
+    <!-- 导入报关数据模态框 -->
+    <div class="modal fade" id="importCustomsModal" tabindex="-1" aria-labelledby="importCustomsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importCustomsModalLabel">批量导入报关数据</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                
-                <div class="mb-3">
-                    <label for="importCustomsFile" class="form-label">选择文件</label>
-                    <input class="form-control" type="file" id="importCustomsFile" accept=".xlsx,.xls,.csv">
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">模板下载</label>
-                    <div>
-                        <button class="btn btn-outline-primary btn-sm" id="downloadCustomsTemplate">
-                            <i class="fas fa-download"></i> 下载报关数据导入模板
-                        </button>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <h6>导入说明：</h6>
+                        <ul class="mb-0">
+                            <li>支持 Excel (.xlsx, .xls) 和 CSV 文件格式</li>
+                            <li>请确保文件包含报关数据相关字段</li>
+                            <li>柜号和到港日期为必填字段</li>
+                            <li>第一行应为表头，数据从第二行开始</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="importCustomsFile" class="form-label">选择文件</label>
+                        <input class="form-control" type="file" id="importCustomsFile" accept=".xlsx,.xls,.csv">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">模板下载</label>
+                        <div>
+                            <button class="btn btn-outline-primary btn-sm" id="downloadCustomsTemplate">
+                                <i class="fas fa-download"></i> 下载报关数据导入模板
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h6>预览数据</h6>
+                        <div class="table-responsive" style="max-height: 300px;">
+                            <table class="table table-sm table-bordered import-preview-table" id="importCustomsPreviewTable">
+                                <thead>
+                                    <tr>
+                                        <th>状态</th>
+                                        <th>柜号</th>
+                                        <th>到港日期</th>
+                                        <th>提单号</th>
+                                        <th>报关单号</th>
+                                        <th>国家</th>
+                                        <th>品名</th>
+                                        <th>预录入号</th>
+                                        <th>申报日期</th>
+                                        <th>错误信息</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="importCustomsPreviewBody">
+                                    <!-- 预览数据将通过JavaScript动态填充 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="skipCustomsDuplicates" checked>
+                            <label class="form-check-label" for="skipCustomsDuplicates">
+                                跳过重复数据（根据柜号判断）
+                            </label>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="mt-4">
-                    <h6>预览数据</h6>
-                    <div class="table-responsive" style="max-height: 300px;">
-                        <table class="table table-sm table-bordered import-preview-table" id="importCustomsPreviewTable">
-                            <thead>
-                                <tr>
-                                    <th>状态</th>
-                                    <th>柜号</th>
-                                    <th>到港日期</th>
-                                    <th>提单号</th>
-                                    <th>报关单号</th>
-                                    <th>国家</th>
-                                    <th>品名</th>
-                                    <th>预录入号</th>
-                                    <th>申报日期</th>
-                                    <th>错误信息</th>
-                                </tr>
-                            </thead>
-                            <tbody id="importCustomsPreviewBody">
-                                <!-- 预览数据将通过JavaScript动态填充 -->
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="confirmCustomsImport" disabled>确认导入</button>
                 </div>
-                
-                <div class="mt-3">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="skipCustomsDuplicates" checked>
-                        <label class="form-check-label" for="skipCustomsDuplicates">
-                            跳过重复数据（根据柜号判断）
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" id="confirmCustomsImport" disabled>确认导入</button>
             </div>
         </div>
     </div>
-</div>
 
     <!-- 引入JavaScript文件 -->
     <script src="js/common.js"></script>
@@ -1749,7 +1211,6 @@
     <script src="js/hscode.js"></script>
     <script src="js/exporter.js"></script>
     <script src="js/files.js"></script>
-    <script src="js/list.js"></script>
     
 </body>
 </html>

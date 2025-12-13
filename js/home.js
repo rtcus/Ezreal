@@ -308,6 +308,9 @@ async function loadMissingDataDetail() {
 async function showQuarantineModal() {
     console.log('显示检疫证未出模态框...');
     
+    // 确保应用容器正常显示
+    ensureAppContainerVisible();
+    
     // 显示加载提示
     const tbody = document.getElementById('quarantineList');
     if (tbody) {
@@ -342,8 +345,14 @@ async function showQuarantineModal() {
     }
     
     const modalElement = document.getElementById('quarantineModal');
+    if (!modalElement) {
+        console.error('检疫证模态框元素不存在');
+        return;
+    }
+    
     const modal = new bootstrap.Modal(modalElement);
     
+    // 绑定关闭事件
     modalElement.addEventListener('hidden.bs.modal', function() {
         console.log('检疫证模态框关闭，恢复界面');
         ensureAppContainerVisible();
@@ -355,6 +364,9 @@ async function showQuarantineModal() {
 // 显示查验未完成模态框 - 点击时加载数据
 async function showInspectionModal() {
     console.log('显示查验未完成模态框...');
+    
+    // 确保应用容器正常显示
+    ensureAppContainerVisible();
     
     // 显示加载提示
     const tbody = document.getElementById('inspectionList');
@@ -391,6 +403,11 @@ async function showInspectionModal() {
     }
     
     const modalElement = document.getElementById('inspectionModal');
+    if (!modalElement) {
+        console.error('查验未完成模态框元素不存在');
+        return;
+    }
+    
     const modal = new bootstrap.Modal(modalElement);
     
     modalElement.addEventListener('hidden.bs.modal', function() {
@@ -403,6 +420,9 @@ async function showInspectionModal() {
 // 显示未打印核对单模态框 - 点击时加载数据
 async function showUnprintedCheckModal() {
     console.log('显示未打印核对单模态框...');
+    
+    // 确保应用容器正常显示
+    ensureAppContainerVisible();
     
     // 显示加载提示
     const tbody = document.getElementById('unprintedCheckList');
@@ -488,15 +508,21 @@ async function showUnprintedCheckModal() {
         });
     }
     
-    // 只在第一次打开时绑定关闭事件
-    if (!window.unprintedModalInitialized) {
-        bindUnprintedModalCloseEvents();
-        window.unprintedModalInitialized = true;
-    }
-    
     // 显示模态框
     const modalElement = document.getElementById('unprintedCheckModal');
+    if (!modalElement) {
+        console.error('未打印核对单模态框元素不存在');
+        return;
+    }
+    
     const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+    
+    // 绑定关闭事件
+    modalElement.addEventListener('hidden.bs.modal', function() {
+        console.log('未打印核对单模态框关闭，恢复界面');
+        ensureAppContainerVisible();
+    });
+    
     modal.show();
 }
 
@@ -567,45 +593,12 @@ function refreshUnprintedCheckTable() {
     }
 }
 
-// 绑定未打印核对单模态框关闭事件
-function bindUnprintedModalCloseEvents() {
-    const modalElement = document.getElementById('unprintedCheckModal');
-    if (!modalElement) return;
-    
-    const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
-    
-    // 绑定关闭按钮事件
-    const closeButton = modalElement.querySelector('.btn-close');
-    if (closeButton) {
-        closeButton.addEventListener('click', function() {
-            console.log('关闭按钮点击，安全关闭模态框');
-            modal.hide();
-            ensureAppContainerVisible();
-        });
-    }
-    
-    // 绑定底部关闭按钮事件
-    const footerCloseButton = modalElement.querySelector('.modal-footer .btn-secondary');
-    if (footerCloseButton) {
-        footerCloseButton.addEventListener('click', function() {
-            console.log('底部关闭按钮点击，安全关闭模态框');
-            modal.hide();
-            ensureAppContainerVisible();
-        });
-    }
-    
-    // 绑定模态框隐藏事件
-    modalElement.addEventListener('hidden.bs.modal', function() {
-        console.log('未打印核对单模态框关闭，恢复界面');
-        ensureAppContainerVisible();
-    });
-    
-    console.log('✅ 未打印核对单模态框关闭事件绑定完成');
-}
-
 // 显示缺资料模态框 - 点击时加载数据
 async function showMissingDataModal() {
     console.log('显示缺资料模态框...');
+    
+    // 确保应用容器正常显示
+    ensureAppContainerVisible();
     
     // 显示加载提示
     const tbody = document.getElementById('missingDataList');
@@ -642,6 +635,11 @@ async function showMissingDataModal() {
     }
     
     const modalElement = document.getElementById('missingDataModal');
+    if (!modalElement) {
+        console.error('缺资料模态框元素不存在');
+        return;
+    }
+    
     const modal = new bootstrap.Modal(modalElement);
     
     modalElement.addEventListener('hidden.bs.modal', function() {
@@ -690,3 +688,520 @@ window.showQuarantineModal = showQuarantineModal;
 window.showInspectionModal = showInspectionModal;
 window.showUnprintedCheckModal = showUnprintedCheckModal;
 window.showMissingDataModal = showMissingDataModal;
+
+// 在home.js文件末尾添加
+
+// 常用链接管理
+let quickLinks = [];
+let linkCategories = [
+    '系统工具', '报关平台', '物流查询', '办公协作', '其他'
+];
+
+// 可用图标列表
+const availableIcons = [
+    'fas fa-link', 'fas fa-globe', 'fas fa-file-alt', 'fas fa-chart-line',
+    'fas fa-search', 'fas fa-ship', 'fas fa-plane', 'fas fa-truck',
+    'fas fa-warehouse', 'fas fa-box', 'fas fa-passport', 'fas fa-file-contract',
+    'fas fa-calculator', 'fas fa-calendar-alt', 'fas fa-envelope',
+    'fas fa-users', 'fas fa-comments', 'fas fa-database', 'fas fa-cloud',
+    'fas fa-lock', 'fas fa-unlock', 'fas fa-key', 'fas fa-cog',
+    'fab fa-chrome', 'fab fa-firefox', 'fas fa-external-link-alt'
+];
+
+// 加载常用链接
+async function loadQuickLinks() {
+    try {
+        const quickLinksContainer = document.getElementById('quickLinksContainer');
+        const loadingElement = document.getElementById('quickLinksLoading');
+        
+        if (loadingElement) {
+            loadingElement.innerHTML = '<i class="fas fa-spinner fa-spin fa-2x mb-3"></i><p>正在加载常用链接...</p>';
+        }
+        
+        const query = new AV.Query('Link');
+        query.addAscending('order');
+        const results = await query.find();
+        
+        quickLinks = results.map(item => {
+            const data = item.toJSON();
+            return {
+                id: data.objectId,
+                title: data.title || '未命名链接',
+                url: data.url || '',
+                description: data.description || '',
+                icon: data.icon || 'fas fa-link',
+                category: data.category || '其他',
+                order: data.order || '999',
+                createdAt: data.createdAt,
+                updatedAt: data.updatedAt,
+                leanCloudObject: item
+            };
+        });
+        
+        renderQuickLinks();
+        
+        if (loadingElement) {
+            loadingElement.style.display = 'none';
+        }
+        
+    } catch (error) {
+        console.error('加载常用链接失败:', error);
+        const loadingElement = document.getElementById('quickLinksLoading');
+        if (loadingElement) {
+            loadingElement.innerHTML = '<div class="alert alert-danger">加载失败: ' + error.message + '</div>';
+        }
+    }
+}
+
+// 渲染常用链接
+function renderQuickLinks() {
+    const container = document.getElementById('quickLinksContainer');
+    if (!container) return;
+    
+    if (quickLinks.length === 0) {
+        container.innerHTML = `
+            <div class="empty-quick-links">
+                <i class="fas fa-link fa-3x mb-3"></i>
+                <h5>暂无常用链接</h5>
+                <p class="text-muted">点击右上角"添加链接"按钮创建第一个链接</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // 按分类分组
+    const linksByCategory = {};
+    quickLinks.forEach(link => {
+        if (!linksByCategory[link.category]) {
+            linksByCategory[link.category] = [];
+        }
+        linksByCategory[link.category].push(link);
+    });
+    
+    let html = '';
+    
+    // 渲染每个分类
+    Object.keys(linksByCategory).forEach(category => {
+        const categoryLinks = linksByCategory[category];
+        
+        html += `
+            <div class="category-section" style="grid-column: 1 / -1; margin-bottom: 20px;">
+                <h6 class="category-title" style="color: var(--primary-color); margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid #eaeaea;">
+                    ${category}
+                </h6>
+                <div class="category-links" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+        `;
+        
+        categoryLinks.forEach(link => {
+            html += `
+                <div class="quick-link-card" data-id="${link.id}">
+                    <div class="quick-link-card-header">
+                        <div class="quick-link-icon">
+                            <i class="${link.icon}"></i>
+                        </div>
+                        <div class="quick-link-actions">
+                            <button class="quick-link-action-btn edit" data-id="${link.id}" title="编辑">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="quick-link-action-btn delete" data-id="${link.id}" title="删除">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="quick-link-title">${link.title}</div>
+                    <div class="quick-link-url" title="${link.url}">${truncateText(link.url, 40)}</div>
+                    ${link.description ? `<div class="quick-link-description">${link.description}</div>` : ''}
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    
+    // 绑定事件
+    bindQuickLinkEvents();
+}
+
+// 绑定常用链接事件
+function bindQuickLinkEvents() {
+    // 链接卡片点击事件（新窗口打开）
+    document.querySelectorAll('.quick-link-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            // 如果点击的是操作按钮，不执行链接跳转
+            if (e.target.closest('.quick-link-action-btn')) {
+                return;
+            }
+            
+            const linkId = this.getAttribute('data-id');
+            const link = quickLinks.find(l => l.id === linkId);
+            if (link && link.url) {
+                window.open(link.url, '_blank');
+            }
+        });
+    });
+    
+    // 编辑按钮
+    document.querySelectorAll('.quick-link-action-btn.edit').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const linkId = this.getAttribute('data-id');
+            showEditQuickLinkModal(linkId);
+        });
+    });
+    
+    // 删除按钮
+    document.querySelectorAll('.quick-link-action-btn.delete').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const linkId = this.getAttribute('data-id');
+            deleteQuickLink(linkId);
+        });
+    });
+    
+    // 刷新按钮
+    const refreshBtn = document.getElementById('refreshQuickLinks');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', loadQuickLinks);
+    }
+    
+    // 添加链接按钮
+    const addBtn = document.getElementById('addQuickLink');
+    if (addBtn) {
+        addBtn.addEventListener('click', showAddQuickLinkModal);
+    }
+}
+
+// 显示添加链接模态框
+function showAddQuickLinkModal() {
+    const modalHtml = `
+        <div class="modal fade" id="quickLinkModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">添加常用链接</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="quickLinkForm">
+                            <div class="mb-3">
+                                <label class="form-label">链接标题 *</label>
+                                <input type="text" class="form-control" id="linkTitle" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">链接地址 *</label>
+                                <input type="url" class="form-control" id="linkUrl" placeholder="https://" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">链接描述</label>
+                                <textarea class="form-control" id="linkDescription" rows="2"></textarea>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">分类</label>
+                                    <select class="form-select" id="linkCategory">
+                                        ${linkCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">排序值</label>
+                                    <input type="text" class="form-control" id="linkOrder" placeholder="越小越靠前">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">选择图标</label>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="icon-preview">
+                                        <i id="selectedIconPreview" class="fas fa-link"></i>
+                                    </div>
+                                    <input type="text" class="form-control" id="linkIcon" value="fas fa-link" readonly>
+                                </div>
+                                <div class="icon-selector" id="iconSelector">
+                                    ${availableIcons.map(icon => `
+                                        <div class="icon-option ${icon === 'fas fa-link' ? 'selected' : ''}" data-icon="${icon}">
+                                            <i class="${icon}"></i>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="saveQuickLink">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // 移除现有模态框
+    const existingModal = document.getElementById('quickLinkModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // 添加新模态框
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    const modal = new bootstrap.Modal(document.getElementById('quickLinkModal'));
+    modal.show();
+    
+    // 初始化图标选择器
+    initIconSelector();
+    
+    // 绑定保存事件
+    document.getElementById('saveQuickLink').addEventListener('click', saveQuickLink);
+    
+    // 模态框关闭时清理
+    document.getElementById('quickLinkModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
+
+// 显示编辑链接模态框
+function showEditQuickLinkModal(linkId) {
+    const link = quickLinks.find(l => l.id === linkId);
+    if (!link) return;
+    
+    const modalHtml = `
+        <div class="modal fade" id="quickLinkModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">编辑常用链接</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="quickLinkForm">
+                            <input type="hidden" id="linkId" value="${link.id}">
+                            <div class="mb-3">
+                                <label class="form-label">链接标题 *</label>
+                                <input type="text" class="form-control" id="linkTitle" value="${link.title}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">链接地址 *</label>
+                                <input type="url" class="form-control" id="linkUrl" value="${link.url}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">链接描述</label>
+                                <textarea class="form-control" id="linkDescription" rows="2">${link.description || ''}</textarea>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">分类</label>
+                                    <select class="form-select" id="linkCategory">
+                                        ${linkCategories.map(cat => `
+                                            <option value="${cat}" ${cat === link.category ? 'selected' : ''}>${cat}</option>
+                                        `).join('')}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">排序值</label>
+                                    <input type="text" class="form-control" id="linkOrder" value="${link.order}">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">选择图标</label>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="icon-preview">
+                                        <i id="selectedIconPreview" class="${link.icon}"></i>
+                                    </div>
+                                    <input type="text" class="form-control" id="linkIcon" value="${link.icon}" readonly>
+                                </div>
+                                <div class="icon-selector" id="iconSelector">
+                                    ${availableIcons.map(icon => `
+                                        <div class="icon-option ${icon === link.icon ? 'selected' : ''}" data-icon="${icon}">
+                                            <i class="${icon}"></i>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="saveQuickLink">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // 移除现有模态框
+    const existingModal = document.getElementById('quickLinkModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // 添加新模态框
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    const modal = new bootstrap.Modal(document.getElementById('quickLinkModal'));
+    modal.show();
+    
+    // 初始化图标选择器
+    initIconSelector();
+    
+    // 绑定保存事件
+    document.getElementById('saveQuickLink').addEventListener('click', saveQuickLink);
+    
+    // 模态框关闭时清理
+    document.getElementById('quickLinkModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
+
+// 初始化图标选择器
+function initIconSelector() {
+    document.querySelectorAll('.icon-option').forEach(option => {
+        option.addEventListener('click', function() {
+            // 移除所有选中状态
+            document.querySelectorAll('.icon-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // 添加当前选中状态
+            this.classList.add('selected');
+            
+            // 更新图标预览和输入框
+            const selectedIcon = this.getAttribute('data-icon');
+            document.getElementById('selectedIconPreview').className = selectedIcon;
+            document.getElementById('linkIcon').value = selectedIcon;
+        });
+    });
+}
+
+// 保存链接
+async function saveQuickLink() {
+    const linkId = document.getElementById('linkId')?.value;
+    const title = document.getElementById('linkTitle').value.trim();
+    const url = document.getElementById('linkUrl').value.trim();
+    const description = document.getElementById('linkDescription').value.trim();
+    const category = document.getElementById('linkCategory').value;
+    const order = document.getElementById('linkOrder').value.trim() || '999';
+    const icon = document.getElementById('linkIcon').value;
+    
+    if (!title) {
+        alert('请输入链接标题');
+        return;
+    }
+    
+    if (!url) {
+        alert('请输入链接地址');
+        return;
+    }
+    
+    try {
+        let linkObj;
+        
+        if (linkId) {
+            // 编辑现有链接
+            linkObj = AV.Object.createWithoutData('Link', linkId);
+        } else {
+            // 创建新链接
+            linkObj = new AV.Object('Link');
+        }
+        
+        linkObj.set('title', title);
+        linkObj.set('url', url);
+        linkObj.set('description', description);
+        linkObj.set('category', category);
+        linkObj.set('order', order);
+        linkObj.set('icon', icon);
+        
+        await linkObj.save();
+        
+        // 关闭模态框
+        const modal = bootstrap.Modal.getInstance(document.getElementById('quickLinkModal'));
+        modal.hide();
+        
+        // 重新加载链接
+        await loadQuickLinks();
+        
+    } catch (error) {
+        console.error('保存链接失败:', error);
+        alert('保存失败: ' + error.message);
+    }
+}
+
+// 删除链接
+async function deleteQuickLink(linkId) {
+    if (!confirm('确定要删除这个链接吗？')) return;
+    
+    try {
+        const link = quickLinks.find(l => l.id === linkId);
+        if (!link) {
+            alert('找不到要删除的链接');
+            return;
+        }
+        
+        if (link.leanCloudObject) {
+            await link.leanCloudObject.destroy();
+        }
+        
+        // 从本地数据中移除
+        quickLinks = quickLinks.filter(l => l.id !== linkId);
+        
+        // 重新渲染
+        renderQuickLinks();
+        
+        console.log('链接删除成功');
+        
+    } catch (error) {
+        console.error('删除链接失败:', error);
+        alert('删除失败: ' + error.message);
+    }
+}
+
+// 工具函数：截断文本
+function truncateText(text, maxLength) {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+}
+
+// 在 home.js 的初始化部分添加常用链接加载
+// 找到 initApp 函数或类似初始化函数，添加以下代码：
+
+// 在 loadStatusData 调用之后或页面初始化时添加：
+window.addEventListener('load', function() {
+    // 等待页面完全加载后加载常用链接
+    setTimeout(() => {
+        if (document.getElementById('quickLinksContainer')) {
+            loadQuickLinks();
+        }
+    }, 1000);
+});
+
+// 导出函数
+window.loadQuickLinks = loadQuickLinks;
+window.showAddQuickLinkModal = showAddQuickLinkModal;
+window.showEditQuickLinkModal = showEditQuickLinkModal;
+
+// ============================================
+// 页面初始化时的常用链接加载
+// ============================================
+
+// 监听页面切换，当切换到首页时加载常用链接
+function initializeHomeContent() {
+    console.log('初始化首页内容...');
+    
+    // 原有功能
+    if (typeof loadStatusData === 'function') {
+        loadStatusData();
+    }
+    
+    // === 新增：加载常用链接 ===
+    if (typeof loadQuickLinks === 'function') {
+        console.log('开始加载常用链接...');
+        loadQuickLinks();
+    }
+}
+
+// 导出函数供 common.js 调用
+window.initializeHomeContent = initializeHomeContent;

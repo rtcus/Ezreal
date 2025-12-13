@@ -238,16 +238,20 @@ function renderCustomsTable() {
     const currentPageData = filteredCustomsData.slice(startIndex, endIndex);
     
     currentPageData.forEach((item, index) => {
-        const row = document.createElement('tr');
-        const globalIndex = startIndex + index;
-        
-        let rowClass = '';
-        if (item.customsStatus !== '放行' && item.customsStatus) {
-            rowClass = 'non-release-status';
-        }
+    const row = document.createElement('tr');
+    const globalIndex = startIndex + index;
+    
+    let rowClass = '';
+    // 修改：删单状态和放行状态使用相同的样式
+    if ((item.customsStatus !== '放行' && item.customsStatus !== '删单' && item.customsStatus) || 
+        (item.customsStatus === '无电子信息')) {
+        // 非放行、非删单状态有特殊样式
         if (item.customsStatus === '无电子信息') {
             rowClass = 'no-electronic-info';
+        } else {
+            rowClass = 'non-release-status';
         }
+    }
         
         const preEntryNoCell = item.preEntryNo && item.preEntryNo.trim() !== '' ? 
             `<td class="pre-entry-clickable" data-id="${item.id}">${item.preEntryNo}</td>` :
@@ -273,6 +277,8 @@ function renderCustomsTable() {
                     <option value="无电子信息" ${item.customsStatus === '无电子信息' ? 'selected' : ''}>无电子信息</option>
                     <option value="合并检查" ${item.customsStatus === '合并检查' ? 'selected' : ''}>合并检查</option>
                     <option value="挂起" ${item.customsStatus === '挂起' ? 'selected' : ''}>挂起</option>
+                    <!-- 新增删单选项 -->
+                    <option value="删单" ${item.customsStatus === '删单' ? 'selected' : ''}>删单</option>
                 </select>
             </td>
             <td>

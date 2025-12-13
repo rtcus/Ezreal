@@ -1,7 +1,7 @@
 // 出口商管理功能模块
 let exporterData = [];
 let filteredExporterData = [];
-let exporterItemsPerPage = 10;
+let exporterItemsPerPage = 20;
 let exporterCurrentPageIndex = 1;
 let exporterTotalPages = 1;
 
@@ -22,6 +22,8 @@ async function loadExporterData() {
 
         const query = new AV.Query('Exporter_Base');
         query.descending('createdAt');
+        
+        // 移除限制，获取所有数据
         const results = await query.find();
         
         exporterData = results.map(item => {
@@ -179,7 +181,7 @@ function clearExporterSearch() {
     renderExporterTable();
 }
 
-// 从报关数据同步出口商
+// 从报关数据同步出口商 - 修复版（实时同步所有数据）
 async function syncExporterFromCustoms() {
     try {
         // 检查表是否存在
@@ -189,44 +191,131 @@ async function syncExporterFromCustoms() {
             return;
         }
 
+        // 显示同步中提示
+        const syncBtn = document.getElementById('syncExporter');
+        const originalText = syncBtn.innerHTML;
+        syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 同步中...';
+        syncBtn.disabled = true;
+        
+        console.log('开始同步出口商数据...');
+        
+        // 从报关数据中查询所有有出口商信息的记录（不限制）
         const query = new AV.Query('Tracking');
         query.exists('foreignConsignee');
         query.exists('shipperRecordNo');
-        const results = await query.find();
+        query.limit(1000); // 增加查询限制
         
-        let syncCount = 0;
-        let skipCount = 0;
+        let allResults = [];
+        let queryCount = 0;
+        let hasMore = true;
         
-        for (const item of results) {
-            const data = item.toJSON();
-            
-            if (!data.foreignConsignee || !data.shipperRecordNo) {
-                continue;
-            }
-            
-            const existingQuery = new AV.Query('Exporter_Base');
-            existingQuery.equalTo('foreignConsignee', data.foreignConsignee);
-            existingQuery.equalTo('shipperRecordNo', data.shipperRecordNo);
-            const existing = await existingQuery.first();
-            
-            if (!existing) {
-                const exporterObj = new AV.Object('Exporter_Base');
-                exporterObj.set('foreignConsignee', data.foreignConsignee || '');
-                exporterObj.set('shipperRecordNo', data.shipperRecordNo || '');
-                exporterObj.set('customsNo', data.customsNo || '');
-                await exporterObj.save();
-                syncCount++;
-            } else {
-                skipCount++;
+        // 分批次获取所有数据
+        while (hasMore) {
+            try {
+                query.skip(queryCount);
+                const results = await query.find();
+                
+                if (results.length === 0) {
+                    hasMore = false;
+                    break;
+                }
+                
+                allResults = allResults.concat(results);
+                queryCount += results.length;
+                console.log(`已获取 ${queryCount} 条记录...`);
+                
+                // 如果获取到的数据少于限制数，说明没有更多数据了
+                if (results.length < 1000) {
+                    hasMore = false;
+                }
+            } catch (error) {
+                console.error('获取数据失败:', error);
+                hasMore = false;
             }
         }
         
+        console.log(`总共获取到 ${allResults.length} 条报关数据记录`);
+        
+        let syncCount = 0;
+        let skipCount = 0;
+        let updateCount = 0;
+        let errorCount = 0;
+        
+        // 批量处理数据
+        const batchSize = 50;
+        const totalBatches = Math.ceil(allResults.length / batchSize);
+        
+        for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+            const start = batchIndex * batchSize;
+            const end = Math.min(start + batchSize, allResults.length);
+            const batchItems = allResults.slice(start, end);
+            
+            for (const item of batchItems) {
+                try {
+                    const data = item.toJSON();
+                    
+                    if (!data.foreignConsignee || !data.shipperRecordNo) {
+                        continue;
+                    }
+                    
+                    // 检查是否已存在
+                    const existingQuery = new AV.Query('Exporter_Base');
+                    existingQuery.equalTo('foreignConsignee', data.foreignConsignee);
+                    existingQuery.equalTo('shipperRecordNo', data.shipperRecordNo);
+                    const existing = await existingQuery.first();
+                    
+                    if (!existing) {
+                        // 创建新的出口商记录
+                        const exporterObj = new AV.Object('Exporter_Base');
+                        exporterObj.set('foreignConsignee', data.foreignConsignee || '');
+                        exporterObj.set('shipperRecordNo', data.shipperRecordNo || '');
+                        exporterObj.set('customsNo', data.customsNo || '');
+                        await exporterObj.save();
+                        syncCount++;
+                    } else {
+                        // 检查是否需要更新
+                        const needsUpdate = existing.get('customsNo') !== data.customsNo;
+                        
+                        if (needsUpdate) {
+                            existing.set('customsNo', data.customsNo || '');
+                            await existing.save();
+                            updateCount++;
+                        } else {
+                            skipCount++;
+                        }
+                    }
+                } catch (error) {
+                    console.error('处理记录失败:', error);
+                    errorCount++;
+                }
+            }
+            
+            console.log(`批次 ${batchIndex + 1}/${totalBatches} 完成`);
+        }
+        
         await loadExporterData();
-        alert(`同步完成！新增 ${syncCount} 条记录，跳过 ${skipCount} 条重复记录`);
+        
+        // 恢复按钮状态
+        syncBtn.innerHTML = originalText;
+        syncBtn.disabled = false;
+        
+        // 显示同步结果
+        let message = `同步完成！\n`;
+        if (syncCount > 0) message += `新增: ${syncCount} 条\n`;
+        if (updateCount > 0) message += `更新: ${updateCount} 条\n`;
+        if (skipCount > 0) message += `跳过: ${skipCount} 条\n`;
+        if (errorCount > 0) message += `错误: ${errorCount} 条`;
+        
+        alert(message);
         
     } catch (error) {
         console.error('同步出口商数据失败:', error);
         alert('同步失败: ' + error.message);
+        
+        // 恢复按钮状态
+        const syncBtn = document.getElementById('syncExporter');
+        syncBtn.innerHTML = '<i class="fas fa-sync"></i> 同步报关数据';
+        syncBtn.disabled = false;
     }
 }
 

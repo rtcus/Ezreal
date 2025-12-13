@@ -112,6 +112,26 @@ function initApp() {
         });
     });
     
+    // === 新增：绑定常用链接事件 ===
+    setTimeout(() => {
+        if (typeof loadQuickLinks === 'function') {
+            // 绑定常用链接相关按钮
+            const refreshBtn = document.getElementById('refreshQuickLinks');
+            const addBtn = document.getElementById('addQuickLink');
+            
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', loadQuickLinks);
+            }
+            
+            if (addBtn) {
+                addBtn.addEventListener('click', showAddQuickLinkModal);
+            }
+            
+            // 初始加载常用链接
+            loadQuickLinks();
+        }
+    }, 500);
+    
     // 绑定首页状态卡片点击事件
     const quarantineCard = document.getElementById('quarantineCard');
     const inspectionCard = document.getElementById('inspectionCard');
@@ -218,6 +238,9 @@ function switchPage(page) {
         targetPage.classList.remove('hidden');
         console.log('页面显示成功:', page);
         
+        // 确保应用容器可见
+        ensureAppContainerVisible();
+        
         // 初始化页面内容
         setTimeout(() => {
             initializePageContent(page);
@@ -235,6 +258,15 @@ function switchPage(page) {
     });
     
     currentPage = page;
+}
+
+// 确保应用容器可见
+function ensureAppContainerVisible() {
+    const appContainer = document.querySelector('.app-container');
+    if (appContainer) {
+        appContainer.style.display = 'flex';
+        console.log('✅ 应用容器状态已确保可见');
+    }
 }
 
 // 初始化页面内容
@@ -258,8 +290,9 @@ function initializePageContent(page) {
     
     switch (page) {
         case 'home':
-            if (typeof loadStatusData === 'function') {
-                loadStatusData();
+            // === 修改这里：调用首页初始化函数 ===
+            if (typeof initializeHomeContent === 'function') {
+                initializeHomeContent();
             }
             break;
             
@@ -293,11 +326,12 @@ function initializePageContent(page) {
             }
             break;
             
-        case 'list':
-            if (typeof loadListData === 'function') {
-                loadListData();
-            }
-            break;
+        // 移除账单管理
+        // case 'list':
+        //     if (typeof loadListData === 'function') {
+        //         loadListData();
+        //     }
+        //     break;
             
         default:
             console.log(`无需特殊初始化的页面: ${page}`);

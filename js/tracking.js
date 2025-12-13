@@ -67,13 +67,14 @@ async function loadTrackingData() {
         });
         console.log('📈 报关状态分布:', statusCount);
         
-        // 关键修复：只显示报关状态不是"放行"的数据
-        const beforeFilterCount = trackingData.length;
-        trackingData = trackingData.filter(item => {
-            return !item.customsStatus || item.customsStatus !== '放行';
-        });
-        
-        console.log('过滤后数据量（非放行状态）:', trackingData.length, '（过滤掉了', beforeFilterCount - trackingData.length, '条记录）');
+        /// 关键修复：只显示报关状态不是"放行"也不是"删单"的数据
+const beforeFilterCount = trackingData.length;
+trackingData = trackingData.filter(item => {
+    return !item.customsStatus || 
+           (item.customsStatus !== '放行' && item.customsStatus !== '删单');
+});
+
+console.log('过滤后数据量（非放行、非删单状态）:', trackingData.length, '（过滤掉了', beforeFilterCount - trackingData.length, '条记录）');
         
         // 按到港日期升序排序（最早的在前）
         trackingData.sort((a, b) => {
@@ -532,33 +533,33 @@ function bindSelectEvents() {
     });
 
     document.querySelectorAll('.status-select').forEach(select => {
-        select.addEventListener('change', async function() {
-            const id = this.getAttribute('data-id');
-            const value = this.value;
+    select.addEventListener('change', async function() {
+        const id = this.getAttribute('data-id');
+        const value = this.value;
+        
+        const item = trackingData.find(item => item.id === id);
+        if (item) {
+            item.customsStatus = value;
             
-            const item = trackingData.find(item => item.id === id);
-            if (item) {
-                item.customsStatus = value;
-                
-                // 如果状态设置为"放行"，则从跟单列表中移除
-                if (value === '放行') {
-                    trackingData = trackingData.filter(t => t.id !== id);
-                    filteredTrackingData = filteredTrackingData.filter(t => t.id !== id);
-                    renderTrackingTable();
-                    updateTrackingPagination();
-                } else {
-                    const filteredItem = filteredTrackingData.find(item => item.id === id);
-                    if (filteredItem) {
-                        filteredItem.customsStatus = value;
-                    }
-                    
-                    renderTrackingTable();
+            // 如果状态设置为"放行"或"删单"，则从跟单列表中移除
+            if (value === '放行' || value === '删单') {
+                trackingData = trackingData.filter(t => t.id !== id);
+                filteredTrackingData = filteredTrackingData.filter(t => t.id !== id);
+                renderTrackingTable();
+                updateTrackingPagination();
+            } else {
+                const filteredItem = filteredTrackingData.find(item => item.id === id);
+                if (filteredItem) {
+                    filteredItem.customsStatus = value;
                 }
                 
-                await saveToLeanCloud(item, false);
+                renderTrackingTable();
             }
-        });
+            
+            await saveToLeanCloud(item, false);
+        }
     });
+});
 
     document.querySelectorAll('.instruction-select').forEach(select => {
         select.addEventListener('change', async function() {
