@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>R跟单台系统</title>
     <!-- 引入样式和脚本 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.rtcus.cn/libs/flatpickr/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.rtcus.cn/libs/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.rtcus.cn/libs/font-awesome/css/all.min.css">
     <link rel="stylesheet" href="css/common.css">
-    <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.13.2/dist/av-min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.rtcus.cn/libs/leancloud-storage/av-min.js"></script>
+    <script src="https://cdn.rtcus.cn/libs/flatpickr/flatpickr.min.js"></script>
+    <script src="https://cdn.rtcus.cn/libs/flatpickr/l10n/zh.js"></script>
+    <script src="https://cdn.rtcus.cn/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.rtcus.cn/libs/xlsx/xlsx.full.min.js"></script>
 </head>
 <body>
     <!-- 登录模态框 -->
@@ -1212,5 +1212,160 @@
     <script src="js/exporter.js"></script>
     <script src="js/files.js"></script>
     
+<!-- CDN失败自动回退机制 -->
+<script>
+(function() {
+    // 配置回退映射
+    const fallbackMap = {
+        'bootstrap': {
+            css: 'https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css',
+            js: 'https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js'
+        },
+        'flatpickr': {
+            css: 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css',
+            js: 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js',
+            zh: 'https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js'
+        },
+        'font-awesome': {
+            css: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
+        },
+        'leancloud-storage': {
+            js: 'https://cdn.jsdelivr.net/npm/leancloud-storage@4.13.2/dist/av-min.js'
+        },
+        'xlsx': {
+            js: 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'
+        }
+    };
+
+    // 检测CDN是否可用的函数
+    function checkCDNAvailability() {
+        console.log('🔍 检查CDN可用性...');
+        
+        // 测试一个关键文件（Bootstrap CSS）
+        const testUrl = 'https://cdn.rtcus.cn/libs/bootstrap/css/bootstrap.min.css';
+        const xhr = new XMLHttpRequest();
+        xhr.open('HEAD', testUrl + '?t=' + Date.now());
+        xhr.timeout = 5000; // 5秒超时
+        
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 400) {
+                console.log('✅ CDN正常可用');
+            } else {
+                console.warn('⚠️ CDN可能有问题，启用回退机制');
+                enableFallback();
+            }
+        };
+        
+        xhr.onerror = xhr.ontimeout = function() {
+            console.warn('🚨 CDN不可用，启用回退机制');
+            enableFallback();
+        };
+        
+        try {
+            xhr.send();
+        } catch (e) {
+            enableFallback();
+        }
+    }
+
+    // 启用回退机制
+    function enableFallback() {
+        console.log('🔄 切换到公共CDN...');
+        
+        // 替换所有资源链接
+        document.querySelectorAll('link[href*="cdn.rtcus.cn"], script[src*="cdn.rtcus.cn"]').forEach(element => {
+            const originalSrc = element.href || element.src;
+            if (!originalSrc) return;
+            
+            // 找出对应的库
+            for (const [lib, urls] of Object.entries(fallbackMap)) {
+                if (originalSrc.includes(lib)) {
+                    let newUrl = '';
+                    const elementType = element.tagName;
+                    
+                    if (elementType === 'LINK' && urls.css) {
+                        newUrl = urls.css;
+                    } else if (elementType === 'SCRIPT') {
+                        if (originalSrc.includes('l10n/zh.js') && urls.zh) {
+                            newUrl = urls.zh;
+                        } else if (urls.js) {
+                            newUrl = urls.js;
+                        }
+                    }
+                    
+                    if (newUrl) {
+                        console.log(`  替换: ${originalSrc} -> ${newUrl}`);
+                        
+                        if (elementType === 'SCRIPT') {
+                            const newScript = document.createElement('script');
+                            newScript.src = newUrl;
+                            document.body.appendChild(newScript);
+                        } else {
+                            const newLink = document.createElement('link');
+                            newLink.rel = 'stylesheet';
+                            newLink.href = newUrl;
+                            document.head.appendChild(newLink);
+                        }
+                    }
+                    break;
+                }
+            }
+        });
+        
+        // 显示回退提示（可选）
+        showFallbackNotification();
+    }
+
+    // 显示回退提示
+    function showFallbackNotification() {
+        const notification = document.createElement('div');
+        notification.id = 'cdn-fallback-notice';
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #ffc107;
+            color: #856404;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 9999;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        `;
+        notification.innerHTML = `
+            <strong>⚠️ 使用备用资源</strong>
+            <div>CDN暂时不可用，已切换到公共资源</div>
+            <small>系统功能不受影响</small>
+        `;
+        document.body.appendChild(notification);
+        
+        // 5秒后自动隐藏
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.5s';
+            setTimeout(() => notification.remove(), 500);
+        }, 5000);
+    }
+
+    // 页面加载完成后检查CDN
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', checkCDNAvailability);
+    } else {
+        checkCDNAvailability();
+    }
+
+    // 监听资源加载失败
+    window.addEventListener('error', function(e) {
+        const target = e.target;
+        if ((target.tagName === 'LINK' || target.tagName === 'SCRIPT') && 
+            (target.href && target.href.includes('cdn.rtcus.cn') || 
+             target.src && target.src.includes('cdn.rtcus.cn'))) {
+            console.warn('资源加载失败，触发回退:', target.href || target.src);
+            enableFallback();
+        }
+    }, true);
+})();
+</script>
+
 </body>
 </html>
