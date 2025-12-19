@@ -276,10 +276,10 @@
                                 <input type="number" id="exchange-rate" class="w-full form-input" placeholder="输入海关汇率" step="0.01">
                             </div>
                             
-                            <!-- 反倾销保证金率 -->
+                            <!-- 反倾销税率 -->
                             <div>
-                                <label for="dumping-rate" class="block text-white mb-1 text-sm">反倾销保证金率 (%)</label>
-                                <input type="number" id="dumping-rate" class="w-full form-input" placeholder="输入反倾销保证金率" step="0.01">
+                                <label for="dumping-rate" class="block text-white mb-1 text-sm">反倾销税率 (%)</label>
+                                <input type="number" id="dumping-rate" class="w-full form-input" placeholder="输入反倾销税率" step="0.01">
                             </div>
                         </div>
                     </div>
@@ -306,12 +306,12 @@
                                 <span id="tariff-amount" class="font-medium text-white">¥ 0.00</span>
                             </div>
                             <div class="result-item">
-                                <span class="text-white">增值税</span>
-                                <span id="vat-amount" class="font-medium text-white">¥ 0.00</span>
+                                <span class="text-white">反倾销税</span>
+                                <span id="dumping-amount" class="font-medium text-white">¥ 0.00</span>
                             </div>
                             <div class="result-item">
-                                <span class="text-white">反倾销保证金</span>
-                                <span id="dumping-amount" class="font-medium text-white">¥ 0.00</span>
+                                <span class="text-white">增值税</span>
+                                <span id="vat-amount" class="font-medium text-white">¥ 0.00</span>
                             </div>
                         </div>
                     </div>
@@ -367,6 +367,9 @@
                 invoicePrice = unitPrice * netWeight;
             }
             
+            // 发票价格四舍五入保留两位小数
+            invoicePrice = Math.round(invoicePrice * 100) / 100;
+            
             // 计算完税价格
             let paidPrice = 0;
             if (premiumType === 'rate') {
@@ -376,7 +379,7 @@
                 // 保费按总价：(发票价格 × 海关汇率) + 保费金额
                 paidPrice = invoicePrice * exchangeRate + premiumValue;
             }
-            // 四舍五入到两位小数
+            // 完税价格四舍五入保留两位小数
             paidPrice = Math.round(paidPrice * 100) / 100;
             
             // 计算关税
@@ -388,26 +391,24 @@
                 // 从量：净重 × 关税率
                 tariffAmount = netWeight * tariffRate;
             }
-            // 四舍五入到两位小数
+            // 关税四舍五入保留两位小数
             tariffAmount = Math.round(tariffAmount * 100) / 100;
             
-            // 计算增值税
-            // (完税价格 + 关税) × 增值税率
-            const vatAmount = (paidPrice + tariffAmount) * (vatRate / 100);
-            // 四舍五入到两位小数
-            const roundedVatAmount = Math.round(vatAmount * 100) / 100;
-            
-            // 计算反倾销保证金
-            // 完税价格 × 保证金比率 × (1 + 增值税率)
-            const dumpingAmount = paidPrice * (dumpingRate / 100) * (1 + vatRate / 100);
-            // 四舍五入到两位小数
+            // 计算反倾销税（根据海关规定：完税价格 × 反倾销税率）
+            const dumpingAmount = paidPrice * (dumpingRate / 100);
+            // 反倾销税四舍五入保留两位小数
             const roundedDumpingAmount = Math.round(dumpingAmount * 100) / 100;
+            
+            // 计算增值税（计税基础 = 完税价格 + 关税 + 反倾销税）
+            const vatAmount = (paidPrice + tariffAmount + roundedDumpingAmount) * (vatRate / 100);
+            // 增值税四舍五入保留两位小数
+            const roundedVatAmount = Math.round(vatAmount * 100) / 100;
             
             // 显示结果
             document.getElementById('paid-price').textContent = `¥ ${paidPrice.toFixed(2)}`;
             document.getElementById('tariff-amount').textContent = `¥ ${tariffAmount.toFixed(2)}`;
-            document.getElementById('vat-amount').textContent = `¥ ${roundedVatAmount.toFixed(2)}`;
             document.getElementById('dumping-amount').textContent = `¥ ${roundedDumpingAmount.toFixed(2)}`;
+            document.getElementById('vat-amount').textContent = `¥ ${roundedVatAmount.toFixed(2)}`;
         }
         
         // 重置税费计算器
@@ -434,8 +435,8 @@
             // 重置结果显示
             document.getElementById('paid-price').textContent = '¥ 0.00';
             document.getElementById('tariff-amount').textContent = '¥ 0.00';
-            document.getElementById('vat-amount').textContent = '¥ 0.00';
             document.getElementById('dumping-amount').textContent = '¥ 0.00';
+            document.getElementById('vat-amount').textContent = '¥ 0.00';
         }
         
         // 设置字段交互逻辑
@@ -452,7 +453,8 @@
                     const netWeight = parseFloat(netWeightInput.value) || 0;
                     if (unitPrice > 0 && netWeight > 0) {
                         const calculatedPrice = unitPrice * netWeight;
-                        invoicePriceInput.value = calculatedPrice.toFixed(6);
+                        // 发票价格保留两位小数
+                        invoicePriceInput.value = Math.round(calculatedPrice * 100) / 100;
                     }
                 }
             }
