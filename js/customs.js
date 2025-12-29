@@ -6,6 +6,55 @@ let customsCurrentPageIndex = 1;
 let customsTotalPages = 1;
 let currentCustomsItemId = null;
 
+// 多项数据管理
+let currentCustomsItems = []; // 存储当前编辑的多项数据
+let itemIndexCounter = 1; // 项号计数器
+let currentCustomsDataItem = null; // 存储原始报关数据
+
+// 519证书到厂号的映射表
+const certificate519ToFactoryNo = {
+    'CIFER519001': 'FACTORY001',
+    'CIFER519002': 'FACTORY002',
+    'CIFER519003': 'FACTORY003',
+    'CIFER519004': 'FACTORY004',
+    'CIFER519005': 'FACTORY005',
+    'CIFER519006': 'FACTORY006',
+    'CIFER519007': 'FACTORY007',
+    'CIFER519008': 'FACTORY008',
+    'CIFER519009': 'FACTORY009',
+    'CIFER519010': 'FACTORY010',
+    // 可以根据需要添加更多映射
+};
+
+// 判断是否应该执行证书匹配功能
+function shouldExecuteCertificateMatch() {
+    // 从当前编辑的报关数据中获取申报日期
+    if (currentCustomsDataItem && currentCustomsDataItem.declareDate) {
+        const declareDate = currentCustomsDataItem.declareDate;
+        try {
+            // 解析日期格式，假设为 YYYY-MM-DD 格式
+            const dateParts = declareDate.split('-');
+            if (dateParts.length === 3) {
+                const year = parseInt(dateParts[0]);
+                const month = parseInt(dateParts[1]);
+                const day = parseInt(dateParts[2]);
+                
+                // 检查是否是2025年12月27日及以后
+                if (year === 2025) {
+                    if (month > 12 || (month === 12 && day >= 27)) {
+                        return true;
+                    }
+                } else if (year > 2025) {
+                    return true;
+                }
+            }
+        } catch (error) {
+            console.warn('日期解析错误:', error);
+        }
+    }
+    return false;
+}
+
 // 加载报关数据 - 修复附件数据版本
 async function loadCustomsData() {
     try {
@@ -39,6 +88,44 @@ async function loadCustomsData() {
             const data = item.toJSON();
             console.log('📦 加载数据:', data.containerNo, '附件数:', data.attachments ? data.attachments.length : 0);
             
+            // 处理多项数据
+            let displayGoodsValue = data.goodsValue || '';
+            let displayHsCode = data.hsCode || '';
+            let displaySupervisionCategory = data.supervisionCategory || '';
+            let displaySpecification = data.specification || '';
+            let displayCurrency = data.currency || '';
+            let displayFactoryNo = data.factoryNo || '';
+            let displayCertificate105 = data.certificate105 || '';
+            let displayCertificate325 = data.certificate325 || '';
+            let displayCertificate519 = data.certificate519 || '';
+            let displayCertificate113 = data.certificate113 || '';
+            let displayInspectionSpec = data.inspectionSpec || '';
+            let displayProductionDate = data.productionDate || '';
+            
+            // 如果有多项数据，计算总货值并使用第一项的其他字段
+            if (data.customsItems && Array.isArray(data.customsItems) && data.customsItems.length > 0) {
+                // 计算总货值
+                const totalGoodsValue = data.customsItems.reduce((sum, item) => {
+                    const value = parseFloat(item.goodsValue) || 0;
+                    return sum + value;
+                }, 0);
+                displayGoodsValue = totalGoodsValue.toString();
+                
+                // 使用第一项的其他字段用于列表显示
+                const firstItem = data.customsItems[0];
+                displayHsCode = firstItem.hsCode || '';
+                displaySupervisionCategory = firstItem.supervisionCategory || '';
+                displaySpecification = firstItem.specification || '';
+                displayCurrency = firstItem.currency || '';
+                displayFactoryNo = firstItem.factoryNo || '';
+                displayCertificate105 = firstItem.certificate105 || '';
+                displayCertificate325 = firstItem.certificate325 || '';
+                displayCertificate519 = firstItem.certificate519 || '';
+                displayCertificate113 = firstItem.certificate113 || '';
+                displayInspectionSpec = firstItem.inspectionSpec || '';
+                displayProductionDate = firstItem.productionDate || '';
+            }
+            
             return {
                 id: data.objectId,
                 arrivalDate: data.arrivalDate || '',
@@ -58,22 +145,23 @@ async function loadCustomsData() {
                 domesticConsignee: data.domesticConsignee || '',
                 consumptionUnit: data.consumptionUnit || '',
                 foreignConsignee: data.foreignConsignee || '',
-                hsCode: data.hsCode || '',
-                supervisionCategory: data.supervisionCategory || '',
-                specification: data.specification || '',
-                goodsValue: data.goodsValue || '',
-                currency: data.currency || '',
-                factoryNo: data.factoryNo || '',
+                hsCode: displayHsCode,
+                supervisionCategory: displaySupervisionCategory,
+                specification: displaySpecification,
+                goodsValue: displayGoodsValue,
+                currency: displayCurrency,
+                factoryNo: displayFactoryNo,
                 shipperRecordNo: data.shipperRecordNo || '',
                 packageCount: data.packageCount || '',
                 netWeight: data.netWeight || '',
                 grossWeight: data.grossWeight || '',
-                certificate105: data.certificate105 || '',
-                certificate325: data.certificate325 || '',
-                certificate519: data.certificate519 || '',
-                certificate113: data.certificate113 || '',
-                inspectionSpec: data.inspectionSpec || '',
-                productionDate: data.productionDate || '',
+                certificate105: displayCertificate105,
+                certificate325: displayCertificate325,
+                certificate519: displayCertificate519,
+                certificate113: displayCertificate113,
+                inspectionSpec: displayInspectionSpec,
+                productionDate: displayProductionDate,
+                customsItems: data.customsItems || [],
                 // 🔥 修复：确保附件数据正确加载
                 attachments: data.attachments || [],
                 leanCloudObject: item
@@ -461,32 +549,239 @@ function showCustomsDataModal(id) {
         alert('找不到对应的报关数据');
         return;
     }
+    
+    // 保存原始数据供添加新项时使用
+    currentCustomsDataItem = item;
 
-    document.getElementById('editCountry').value = item.country || '';
-    document.getElementById('editProductName').value = item.productName || '';
+    // 填充基础信息
+    document.getElementById('editCustomsDeclarationNo').value = item.customsNo || '';
+    document.getElementById('editBillNo').value = item.billNo || '';
     document.getElementById('editDomesticConsignee').value = item.domesticConsignee || '';
     document.getElementById('editConsumptionUnit').value = item.consumptionUnit || '';
     document.getElementById('editForeignConsignee').value = item.foreignConsignee || '';
-    document.getElementById('editHsCode').value = item.hsCode || '';
-    document.getElementById('editSupervisionCategory').value = item.supervisionCategory || '';
-    document.getElementById('editSpecification').value = item.specification || '';
-    document.getElementById('editGoodsValue').value = item.goodsValue || '';
-    document.getElementById('editCurrency').value = item.currency || '';
-    document.getElementById('editFactoryNo').value = item.factoryNo || '';
     document.getElementById('editShipperRecordNo').value = item.shipperRecordNo || '';
     document.getElementById('editPackageCount').value = item.packageCount || '';
     document.getElementById('editNetWeight').value = item.netWeight || '';
     document.getElementById('editGrossWeight').value = item.grossWeight || '';
-    document.getElementById('editCertificate105').value = item.certificate105 || '';
-    document.getElementById('editCertificate325').value = item.certificate325 || '';
-    document.getElementById('editCertificate519').value = item.certificate519 || '';
-    document.getElementById('editCertificate113').value = item.certificate113 || '';
-    document.getElementById('editInspectionSpec').value = item.inspectionSpec || '';
-    document.getElementById('editProductionDate').value = item.productionDate || '';
     document.getElementById('editCustomsRemark').value = item.remark || '';
+
+    // 处理多项数据
+    currentCustomsItems = [];
+    itemIndexCounter = 1;
+
+    if (item.customsItems && Array.isArray(item.customsItems) && item.customsItems.length > 0) {
+        // 如果有多项数据，加载它们
+        currentCustomsItems = item.customsItems;
+        itemIndexCounter = item.customsItems.length + 1;
+    } else {
+        // 如果没有多项数据，创建第一项并填充现有数据
+        currentCustomsItems = [{
+            itemNo: 1,
+            country: item.country || '',      // 保留原始国家信息
+            productName: item.productName || '', // 保留原始品名信息
+            hsCode: item.hsCode || '',
+            supervisionCategory: item.supervisionCategory || '',
+            specification: item.specification || '',
+            goodsValue: item.goodsValue || '',
+            currency: item.currency || '',
+            factoryNo: item.factoryNo || '',
+            certificate105: item.certificate105 || '',
+            certificate325: item.certificate325 || '',
+            certificate519: item.certificate519 || '',
+            certificate113: item.certificate113 || '',
+            inspectionSpec: item.inspectionSpec || '',
+            productionDate: item.productionDate || ''
+        }];
+        itemIndexCounter = 2;
+    }
+
+    // 渲染多项数据
+    renderCustomsItems();
 
     const modal = new bootstrap.Modal(document.getElementById('customsDataModal'));
     modal.show();
+}
+
+// 渲染多项数据
+function renderCustomsItems() {
+    const container = document.getElementById('customsItemsList');
+    if (!container) return;
+
+    let html = '';
+    currentCustomsItems.forEach((customItem, index) => {
+        const showDelete = index > 0; // 第一项不显示删除按钮
+        html += `
+            <div class="item-row border rounded p-3 mb-3" data-item-index="${customItem.itemNo}">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="mb-0 text-secondary">项号 ${customItem.itemNo}</h6>
+                    ${showDelete ? `<button type="button" class="btn btn-sm btn-outline-danger remove-item-btn" data-item-no="${customItem.itemNo}">
+                        <i class="fas fa-trash"></i> 删除
+                    </button>` : ''}
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">HS编码</label>
+                        <input type="text" class="form-control item-field" data-field="hsCode" data-item="${customItem.itemNo}" value="${customItem.hsCode || ''}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">国家</label>
+                        <input type="text" class="form-control item-field" data-field="country" data-item="${customItem.itemNo}" value="${customItem.country || ''}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">品名</label>
+                        <input type="text" class="form-control item-field" data-field="productName" data-item="${customItem.itemNo}" value="${customItem.productName || ''}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">监管类别名称</label>
+                        <input type="text" class="form-control item-field" data-field="supervisionCategory" data-item="${customItem.itemNo}" value="${customItem.supervisionCategory || ''}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">规格型号</label>
+                        <input type="text" class="form-control item-field" data-field="specification" data-item="${customItem.itemNo}" value="${customItem.specification || ''}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">货值</label>
+                        <input type="text" class="form-control item-field" data-field="goodsValue" data-item="${customItem.itemNo}" value="${customItem.goodsValue || ''}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">币制</label>
+                        <input type="text" class="form-control item-field" data-field="currency" data-item="${customItem.itemNo}" value="${customItem.currency || ''}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">厂号</label>
+                        <input type="text" class="form-control item-field" data-field="factoryNo" data-item="${customItem.itemNo}" value="${customItem.factoryNo || ''}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">105证书</label>
+                        <input type="text" class="form-control item-field" data-field="certificate105" data-item="${customItem.itemNo}" value="${customItem.certificate105 || ''}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">325证书</label>
+                        <input type="text" class="form-control item-field" data-field="certificate325" data-item="${customItem.itemNo}" value="${customItem.certificate325 || ''}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">519证书</label>
+                        <input type="text" class="form-control item-field" data-field="certificate519" data-item="${customItem.itemNo}" value="${customItem.certificate519 || ''}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">113证书</label>
+                        <input type="text" class="form-control item-field" data-field="certificate113" data-item="${customItem.itemNo}" value="${customItem.certificate113 || ''}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">检验检疫货物规格</label>
+                        <input type="text" class="form-control item-field" data-field="inspectionSpec" data-item="${customItem.itemNo}" value="${customItem.inspectionSpec || ''}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">生产日期</label>
+                        <input type="text" class="form-control item-field" data-field="productionDate" data-item="${customItem.itemNo}" value="${customItem.productionDate || ''}" placeholder="输入生产日期">
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+
+    // 绑定删除按钮事件
+    document.querySelectorAll('.remove-item-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const itemNo = parseInt(this.getAttribute('data-item-no'));
+            removeCustomsItem(itemNo);
+        });
+    });
+
+    // 绑定字段变化事件
+    document.querySelectorAll('.item-field').forEach(field => {
+        field.addEventListener('input', function() {
+            updateCustomsItemField(this);
+        });
+    });
+}
+
+// 添加新项
+function addCustomsItem() {
+    // 获取第一项的所有信息
+    let firstItem = null;
+    if (currentCustomsItems.length > 0) {
+        firstItem = currentCustomsItems[0];
+    } else if (currentCustomsDataItem) {
+        // 如果没有项，从原始数据创建第一项的数据结构
+        firstItem = {
+            country: currentCustomsDataItem.country || '',
+            productName: currentCustomsDataItem.productName || '',
+            hsCode: currentCustomsDataItem.hsCode || '',
+            supervisionCategory: currentCustomsDataItem.supervisionCategory || '',
+            specification: currentCustomsDataItem.specification || '',
+            currency: currentCustomsDataItem.currency || '',
+            certificate105: currentCustomsDataItem.certificate105 || '',
+            certificate325: currentCustomsDataItem.certificate325 || '',
+            certificate519: currentCustomsDataItem.certificate519 || '',
+            certificate113: currentCustomsDataItem.certificate113 || ''
+        };
+    }
+    
+    // 创建新项，复制第一项的信息，但不包括：货值、厂号、规格型号、检验检疫货物规格、生产日期
+    const newItem = {
+        itemNo: itemIndexCounter,
+        country: firstItem ? firstItem.country || '' : '',
+        productName: firstItem ? firstItem.productName || '' : '',
+        hsCode: firstItem ? firstItem.hsCode || '' : '',
+        supervisionCategory: firstItem ? firstItem.supervisionCategory || '' : '',
+        specification: '',       // 不带入规格型号
+        goodsValue: '',          // 不带入货值
+        currency: firstItem ? firstItem.currency || '' : '',
+        factoryNo: '',           // 不带入厂号
+        certificate105: firstItem ? firstItem.certificate105 || '' : '',
+        certificate325: firstItem ? firstItem.certificate325 || '' : '',
+        certificate519: firstItem ? firstItem.certificate519 || '' : '',
+        certificate113: firstItem ? firstItem.certificate113 || '' : '',
+        inspectionSpec: '',      // 不带入检验检疫货物规格
+        productionDate: ''       // 不带入生产日期
+    };
+
+    currentCustomsItems.push(newItem);
+    itemIndexCounter++;
+    renderCustomsItems();
+}
+
+// 删除项
+function removeCustomsItem(itemNo) {
+    if (confirm(`确定要删除项号 ${itemNo} 吗？`)) {
+        currentCustomsItems = currentCustomsItems.filter(item => item.itemNo !== itemNo);
+        renderCustomsItems();
+    }
+}
+
+// 更新项字段值
+function updateCustomsItemField(field) {
+    const itemNo = parseInt(field.getAttribute('data-item'));
+    const fieldName = field.getAttribute('data-field');
+    const value = field.value;
+
+    const item = currentCustomsItems.find(item => item.itemNo === itemNo);
+    if (item) {
+        item[fieldName] = value;
+        
+        // 如果是519证书字段，检查申报日期后自动匹配厂号
+        if (fieldName === 'certificate519' && value) {
+            // 检查申报日期是否在2025年12月27日及以后
+            const shouldExecuteMatch = shouldExecuteCertificateMatch();
+            
+            if (shouldExecuteMatch) {
+                const factoryNo = certificate519ToFactoryNo[value];
+                if (factoryNo) {
+                    // 更新当前项的厂号
+                    item.factoryNo = factoryNo;
+                    
+                    // 更新界面上的厂号输入框
+                    const factoryNoField = document.querySelector(`input.item-field[data-field="factoryNo"][data-item="${itemNo}"]`);
+                    if (factoryNoField) {
+                        factoryNoField.value = factoryNo;
+                    }
+                }
+            }
+        }
+    }
 }
 
 // 保存报关数据
@@ -500,28 +795,69 @@ async function saveCustomsData() {
         return;
     }
 
-    item.country = document.getElementById('editCountry').value;
-    item.productName = document.getElementById('editProductName').value;
-    item.domesticConsignee = document.getElementById('editDomesticConsignee').value;
-    item.consumptionUnit = document.getElementById('editConsumptionUnit').value;
-    item.foreignConsignee = document.getElementById('editForeignConsignee').value;
-    item.hsCode = document.getElementById('editHsCode').value;
-    item.supervisionCategory = document.getElementById('editSupervisionCategory').value;
-    item.specification = document.getElementById('editSpecification').value;
-    item.goodsValue = document.getElementById('editGoodsValue').value;
-    item.currency = document.getElementById('editCurrency').value;
-    item.factoryNo = document.getElementById('editFactoryNo').value;
-    item.shipperRecordNo = document.getElementById('editShipperRecordNo').value;
-    item.packageCount = document.getElementById('editPackageCount').value;
-    item.netWeight = document.getElementById('editNetWeight').value;
-    item.grossWeight = document.getElementById('editGrossWeight').value;
-    item.certificate105 = document.getElementById('editCertificate105').value;
-    item.certificate325 = document.getElementById('editCertificate325').value;
-    item.certificate519 = document.getElementById('editCertificate519').value;
-    item.certificate113 = document.getElementById('editCertificate113').value;
-    item.inspectionSpec = document.getElementById('editInspectionSpec').value;
-    item.productionDate = document.getElementById('editProductionDate').value;
-    item.remark = document.getElementById('editCustomsRemark').value;
+    // 填充基础信息（国家、品名从商品明细第一项获取）
+    const domesticConsignee = document.getElementById('editDomesticConsignee');
+    const consumptionUnit = document.getElementById('editConsumptionUnit');
+    const foreignConsignee = document.getElementById('editForeignConsignee');
+    const shipperRecordNo = document.getElementById('editShipperRecordNo');
+    const packageCount = document.getElementById('editPackageCount');
+    const netWeight = document.getElementById('editNetWeight');
+    const grossWeight = document.getElementById('editGrossWeight');
+    const customsRemark = document.getElementById('editCustomsRemark');
+    
+    // 检查元素是否存在
+    if (domesticConsignee) item.domesticConsignee = domesticConsignee.value;
+    if (consumptionUnit) item.consumptionUnit = consumptionUnit.value;
+    if (foreignConsignee) item.foreignConsignee = foreignConsignee.value;
+    if (shipperRecordNo) item.shipperRecordNo = shipperRecordNo.value;
+    if (packageCount) item.packageCount = packageCount.value;
+    if (netWeight) item.netWeight = netWeight.value;
+    if (grossWeight) item.grossWeight = grossWeight.value;
+    if (customsRemark) item.remark = customsRemark.value;
+
+    // 处理多项数据
+    if (currentCustomsItems.length > 0) {
+        // 保存多项数据到customsItems字段
+        item.customsItems = currentCustomsItems;
+        
+        // 计算总货值
+        const totalGoodsValue = currentCustomsItems.reduce((sum, item) => {
+            const value = parseFloat(item.goodsValue) || 0;
+            return sum + value;
+        }, 0);
+        item.goodsValue = totalGoodsValue.toString();
+        
+        // 使用第一项的其他字段用于列表显示
+        const firstItem = currentCustomsItems[0];
+        item.country = firstItem.country || '';
+        item.productName = firstItem.productName || '';
+        item.hsCode = firstItem.hsCode || '';
+        item.supervisionCategory = firstItem.supervisionCategory || '';
+        item.specification = firstItem.specification || '';
+        item.currency = firstItem.currency || '';
+        item.factoryNo = firstItem.factoryNo || '';
+        item.certificate105 = firstItem.certificate105 || '';
+        item.certificate325 = firstItem.certificate325 || '';
+        item.certificate519 = firstItem.certificate519 || '';
+        item.certificate113 = firstItem.certificate113 || '';
+        item.inspectionSpec = firstItem.inspectionSpec || '';
+        item.productionDate = firstItem.productionDate || '';
+    } else {
+        // 兼容旧数据（没有多项数据的情况）
+        item.hsCode = document.getElementById('editHsCode').value;
+        item.supervisionCategory = document.getElementById('editSupervisionCategory').value;
+        item.specification = document.getElementById('editSpecification').value;
+        item.goodsValue = document.getElementById('editGoodsValue').value;
+        item.currency = document.getElementById('editCurrency').value;
+        item.factoryNo = document.getElementById('editFactoryNo').value;
+        item.certificate105 = document.getElementById('editCertificate105').value;
+        item.certificate325 = document.getElementById('editCertificate325').value;
+        item.certificate519 = document.getElementById('editCertificate519').value;
+        item.certificate113 = document.getElementById('editCertificate113').value;
+        item.inspectionSpec = document.getElementById('editInspectionSpec').value;
+        item.productionDate = document.getElementById('editProductionDate').value;
+        item.customsItems = [];
+    }
 
     try {
         const success = await saveToLeanCloud(item, false);
@@ -564,7 +900,7 @@ function updateCustomsPagination() {
     let paginationHTML = '';
     
     if (customsCurrentPageIndex > 1) {
-        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${customsCurrentPageIndex - 1}">上一页</a></li>`;
+        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-customs-page="${customsCurrentPageIndex - 1}">上一页</a></li>`;
     } else {
         paginationHTML += `<li class="page-item disabled"><a class="page-link" href="#">上一页</a></li>`;
     }
@@ -579,14 +915,14 @@ function updateCustomsPagination() {
     
     for (let i = startPage; i <= endPage; i++) {
         if (i === customsCurrentPageIndex) {
-            paginationHTML += `<li class="page-item active"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+            paginationHTML += `<li class="page-item active"><a class="page-link" href="#" data-customs-page="${i}">${i}</a></li>`;
         } else {
-            paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+            paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-customs-page="${i}">${i}</a></li>`;
         }
     }
     
     if (customsCurrentPageIndex < customsTotalPages) {
-        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${customsCurrentPageIndex + 1}">下一页</a></li>`;
+        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-customs-page="${customsCurrentPageIndex + 1}">下一页</a></li>`;
     } else {
         paginationHTML += `<li class="page-item disabled"><a class="page-link" href="#">下一页</a></li>`;
     }
@@ -596,7 +932,7 @@ function updateCustomsPagination() {
     document.querySelectorAll('#customsPagination .page-link').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            const page = parseInt(this.getAttribute('data-page'));
+            const page = parseInt(this.getAttribute('data-customs-page'));
             if (page && page !== customsCurrentPageIndex) {
                 customsCurrentPageIndex = page;
                 renderCustomsTable();
@@ -1092,6 +1428,11 @@ function bindCustomsEvents() {
 // 导出函数
 window.loadCustomsData = loadCustomsData;
 window.renderCustomsTable = renderCustomsTable;
+window.showCustomsDataModal = showCustomsDataModal;
+window.addCustomsItem = addCustomsItem;
+window.removeCustomsItem = removeCustomsItem;
+window.updateCustomsItemField = updateCustomsItemField;
+window.renderCustomsItems = renderCustomsItems;
 
 // 页面加载时绑定事件
 document.addEventListener('DOMContentLoaded', function() {

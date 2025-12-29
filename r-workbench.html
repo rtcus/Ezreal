@@ -179,114 +179,238 @@
                     <p class="text-muted">源数据管理</p>
                 </div>
 
+                <!-- 标签页切换 -->
                 <div class="card">
-                    <div class="card-header">
-                        查询条件
+                    <div class="card-header p-0">
+                        <ul class="nav nav-tabs nav-justified" id="trackingTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="tracking-tab" data-bs-toggle="tab" data-bs-target="#tracking-panel" type="button" role="tab">
+                                    <i class="fas fa-list"></i> 跟单列表
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="cancelled-tracking-tab" data-bs-toggle="tab" data-bs-target="#cancelled-tracking-panel" type="button" role="tab">
+                                    <i class="fas fa-times-circle"></i> 撤销跟单列表
+                                </button>
+                            </li>
+                        </ul>
                     </div>
-                    <div class="card-body">
-                        <div class="row g-2 search-form">
-                            <div class="col-md-2">
-                                <label for="arrivalDate" class="form-label">到港日期</label>
-                                <input type="text" class="form-control date-input" id="arrivalDate" placeholder="选择日期范围">
+                    <div class="tab-content" id="trackingTabContent">
+                        <!-- 跟单列表面板 -->
+                        <div class="tab-pane fade show active" id="tracking-panel" role="tabpanel">
+                            <div class="card-body">
+                                <div class="row g-2 search-form">
+                                    <div class="col-md-2">
+                                        <label for="arrivalDate" class="form-label">到港日期</label>
+                                        <input type="text" class="form-control date-input" id="arrivalDate" placeholder="选择日期范围">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="billNo" class="form-label">提单号</label>
+                                        <input type="text" class="form-control" id="billNo">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="containerNo" class="form-label">柜号</label>
+                                        <input type="text" class="form-control" id="containerNo">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="declareDate" class="form-label">申报日期</label>
+                                        <input type="text" class="form-control date-input" id="declareDate" placeholder="选择日期范围">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="customsStatusFilter" class="form-label">报关状态</label>
+                                        <select class="form-select" id="customsStatusFilter">
+                                            <option value="">全部状态</option>
+                                            <option value="放行">放行</option>
+                                            <option value="目的地查验">目的地查验</option>
+                                            <option value="审结">审结</option>
+                                            <option value="口岸查验">口岸查验</option>
+                                            <option value="无电子信息">无电子信息</option>
+                                            <option value="合并检查">合并检查</option>
+                                            <option value="挂起">挂起</option>
+                                            <option value="非放行">非放行</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <div class="w-100">
+                                            <button class="btn btn-primary w-100" id="searchTracking">查询</button>
+                                            <button class="btn btn-outline-secondary w-100 mt-1" id="clearTracking">清空</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-2">
-                                <label for="billNo" class="form-label">提单号</label>
-                                <input type="text" class="form-control" id="billNo">
-                            </div>
-                            <div class="col-md-2">
-                                <label for="containerNo" class="form-label">柜号</label>
-                                <input type="text" class="form-control" id="containerNo">
-                            </div>
-                            <div class="col-md-2">
-                                <label for="declareDate" class="form-label">申报日期</label>
-                                <input type="text" class="form-control date-input" id="declareDate" placeholder="选择日期范围">
-                            </div>
-                            <div class="col-md-2">
-                                <label for="customsStatusFilter" class="form-label">报关状态</label>
-                                <select class="form-select" id="customsStatusFilter">
-                                    <option value="">全部状态</option>
-                                    <option value="放行">放行</option>
-                                    <option value="目的地查验">目的地查验</option>
-                                    <option value="审结">审结</option>
-                                    <option value="口岸查验">口岸查验</option>
-                                    <option value="无电子信息">无电子信息</option>
-                                    <option value="合并检查">合并检查</option>
-                                    <option value="挂起">挂起</option>
-                                    <option value="非放行">非放行</option>
-                                    <!-- 新增删单选项 -->
-                                    <option value="删单">删单</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2 d-flex align-items-end">
-                                <div class="w-100">
-                                    <button class="btn btn-primary w-100" id="searchTracking">查询</button>
-                                    <button class="btn btn-outline-secondary w-100 mt-1" id="clearTracking">清空</button>
+
+                            <!-- 表格和分页统一容器 -->
+                            <div class="table-card-container">
+                                <div class="table-card-header d-flex justify-content-between align-items-center">
+                                    <span>跟单列表</span>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-primary me-2" id="importTracking">
+                                            <i class="fas fa-upload"></i> 导入
+                                        </button>
+                                        <button class="btn btn-sm btn-primary" id="addTracking">新增跟单</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-content-wrapper">
+                                    <!-- 表格内容区域 -->
+                                    <div class="table-container">
+                                        <table class="table table-hover" id="trackingTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>序号</th>
+                                                    <th>到港日期</th>
+                                                    <th>申报日期</th>
+                                                    <th>预录入号</th>
+                                                    <th>提单号</th>
+                                                    <th>柜号</th>
+                                                    <th>报关单号</th>
+                                                    <th>欧盟保证金</th>
+                                                    <th>国家</th>
+                                                    <th>品名</th>
+                                                    <th>操作</th>
+                                                    <th>报关状态</th>
+                                                    <th>指令</th>
+                                                    <th>备注</th>
+                                                    <th>单证信息</th>
+                                                    <th>操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- 数据将通过JavaScript动态填充 -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <!-- 固定在容器底部的分页控件 -->
+                                    <div class="pagination-container" id="paginationContainer">
+                                        <div class="pagination-info" id="paginationInfo">
+                                            共 0 页，每页显示 10 条，共 0 条记录
+                                        </div>
+                                        <nav aria-label="Page navigation">
+                                            <ul class="pagination" id="pagination">
+                                                <!-- 分页将通过JavaScript动态生成 -->
+                                            </ul>
+                                        </nav>
+                                        <div class="page-size-selector">
+                                            <span>每页显示：</span>
+                                            <select class="form-select form-select-sm" id="pageSizeSelect">
+                                                <option value="20">20条</option>
+                                                <option value="50">50条</option>
+                                                <option value="100">100条</option>
+                                                <option value="300">300条</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- 表格和分页统一容器 -->
-                <div class="table-card-container">
-                    <div class="table-card-header d-flex justify-content-between align-items-center">
-                        <span>跟单列表</span>
-                        <div>
-                            <button class="btn btn-sm btn-outline-primary me-2" id="importTracking">
-                                <i class="fas fa-upload"></i> 导入
-                            </button>
-                            <button class="btn btn-sm btn-primary" id="addTracking">新增跟单</button>
-                        </div>
-                    </div>
-                    
-                    <div class="table-content-wrapper">
-                        <!-- 表格内容区域 -->
-                        <div class="table-container">
-                            <table class="table table-hover" id="trackingTable">
-                                <thead>
-                                    <tr>
-                                        <th>序号</th>
-                                        <th>到港日期</th>
-                                        <th>申报日期</th>
-                                        <th>预录入号</th>
-                                        <th>提单号</th>
-                                        <th>柜号</th>
-                                        <th>报关单号</th>
-                                        <th>欧盟保证金</th>
-                                        <th>国家</th>
-                                        <th>品名</th>
-                                        <th>操作</th>
-                                        <th>报关状态</th>
-                                        <th>指令</th>
-                                        <th>备注</th>
-                                        <th>单证信息</th>
-                                        <th>操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- 数据将通过JavaScript动态填充 -->
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <!-- 固定在容器底部的分页控件 -->
-                        <div class="pagination-container" id="paginationContainer">
-                            <div class="pagination-info" id="paginationInfo">
-                                共 0 页，每页显示 10 条，共 0 条记录
+                        <!-- 撤销跟单列表面板 -->
+                        <div class="tab-pane fade" id="cancelled-tracking-panel" role="tabpanel">
+                            <div class="card-body">
+                                <div class="row g-2 search-form">
+                                    <div class="col-md-2">
+                                        <label for="cancelledArrivalDate" class="form-label">到港日期</label>
+                                        <input type="text" class="form-control date-input" id="cancelledArrivalDate" placeholder="选择日期范围">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="cancelledBillNo" class="form-label">提单号</label>
+                                        <input type="text" class="form-control" id="cancelledBillNo">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="cancelledContainerNo" class="form-label">柜号</label>
+                                        <input type="text" class="form-control" id="cancelledContainerNo">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="cancelledDeclareDate" class="form-label">申报日期</label>
+                                        <input type="text" class="form-control date-input" id="cancelledDeclareDate" placeholder="选择日期范围">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="cancelledCustomsStatusFilter" class="form-label">报关状态</label>
+                                        <select class="form-select" id="cancelledCustomsStatusFilter">
+                                            <option value="">全部状态</option>
+                                            <option value="放行">放行</option>
+                                            <option value="目的地查验">目的地查验</option>
+                                            <option value="审结">审结</option>
+                                            <option value="口岸查验">口岸查验</option>
+                                            <option value="无电子信息">无电子信息</option>
+                                            <option value="合并检查">合并检查</option>
+                                            <option value="挂起">挂起</option>
+                                            <option value="非放行">非放行</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <div class="w-100">
+                                            <button class="btn btn-primary w-100" id="searchCancelledTracking">查询</button>
+                                            <button class="btn btn-outline-secondary w-100 mt-1" id="clearCancelledTracking">清空</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination" id="pagination">
-                                    <!-- 分页将通过JavaScript动态生成 -->
-                                </ul>
-                            </nav>
-                            <div class="page-size-selector">
-                                <span>每页显示：</span>
-                                <select class="form-select form-select-sm" id="pageSizeSelect">
-                                    <option value="20">20条</option>
-                                    <option value="50">50条</option>
-                                    <option value="100">100条</option>
-                                    <option value="300">300条</option>
-                                </select>
+
+                            <!-- 表格和分页统一容器 -->
+                            <div class="table-card-container">
+                                <div class="table-card-header d-flex justify-content-between align-items-center">
+                                    <span>撤销跟单列表</span>
+                                    <div>
+                                        <button class="btn btn-sm btn-warning" id="restoreSelectedTracking">
+                                            <i class="fas fa-undo"></i> 恢复选中
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-content-wrapper">
+                                    <!-- 表格内容区域 -->
+                                    <div class="table-container">
+                                        <table class="table table-hover" id="cancelledTrackingTable">
+                                            <thead>
+                                                <tr>
+                                                    <th><input type="checkbox" id="selectAllCancelled" class="form-check-input"></th>
+                                                    <th>序号</th>
+                                                    <th>到港日期</th>
+                                                    <th>申报日期</th>
+                                                    <th>预录入号</th>
+                                                    <th>提单号</th>
+                                                    <th>柜号</th>
+                                                    <th>报关单号</th>
+                                                    <th>欧盟保证金</th>
+                                                    <th>国家</th>
+                                                    <th>品名</th>
+                                                    <th>操作</th>
+                                                    <th>报关状态</th>
+                                                    <th>指令</th>
+                                                    <th>备注</th>
+                                                    <th>单证信息</th>
+                                                    <th>操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- 数据将通过JavaScript动态填充 -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <!-- 固定在容器底部的分页控件 -->
+                                    <div class="pagination-container" id="cancelledPaginationContainer">
+                                        <div class="pagination-info" id="cancelledPaginationInfo">
+                                            共 0 页，每页显示 10 条，共 0 条记录
+                                        </div>
+                                        <nav aria-label="Page navigation">
+                                            <ul class="pagination" id="cancelledPagination">
+                                                <!-- 分页将通过JavaScript动态生成 -->
+                                            </ul>
+                                        </nav>
+                                        <div class="page-size-selector">
+                                            <span>每页显示：</span>
+                                            <select class="form-select form-select-sm" id="cancelledPageSizeSelect">
+                                                <option value="20">20条</option>
+                                                <option value="50">50条</option>
+                                                <option value="100">100条</option>
+                                                <option value="300">300条</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1028,95 +1152,131 @@
                 </div>
                 <div class="modal-body">
                     <form id="customsDataForm">
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label for="editCountry" class="form-label">国家</label>
-                                <input type="text" class="form-control" id="editCountry">
+                        <!-- 基础信息（不重复的字段） -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">基础信息</h6>
                             </div>
-                            <div class="col-md-4">
-                                <label for="editProductName" class="form-label">品名</label>
-                                <input type="text" class="form-control" id="editProductName">
+                            <div class="col-md-6">
+                                <label for="editCustomsDeclarationNo" class="form-label">报关单号</label>
+                                <input type="text" class="form-control" id="editCustomsDeclarationNo" readonly>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
+                                <label for="editBillNo" class="form-label">提单号</label>
+                                <input type="text" class="form-control" id="editBillNo" readonly>
+                            </div>
+                            <div class="col-md-3">
                                 <label for="editDomesticConsignee" class="form-label">境内收发货人</label>
                                 <input type="text" class="form-control" id="editDomesticConsignee">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="editConsumptionUnit" class="form-label">消费使用单位</label>
                                 <input type="text" class="form-control" id="editConsumptionUnit">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="editForeignConsignee" class="form-label">境外收发货人</label>
                                 <input type="text" class="form-control" id="editForeignConsignee">
                             </div>
-                            <div class="col-md-4">
-                                <label for="editHsCode" class="form-label">HS编码</label>
-                                <input type="text" class="form-control" id="editHsCode">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="editSupervisionCategory" class="form-label">监管类别名称</label>
-                                <input type="text" class="form-control" id="editSupervisionCategory">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="editSpecification" class="form-label">规格型号</label>
-                                <input type="text" class="form-control" id="editSpecification">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="editGoodsValue" class="form-label">货值</label>
-                                <input type="text" class="form-control" id="editGoodsValue">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="editCurrency" class="form-label">币制</label>
-                                <input type="text" class="form-control" id="editCurrency">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="editFactoryNo" class="form-label">厂号</label>
-                                <input type="text" class="form-control" id="editFactoryNo">
-                            </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="editShipperRecordNo" class="form-label">发货人备案号</label>
                                 <input type="text" class="form-control" id="editShipperRecordNo">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="editPackageCount" class="form-label">件数</label>
                                 <input type="text" class="form-control" id="editPackageCount">
                             </div>
-                            <div class="col-md-4">
-                                <label for="editNetWeight" class="form-label">净重</label>
-                                <input type="text" class="form-control" id="editNetWeight">
-                            </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="editGrossWeight" class="form-label">毛重</label>
                                 <input type="text" class="form-control" id="editGrossWeight">
                             </div>
-                            <div class="col-md-4">
-                                <label for="editCertificate105" class="form-label">105证书</label>
-                                <input type="text" class="form-control" id="editCertificate105">
+                            <div class="col-md-3">
+                                <label for="editNetWeight" class="form-label">净重</label>
+                                <input type="text" class="form-control" id="editNetWeight">
                             </div>
-                            <div class="col-md-4">
-                                <label for="editCertificate325" class="form-label">325证书</label>
-                                <input type="text" class="form-control" id="editCertificate325">
-                            </div>
-                            <!-- 补充：519证书字段 -->
-                            <div class="col-md-4">
-                                <label for="editCertificate519" class="form-label">519证书</label>
-                                <input type="text" class="form-control" id="editCertificate519">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="editCertificate113" class="form-label">113证书</label>
-                                <input type="text" class="form-control" id="editCertificate113">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="editInspectionSpec" class="form-label">检验检疫货物规格</label>
-                                <input type="text" class="form-control" id="editInspectionSpec">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="editProductionDate" class="form-label">生产日期</label>
-                                <input type="text" class="form-control" id="editProductionDate" placeholder="输入生产日期">
-                            </div>
-                            <div class="col-12">
+                            <div class="col-md-3">
                                 <label for="editCustomsRemark" class="form-label">备注</label>
                                 <textarea class="form-control" id="editCustomsRemark" rows="3"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- 多项数据区域 -->
+                        <div class="items-container">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="text-success border-bottom pb-2 mb-3">商品明细</h6>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="addItemBtn">
+                                        <i class="fas fa-plus"></i> 添加项
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="customsItemsList">
+                                <!-- 第一项（默认显示） -->
+                                <div class="item-row border rounded p-3 mb-3" data-item-index="1">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <h6 class="mb-0 text-secondary">项号 1</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn d-none">
+                                            <i class="fas fa-trash"></i> 删除
+                                        </button>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <label class="form-label">HS编码</label>
+                                            <input type="text" class="form-control item-field" data-field="hsCode" data-item="1">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">国家</label>
+                                            <input type="text" class="form-control item-field" data-field="country" data-item="1">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">品名</label>
+                                            <input type="text" class="form-control item-field" data-field="productName" data-item="1">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">监管类别名称</label>
+                                            <input type="text" class="form-control item-field" data-field="supervisionCategory" data-item="1">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">规格型号</label>
+                                            <input type="text" class="form-control item-field" data-field="specification" data-item="1">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">货值</label>
+                                            <input type="text" class="form-control item-field" data-field="goodsValue" data-item="1">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">币制</label>
+                                            <input type="text" class="form-control item-field" data-field="currency" data-item="1">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">厂号</label>
+                                            <input type="text" class="form-control item-field" data-field="factoryNo" data-item="1">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">105证书</label>
+                                            <input type="text" class="form-control item-field" data-field="certificate105" data-item="1">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">325证书</label>
+                                            <input type="text" class="form-control item-field" data-field="certificate325" data-item="1">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">519证书</label>
+                                            <input type="text" class="form-control item-field" data-field="certificate519" data-item="1">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">113证书</label>
+                                            <input type="text" class="form-control item-field" data-field="certificate113" data-item="1">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">检验检疫货物规格</label>
+                                            <input type="text" class="form-control item-field" data-field="inspectionSpec" data-item="1">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">生产日期</label>
+                                            <input type="text" class="form-control item-field" data-field="productionDate" data-item="1" placeholder="输入生产日期">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </form>

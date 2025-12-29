@@ -1141,6 +1141,57 @@ table thead th {
     max-width: 500px;
 }
 
+/* 跟单工作台标签页样式 */
+.nav-tabs .nav-link {
+    color: var(--primary-color);
+    border: 1px solid transparent;
+    border-bottom: none;
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--secondary-color);
+    background-color: rgba(26, 60, 139, 0.05);
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--primary-color);
+    background-color: white;
+    border-color: #dee2e6 #dee2e6 #fff;
+    font-weight: 600;
+}
+
+.nav-tabs {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.nav-tabs .nav-link i {
+    margin-right: 8px;
+}
+
+/* 撤销跟单列表样式 */
+.cancelled-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.restore-btn {
+    margin-right: 5px;
+}
+
+.restore-btn:hover {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+/* 徽章样式优化 */
+.badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    font-weight: 500;
+}
+
 .icon-preview {
     width: 40px;
     height: 40px;

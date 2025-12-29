@@ -1,9 +1,14 @@
 // 跟单工作台功能模块 - 修复重复加载问题
 let trackingData = [];
 let filteredTrackingData = [];
+let cancelledTrackingData = [];
+let filteredCancelledTrackingData = [];
 let trackingItemsPerPage = 20;
+let cancelledTrackingItemsPerPage = 20;
 let trackingCurrentPageIndex = 1;
+let cancelledTrackingCurrentPageIndex = 1;
 let trackingTotalPages = 1;
+let cancelledTrackingTotalPages = 1;
 let currentEditingCell = null;
 let isTrackingInitialized = false; // 新增：防止重复初始化
 
@@ -67,14 +72,67 @@ async function loadTrackingData() {
         });
         console.log('📈 报关状态分布:', statusCount);
         
-        /// 关键修复：只显示报关状态不是"放行"也不是"删单"的数据
-const beforeFilterCount = trackingData.length;
-trackingData = trackingData.filter(item => {
-    return !item.customsStatus || 
-           (item.customsStatus !== '放行' && item.customsStatus !== '删单');
-});
+        // 分离数据：正常跟单数据和撤销跟单数据
+        const beforeFilterCount = results.length;
+        
+        // 正常跟单数据：排除"放行"、"删单"、"取消"状态
+        trackingData = results.map(item => {
+            const data = item.toJSON();
+            return {
+                id: data.objectId,
+                arrivalDate: data.arrivalDate || '',
+                declareDate: data.declareDate || '',
+                preEntryNo: data.preEntryNo || '',
+                billNo: data.billNo || '',
+                containerNo: data.containerNo || '',
+                customsNo: data.customsNo || '',
+                euDeposit: data.euDeposit || '',
+                country: data.country || '',
+                productName: data.productName || '',
+                shipper: data.shipper || '',
+                operation: data.operation || '',
+                customsStatus: data.customsStatus || '',
+                instruction: data.instruction || '',
+                remark: data.remark || '',
+                attachments: data.attachments || [],
+                leanCloudObject: item
+            };
+        }).filter(item => {
+            return (!item.customsStatus || 
+                    (item.customsStatus !== '放行' && 
+                     item.customsStatus !== '删单' && 
+                     item.customsStatus !== '取消')) &&
+                   item.operation !== '取消';
+        });
+        
+        // 撤销跟单数据：包含报关状态为"取消"或操作状态为"取消"的数据
+        cancelledTrackingData = results.map(item => {
+            const data = item.toJSON();
+            return {
+                id: data.objectId,
+                arrivalDate: data.arrivalDate || '',
+                declareDate: data.declareDate || '',
+                preEntryNo: data.preEntryNo || '',
+                billNo: data.billNo || '',
+                containerNo: data.containerNo || '',
+                customsNo: data.customsNo || '',
+                euDeposit: data.euDeposit || '',
+                country: data.country || '',
+                productName: data.productName || '',
+                shipper: data.shipper || '',
+                operation: data.operation || '',
+                customsStatus: data.customsStatus || '',
+                instruction: data.instruction || '',
+                remark: data.remark || '',
+                attachments: data.attachments || [],
+                leanCloudObject: item
+            };
+        }).filter(item => item.customsStatus === '取消' || item.operation === '取消');
 
-console.log('过滤后数据量（非放行、非删单状态）:', trackingData.length, '（过滤掉了', beforeFilterCount - trackingData.length, '条记录）');
+        console.log('数据分离完成:');
+        console.log('- 正常跟单数据量:', trackingData.length);
+        console.log('- 撤销跟单数据量:', cancelledTrackingData.length);
+        console.log('- 过滤掉的总记录数:', beforeFilterCount - trackingData.length - cancelledTrackingData.length);
         
         // 按到港日期升序排序（最早的在前）
         trackingData.sort((a, b) => {
@@ -84,8 +142,21 @@ console.log('过滤后数据量（非放行、非删单状态）:', trackingData
         });
         
         filteredTrackingData = [...trackingData];
+        filteredCancelledTrackingData = [...cancelledTrackingData];
         
-        console.log('跟单数据加载完成，共', trackingData.length, '条记录');
+        // 按到港日期升序排序（最早的在前）
+        cancelledTrackingData.sort((a, b) => {
+            const dateA = a.arrivalDate ? new Date(a.arrivalDate) : new Date(0);
+            const dateB = b.arrivalDate ? new Date(b.arrivalDate) : new Date(0);
+            return dateA - dateB; // 升序排列
+        });
+        filteredCancelledTrackingData.sort((a, b) => {
+            const dateA = a.arrivalDate ? new Date(a.arrivalDate) : new Date(0);
+            const dateB = b.arrivalDate ? new Date(b.arrivalDate) : new Date(0);
+            return dateA - dateB; // 升序排列
+        });
+        
+        console.log('跟单数据加载完成，共', trackingData.length, '条正常记录，', cancelledTrackingData.length, '条撤销记录');
         
         // 验证最终数据
         console.log('✅ 最终数据验证:');
@@ -99,6 +170,8 @@ console.log('过滤后数据量（非放行、非删单状态）:', trackingData
         
         renderTrackingTable();
         updateTrackingPagination();
+        renderCancelledTrackingTable();
+        updateCancelledTrackingPagination();
         
         // 只在第一次加载时绑定事件
         if (!isTrackingInitialized) {
@@ -523,7 +596,47 @@ function bindSelectEvents() {
                 }
                 
                 await saveToLeanCloud(item, false);
-                renderTrackingTable();
+                
+                // 操作状态设置为"取消"时，更新报关状态为"取消"并移动到撤销跟单列表
+                if (value === '取消') {
+                    // 更新报关状态为"取消"
+                    item.customsStatus = '取消';
+                    
+                    const filteredItem = filteredTrackingData.find(item => item.id === id);
+                    if (filteredItem) {
+                        filteredItem.customsStatus = '取消';
+                        filteredItem.operation = value;
+                    }
+                    
+                    await saveToLeanCloud(item, false);
+                    
+                    // 从正常列表移除
+                    trackingData = trackingData.filter(t => t.id !== id);
+                    filteredTrackingData = filteredTrackingData.filter(t => t.id !== id);
+                    
+                    // 添加到撤销列表
+                    cancelledTrackingData.push(item);
+                    filteredCancelledTrackingData.push(item);
+                    
+                    // 重新排序撤销列表
+                    cancelledTrackingData.sort((a, b) => {
+                        const dateA = a.arrivalDate ? new Date(a.arrivalDate) : new Date(0);
+                        const dateB = b.arrivalDate ? new Date(b.arrivalDate) : new Date(0);
+                        return dateA - dateB;
+                    });
+                    filteredCancelledTrackingData.sort((a, b) => {
+                        const dateA = a.arrivalDate ? new Date(a.arrivalDate) : new Date(0);
+                        const dateB = b.arrivalDate ? new Date(b.arrivalDate) : new Date(0);
+                        return dateA - dateB;
+                    });
+                    
+                    renderTrackingTable();
+                    updateTrackingPagination();
+                    renderCancelledTrackingTable();
+                    updateCancelledTrackingPagination();
+                } else {
+                    renderTrackingTable();
+                }
             }
             
             if (value === '申报') {
@@ -541,10 +654,40 @@ function bindSelectEvents() {
         if (item) {
             item.customsStatus = value;
             
-            // 如果状态设置为"放行"或"删单"，则从跟单列表中移除
-            if (value === '放行' || value === '删单') {
-                trackingData = trackingData.filter(t => t.id !== id);
-                filteredTrackingData = filteredTrackingData.filter(t => t.id !== id);
+            // 如果状态设置为"放行"、"删单"或"取消"，则从跟单列表中移除
+            if (value === '放行' || value === '删单' || value === '取消') {
+                // 如果是取消状态，需要移动到撤销跟单列表
+                if (value === '取消') {
+                    const itemToMove = trackingData.find(item => item.id === id);
+                    if (itemToMove) {
+                        // 从正常列表移除
+                        trackingData = trackingData.filter(t => t.id !== id);
+                        filteredTrackingData = filteredTrackingData.filter(t => t.id !== id);
+                        
+                        // 添加到撤销列表
+                        cancelledTrackingData.push(itemToMove);
+                        filteredCancelledTrackingData.push(itemToMove);
+                        
+                        // 重新排序撤销列表
+                        cancelledTrackingData.sort((a, b) => {
+                            const dateA = a.arrivalDate ? new Date(a.arrivalDate) : new Date(0);
+                            const dateB = b.arrivalDate ? new Date(b.arrivalDate) : new Date(0);
+                            return dateA - dateB;
+                        });
+                        filteredCancelledTrackingData.sort((a, b) => {
+                            const dateA = a.arrivalDate ? new Date(a.arrivalDate) : new Date(0);
+                            const dateB = b.arrivalDate ? new Date(b.arrivalDate) : new Date(0);
+                            return dateA - dateB;
+                        });
+                        
+                        renderCancelledTrackingTable();
+                        updateCancelledTrackingPagination();
+                    }
+                } else {
+                    // 放行或删单，直接移除
+                    trackingData = trackingData.filter(t => t.id !== id);
+                    filteredTrackingData = filteredTrackingData.filter(t => t.id !== id);
+                }
                 renderTrackingTable();
                 updateTrackingPagination();
             } else {
@@ -729,7 +872,7 @@ function updateTrackingPagination() {
     
     // 上一页
     if (trackingCurrentPageIndex > 1) {
-        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${trackingCurrentPageIndex - 1}">上一页</a></li>`;
+        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-tracking-page="${trackingCurrentPageIndex - 1}">上一页</a></li>`;
     } else {
         paginationHTML += `<li class="page-item disabled"><a class="page-link" href="#">上一页</a></li>`;
     }
@@ -745,15 +888,15 @@ function updateTrackingPagination() {
     
     for (let i = startPage; i <= endPage; i++) {
         if (i === trackingCurrentPageIndex) {
-            paginationHTML += `<li class="page-item active"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+            paginationHTML += `<li class="page-item active"><a class="page-link" href="#" data-tracking-page="${i}">${i}</a></li>`;
         } else {
-            paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+            paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-tracking-page="${i}">${i}</a></li>`;
         }
     }
     
     // 下一页
     if (trackingCurrentPageIndex < trackingTotalPages) {
-        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${trackingCurrentPageIndex + 1}">下一页</a></li>`;
+        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-tracking-page="${trackingCurrentPageIndex + 1}">下一页</a></li>`;
     } else {
         paginationHTML += `<li class="page-item disabled"><a class="page-link" href="#">下一页</a></li>`;
     }
@@ -780,7 +923,7 @@ function updateTrackingPagination() {
     document.querySelectorAll('#pagination .page-link').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            const page = parseInt(this.getAttribute('data-page'));
+            const page = parseInt(this.getAttribute('data-tracking-page'));
             if (page && page !== trackingCurrentPageIndex) {
                 trackingCurrentPageIndex = page;
                 renderTrackingTable();
@@ -1398,6 +1541,130 @@ function bindTrackingEvents() {
         });
     }
     
+    // 撤销跟单查询按钮
+    const searchCancelledTrackingBtn = document.getElementById('searchCancelledTracking');
+    if (searchCancelledTrackingBtn) {
+        searchCancelledTrackingBtn.replaceWith(searchCancelledTrackingBtn.cloneNode(true));
+        document.getElementById('searchCancelledTracking').addEventListener('click', function() {
+            applyCancelledTrackingFilters();
+            cancelledTrackingCurrentPageIndex = 1;
+            updateCancelledTrackingPagination();
+            renderCancelledTrackingTable();
+        });
+    }
+    
+    // 撤销跟单清空按钮
+    const clearCancelledTrackingBtn = document.getElementById('clearCancelledTracking');
+    if (clearCancelledTrackingBtn) {
+        clearCancelledTrackingBtn.replaceWith(clearCancelledTrackingBtn.cloneNode(true));
+        document.getElementById('clearCancelledTracking').addEventListener('click', function() {
+            document.getElementById('cancelledArrivalDate').value = '';
+            document.getElementById('cancelledBillNo').value = '';
+            document.getElementById('cancelledContainerNo').value = '';
+            document.getElementById('cancelledDeclareDate').value = '';
+            document.getElementById('cancelledCustomsStatusFilter').value = '';
+            filteredCancelledTrackingData = [...cancelledTrackingData];
+            cancelledTrackingCurrentPageIndex = 1;
+            updateCancelledTrackingPagination();
+            renderCancelledTrackingTable();
+        });
+    }
+    
+    // 撤销跟单每页显示条数变化
+    const cancelledPageSizeSelect = document.getElementById('cancelledPageSizeSelect');
+    if (cancelledPageSizeSelect) {
+        cancelledPageSizeSelect.replaceWith(cancelledPageSizeSelect.cloneNode(true));
+        document.getElementById('cancelledPageSizeSelect').addEventListener('change', function() {
+            cancelledTrackingItemsPerPage = parseInt(this.value);
+            cancelledTrackingCurrentPageIndex = 1;
+            updateCancelledTrackingPagination();
+            renderCancelledTrackingTable();
+        });
+    }
+    
+    // 恢复选中按钮
+    const restoreSelectedBtn = document.getElementById('restoreSelectedTracking');
+    if (restoreSelectedBtn) {
+        restoreSelectedBtn.replaceWith(restoreSelectedBtn.cloneNode(true));
+        document.getElementById('restoreSelectedTracking').addEventListener('click', restoreSelectedTracking);
+    }
+    
+    // 全选复选框
+    const selectAllCancelled = document.getElementById('selectAllCancelled');
+    if (selectAllCancelled) {
+        selectAllCancelled.replaceWith(selectAllCancelled.cloneNode(true));
+        document.getElementById('selectAllCancelled').addEventListener('change', function() {
+            const isChecked = this.checked;
+            document.querySelectorAll('.cancelled-checkbox').forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+        });
+    }
+    
+    // 手动处理标签切换，避免Bootstrap状态问题
+    const trackingTab = document.getElementById('tracking-tab');
+    const cancelledTrackingTab = document.getElementById('cancelled-tracking-tab');
+    
+    if (trackingTab) {
+        trackingTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // 移除所有标签的active类
+            trackingTab.classList.remove('active');
+            cancelledTrackingTab.classList.remove('active');
+            
+            // 移除所有面板的show active类
+            document.getElementById('tracking-panel').classList.remove('show', 'active');
+            document.getElementById('cancelled-tracking-panel').classList.remove('show', 'active');
+            
+            // 激活当前标签和面板
+            trackingTab.classList.add('active');
+            document.getElementById('tracking-panel').classList.add('show', 'active');
+            
+            // 渲染表格
+            console.log('🔄 点击切换到跟单列表');
+            renderTrackingTable();
+            updateTrackingPagination();
+        });
+    }
+    
+    if (cancelledTrackingTab) {
+        cancelledTrackingTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // 移除所有标签的active类
+            trackingTab.classList.remove('active');
+            cancelledTrackingTab.classList.remove('active');
+            
+            // 移除所有面板的show active类
+            document.getElementById('tracking-panel').classList.remove('show', 'active');
+            document.getElementById('cancelled-tracking-panel').classList.remove('show', 'active');
+            
+            // 激活当前标签和面板
+            cancelledTrackingTab.classList.add('active');
+            document.getElementById('cancelled-tracking-panel').classList.add('show', 'active');
+            
+            // 渲染表格
+            console.log('🔄 点击切换到撤销跟单列表');
+            renderCancelledTrackingTable();
+            updateCancelledTrackingPagination();
+        });
+    }
+    
+    // 确保初始状态正确 - 在显示标签页时触发相应的渲染
+    const trackingPanel = document.getElementById('tracking-panel');
+    const cancelledTrackingPanel = document.getElementById('cancelled-tracking-panel');
+    
+    if (trackingPanel && trackingPanel.classList.contains('show') && trackingPanel.classList.contains('active')) {
+        console.log('🎯 初始显示跟单列表');
+        renderTrackingTable();
+        updateTrackingPagination();
+    } else if (cancelledTrackingPanel && cancelledTrackingPanel.classList.contains('show') && cancelledTrackingPanel.classList.contains('active')) {
+        console.log('🎯 初始显示撤销跟单列表');
+        renderCancelledTrackingTable();
+        updateCancelledTrackingPagination();
+    }
+    
     console.log('✅ 跟单工作台事件绑定完成');
 }
 
@@ -1411,6 +1678,425 @@ function cleanupTracking() {
 // 导出函数
 window.loadTrackingData = loadTrackingData;
 window.cleanupTracking = cleanupTracking;
+
+// 渲染撤销跟单表格
+function renderCancelledTrackingTable() {
+    const tbody = document.querySelector('#cancelledTrackingTable tbody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    if (filteredCancelledTrackingData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="18" class="no-data">没有找到撤销的跟单数据</td></tr>';
+        return;
+    }
+    
+    const startIndex = (cancelledTrackingCurrentPageIndex - 1) * cancelledTrackingItemsPerPage;
+    const endIndex = Math.min(startIndex + cancelledTrackingItemsPerPage, filteredCancelledTrackingData.length);
+    const currentPageData = filteredCancelledTrackingData.slice(startIndex, endIndex);
+    
+    currentPageData.forEach((item, index) => {
+        const row = document.createElement('tr');
+        const globalIndex = startIndex + index;
+        
+        row.innerHTML = `
+            <td><input type="checkbox" class="form-check-input cancelled-checkbox" data-id="${item.id}"></td>
+            <td>${globalIndex + 1}</td>
+            <td>${item.arrivalDate}</td>
+            <td>${item.declareDate}</td>
+            <td>${item.preEntryNo}</td>
+            <td>${item.billNo}</td>
+            <td>${item.containerNo}</td>
+            <td>${item.customsNo}</td>
+            <td>${item.euDeposit}</td>
+            <td>${item.country}</td>
+            <td>${item.productName}</td>
+            <td>
+                <span class="badge bg-warning">${item.operation}</span>
+            </td>
+            <td>
+                <span class="badge bg-info">${item.customsStatus || '无'}</span>
+            </td>
+            <td>
+                <span class="badge bg-secondary">${item.instruction || '无'}</span>
+            </td>
+            <td>${item.remark}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary attachment-btn" data-id="${item.id}">
+                    附件
+                    ${item.attachments && item.attachments.length > 0 ? 
+                        `<span class="attachment-count">${item.attachments.length}</span>` : ''}
+                </button>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-success restore-btn" data-id="${item.id}">
+                    <i class="fas fa-undo"></i> 恢复
+                </button>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+    
+    bindCancelledTrackingEvents();
+    updateCancelledTrackingPaginationInfo();
+}
+
+// 更新撤销跟单分页信息
+function updateCancelledTrackingPaginationInfo() {
+    const totalItems = filteredCancelledTrackingData.length;
+    const startItem = totalItems > 0 ? (cancelledTrackingCurrentPageIndex - 1) * cancelledTrackingItemsPerPage + 1 : 0;
+    const endItem = Math.min(cancelledTrackingCurrentPageIndex * cancelledTrackingItemsPerPage, totalItems);
+    
+    const paginationInfo = document.getElementById('cancelledPaginationInfo');
+    if (paginationInfo) {
+        paginationInfo.innerHTML = 
+            `共 ${cancelledTrackingTotalPages} 页，每页显示 ${cancelledTrackingItemsPerPage} 条，共 ${totalItems} 条记录，当前显示第 ${startItem}-${endItem} 条`;
+    }
+}
+
+// 更新撤销跟单分页
+function updateCancelledTrackingPagination() {
+    cancelledTrackingTotalPages = Math.ceil(filteredCancelledTrackingData.length / cancelledTrackingItemsPerPage);
+    const paginationElement = document.getElementById('cancelledPagination');
+    
+    if (!paginationElement) return;
+    
+    if (cancelledTrackingTotalPages <= 1) {
+        paginationElement.innerHTML = '';
+        return;
+    }
+    
+    let paginationHTML = '';
+    
+    // 上一页
+    if (cancelledTrackingCurrentPageIndex > 1) {
+        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-cancelled-page="${cancelledTrackingCurrentPageIndex - 1}">上一页</a></li>`;
+    } else {
+        paginationHTML += `<li class="page-item disabled"><a class="page-link" href="#">上一页</a></li>`;
+    }
+    
+    // 页码
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, cancelledTrackingCurrentPageIndex - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(cancelledTrackingTotalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        if (i === cancelledTrackingCurrentPageIndex) {
+            paginationHTML += `<li class="page-item active"><a class="page-link" href="#" data-cancelled-page="${i}">${i}</a></li>`;
+        } else {
+            paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-cancelled-page="${i}">${i}</a></li>`;
+        }
+    }
+    
+    // 下一页
+    if (cancelledTrackingCurrentPageIndex < cancelledTrackingTotalPages) {
+        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-cancelled-page="${cancelledTrackingCurrentPageIndex + 1}">下一页</a></li>`;
+    } else {
+        paginationHTML += `<li class="page-item disabled"><a class="page-link" href="#">下一页</a></li>`;
+    }
+    
+    paginationElement.innerHTML = paginationHTML;
+    
+    // 绑定分页事件
+    document.querySelectorAll('#cancelledPagination .page-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const page = parseInt(this.getAttribute('data-cancelled-page'));
+            if (page && page !== cancelledTrackingCurrentPageIndex) {
+                cancelledTrackingCurrentPageIndex = page;
+                renderCancelledTrackingTable();
+                updateCancelledTrackingPagination();
+            }
+        });
+    });
+}
+
+// 绑定撤销跟单事件
+function bindCancelledTrackingEvents() {
+    // 复选框事件
+    document.querySelectorAll('.cancelled-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateSelectAllState();
+        });
+    });
+    
+    // 恢复按钮事件
+    document.querySelectorAll('.restore-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const id = this.getAttribute('data-id');
+            await restoreTracking(id);
+        });
+    });
+    
+    // 附件按钮事件
+    document.querySelectorAll('#cancelledTrackingTable .attachment-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            showAttachmentModal(id);
+        });
+    });
+}
+
+// 更新全选状态
+function updateSelectAllState() {
+    const allCheckboxes = document.querySelectorAll('.cancelled-checkbox');
+    const selectAll = document.getElementById('selectAllCancelled');
+    
+    if (allCheckboxes.length === 0) return;
+    
+    const checkedCount = document.querySelectorAll('.cancelled-checkbox:checked').length;
+    
+    if (checkedCount === 0) {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+    } else if (checkedCount === allCheckboxes.length) {
+        selectAll.checked = true;
+        selectAll.indeterminate = false;
+    } else {
+        selectAll.checked = false;
+        selectAll.indeterminate = true;
+    }
+}
+
+// 恢复单个跟单
+async function restoreTracking(id) {
+    if (!confirm('确定要恢复这条跟单记录吗？')) {
+        return;
+    }
+    
+    try {
+        const itemToRestore = cancelledTrackingData.find(item => item.id === id);
+        
+        if (itemToRestore) {
+            // 修改报关状态和操作状态
+            itemToRestore.customsStatus = '';
+            itemToRestore.operation = '';
+            
+            await saveToLeanCloud(itemToRestore, false);
+            
+            // 从撤销列表移除
+            cancelledTrackingData = cancelledTrackingData.filter(t => t.id !== id);
+            filteredCancelledTrackingData = filteredCancelledTrackingData.filter(t => t.id !== id);
+            
+            // 添加到正常列表
+            trackingData.push(itemToRestore);
+            filteredTrackingData.push(itemToRestore);
+            
+            // 重新排序正常列表
+            trackingData.sort((a, b) => {
+                const dateA = a.arrivalDate ? new Date(a.arrivalDate) : new Date(0);
+                const dateB = b.arrivalDate ? new Date(b.arrivalDate) : new Date(0);
+                return dateA - dateB;
+            });
+            filteredTrackingData.sort((a, b) => {
+                const dateA = a.arrivalDate ? new Date(a.arrivalDate) : new Date(0);
+                const dateB = b.arrivalDate ? new Date(b.arrivalDate) : new Date(0);
+                return dateA - dateB;
+            });
+            
+            renderTrackingTable();
+            updateTrackingPagination();
+            renderCancelledTrackingTable();
+            updateCancelledTrackingPagination();
+            
+            alert('恢复成功！');
+        }
+    } catch (error) {
+        console.error('恢复失败:', error);
+        alert('恢复失败，请重试');
+    }
+}
+
+// 批量恢复跟单
+async function restoreSelectedTracking() {
+    const selectedCheckboxes = document.querySelectorAll('.cancelled-checkbox:checked');
+    
+    if (selectedCheckboxes.length === 0) {
+        alert('请选择要恢复的记录');
+        return;
+    }
+    
+    if (!confirm(`确定要恢复选中的 ${selectedCheckboxes.length} 条记录吗？`)) {
+        return;
+    }
+    
+    try {
+        const idsToRestore = Array.from(selectedCheckboxes).map(cb => cb.getAttribute('data-id'));
+        let successCount = 0;
+        let failCount = 0;
+        
+        for (const id of idsToRestore) {
+            try {
+                const itemToRestore = cancelledTrackingData.find(item => item.id === id);
+                
+                if (itemToRestore) {
+                    // 修改报关状态和操作状态
+                    itemToRestore.customsStatus = '';
+                    itemToRestore.operation = '';
+                    
+                    await saveToLeanCloud(itemToRestore, false);
+                    
+                    // 从撤销列表移除
+                    cancelledTrackingData = cancelledTrackingData.filter(t => t.id !== id);
+                    filteredCancelledTrackingData = filteredCancelledTrackingData.filter(t => t.id !== id);
+                    
+                    // 添加到正常列表
+                    trackingData.push(itemToRestore);
+                    filteredTrackingData.push(itemToRestore);
+                    
+                    successCount++;
+                }
+            } catch (error) {
+                console.error('恢复记录失败:', error);
+                failCount++;
+            }
+        }
+        
+        // 重新排序
+        trackingData.sort((a, b) => {
+            const dateA = a.arrivalDate ? new Date(a.arrivalDate) : new Date(0);
+            const dateB = b.arrivalDate ? new Date(b.arrivalDate) : new Date(0);
+            return dateA - dateB;
+        });
+        filteredTrackingData.sort((a, b) => {
+            const dateA = a.arrivalDate ? new Date(a.arrivalDate) : new Date(0);
+            const dateB = b.arrivalDate ? new Date(b.arrivalDate) : new Date(0);
+            return dateA - dateB;
+        });
+        
+        renderTrackingTable();
+        updateTrackingPagination();
+        renderCancelledTrackingTable();
+        updateCancelledTrackingPagination();
+        
+        alert(`恢复完成！成功 ${successCount} 条，失败 ${failCount} 条`);
+        
+    } catch (error) {
+        console.error('批量恢复失败:', error);
+        alert('批量恢复失败，请重试');
+    }
+}
+
+// 应用撤销跟单筛选条件
+function applyCancelledTrackingFilters() {
+    const arrivalDate = document.getElementById('cancelledArrivalDate').value;
+    const billNo = document.getElementById('cancelledBillNo').value.trim();
+    const containerNo = document.getElementById('cancelledContainerNo').value.trim();
+    const declareDate = document.getElementById('cancelledDeclareDate').value;
+    const customsStatus = document.getElementById('cancelledCustomsStatusFilter').value;
+    
+    filteredCancelledTrackingData = cancelledTrackingData.filter(item => {
+        let match = true;
+        
+        // 提单号筛选
+        if (billNo && billNo !== '') {
+            if (!item.billNo || !item.billNo.includes(billNo)) {
+                match = false;
+            }
+        }
+        
+        // 柜号筛选
+        if (containerNo && containerNo !== '') {
+            if (!item.containerNo || !item.containerNo.includes(containerNo)) {
+                match = false;
+            }
+        }
+        
+        // 报关状态筛选
+        if (customsStatus && customsStatus !== '') {
+            if (customsStatus === '非放行') {
+                if (item.customsStatus === '放行') {
+                    match = false;
+                }
+            } else {
+                if (item.customsStatus !== customsStatus) {
+                    match = false;
+                }
+            }
+        }
+        
+        // 到港日期筛选
+        if (arrivalDate && arrivalDate.trim() !== '') {
+            if (!item.arrivalDate || item.arrivalDate.trim() === '') {
+                match = false;
+            } else {
+                let startDate, endDate;
+                let separator = ' to ';
+                if (arrivalDate.includes('至')) {
+                    separator = '至';
+                } else if (arrivalDate.includes(' - ')) {
+                    separator = ' - ';
+                }
+                
+                const dates = arrivalDate.split(separator).map(date => date.trim());
+                
+                if (dates.length === 2) {
+                    startDate = new Date(dates[0]);
+                    endDate = new Date(dates[1]);
+                    endDate.setHours(23, 59, 59, 999);
+                } else {
+                    startDate = new Date(arrivalDate);
+                    endDate = new Date(arrivalDate);
+                    endDate.setHours(23, 59, 59, 999);
+                }
+                
+                const itemDate = new Date(item.arrivalDate);
+                
+                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || isNaN(itemDate.getTime())) {
+                    match = false;
+                } else {
+                    if (itemDate < startDate || itemDate > endDate) {
+                        match = false;
+                    }
+                }
+            }
+        }
+        
+        // 申报日期筛选
+        if (declareDate && declareDate.trim() !== '') {
+            if (!item.declareDate || item.declareDate.trim() === '') {
+                match = false;
+            } else {
+                let startDate, endDate;
+                let separator = ' to ';
+                if (declareDate.includes('至')) {
+                    separator = '至';
+                } else if (declareDate.includes(' - ')) {
+                    separator = ' - ';
+                }
+                
+                const dates = declareDate.split(separator).map(date => date.trim());
+                
+                if (dates.length === 2) {
+                    startDate = new Date(dates[0]);
+                    endDate = new Date(dates[1]);
+                    endDate.setHours(23, 59, 59, 999);
+                } else {
+                    startDate = new Date(declareDate);
+                    endDate = new Date(declareDate);
+                    endDate.setHours(23, 59, 59, 999);
+                }
+                
+                const itemDate = new Date(item.declareDate);
+                
+                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || isNaN(itemDate.getTime())) {
+                    match = false;
+                } else {
+                    if (itemDate < startDate || itemDate > endDate) {
+                        match = false;
+                    }
+                }
+            }
+        }
+        
+        return match;
+    });
+}
 
 // 页面加载时绑定事件 - 修改：不再自动绑定
 document.addEventListener('DOMContentLoaded', function() {

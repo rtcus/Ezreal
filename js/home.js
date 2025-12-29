@@ -69,10 +69,12 @@ async function loadStatusData() {
         unprintedCountQuery.equalTo('operation', '');
         const unprintedCount = await unprintedCountQuery.count();
         
-        // 4. 缺资料 - 直接获取数量
+        // 4. 缺资料 - 直接获取数量，排除状态为取消的记录
         console.log('开始统计缺资料数量...');
         const missingCountQuery = new AV.Query('Tracking');
         missingCountQuery.contains('customsNo', '缺');
+        missingCountQuery.notEqualTo('customsStatus', '取消');
+        missingCountQuery.notEqualTo('operation', '取消');
         const missingCount = await missingCountQuery.count();
         
         // 更新首页卡片显示
@@ -262,7 +264,9 @@ async function loadMissingDataDetail() {
         
         const missingQuery = new AV.Query('Tracking');
         missingQuery.contains('customsNo', '缺');
-        missingQuery.addDescending('createdAt');
+        missingQuery.notEqualTo('customsStatus', '取消');
+        missingQuery.notEqualTo('operation', '取消');
+        missingQuery.addAscending('arrivalDate'); // 按到港日期升序排序
         
         // 先获取总数
         const totalCount = await missingQuery.count();
@@ -277,7 +281,9 @@ async function loadMissingDataDetail() {
             const skip = i * batchSize;
             const query = new AV.Query('Tracking');
             query.contains('customsNo', '缺');
-            query.addDescending('createdAt');
+            query.notEqualTo('customsStatus', '取消');
+            query.notEqualTo('operation', '取消');
+            query.addAscending('arrivalDate'); // 按到港日期升序排序
             query.limit(batchSize);
             query.skip(skip);
             

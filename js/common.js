@@ -95,11 +95,19 @@ function initApp() {
     updateUserInfo();
     initDatePickers();
     
-    // 导航切换
-    document.querySelectorAll('.nav-link').forEach(link => {
+    // 导航切换 - 只处理侧边栏的导航链接
+    document.querySelectorAll('.sidebar .nav-link').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const targetPage = this.getAttribute('data-page');
+            console.log('导航点击，目标页面:', targetPage, '链接文本:', this.textContent.trim());
+            
+            // 确保有有效的目标页面
+            if (!targetPage || targetPage === 'null') {
+                console.error('导航链接没有有效的data-page属性:', this);
+                return;
+            }
+            
             switchPage(targetPage);
         });
     });
@@ -108,6 +116,13 @@ function initApp() {
     document.querySelectorAll('.quick-link').forEach(card => {
         card.addEventListener('click', function() {
             const targetPage = this.getAttribute('data-page');
+            console.log('快速链接点击，目标页面:', targetPage, '链接文本:', this.querySelector('h4')?.textContent);
+            
+            if (!targetPage || targetPage === 'null') {
+                console.error('快速链接没有有效的data-page属性:', this);
+                return;
+            }
+            
             switchPage(targetPage);
         });
     });
@@ -148,6 +163,16 @@ function initApp() {
     
     // 绑定全局事件
     bindGlobalEvents();
+    
+    // 绑定报关数据添加项按钮
+    const addItemBtn = document.getElementById('addItemBtn');
+    if (addItemBtn) {
+        addItemBtn.addEventListener('click', function() {
+            if (typeof addCustomsItem === 'function') {
+                addCustomsItem();
+            }
+        });
+    }
     
     // 初始化页面
     switchPage('home');
@@ -228,6 +253,12 @@ function initDatePickers() {
 function switchPage(page) {
     console.log('切换到页面:', page);
     
+    // 防止切换到不存在的页面
+    if (!page || page === 'null') {
+        console.error('无效的页面标识:', page);
+        page = 'home'; // 默认回退到首页
+    }
+    
     // 隐藏所有页面内容
     document.querySelectorAll('.page-content').forEach(content => {
         content.classList.add('hidden');
@@ -247,6 +278,15 @@ function switchPage(page) {
         }, 100);
     } else {
         console.error('目标页面不存在:', page);
+        // 尝试显示首页作为回退
+        const homePage = document.getElementById('home');
+        if (homePage) {
+            homePage.classList.remove('hidden');
+            page = 'home';
+            setTimeout(() => {
+                initializePageContent('home');
+            }, 100);
+        }
     }
     
     // 更新导航激活状态
@@ -1117,7 +1157,7 @@ async function saveToLeanCloud(data, isNew = false) {
             'supervisionCategory', 'specification', 'goodsValue', 'currency',
             'factoryNo', 'shipperRecordNo', 'packageCount', 'netWeight', 'grossWeight',
             'certificate105', 'certificate325', 'certificate519', 'certificate113',
-            'inspectionSpec', 'productionDate', 'attachments'
+            'inspectionSpec', 'productionDate', 'attachments', 'customsItems'
         ];
         
         fields.forEach(field => {

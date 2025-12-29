@@ -103,7 +103,7 @@ function updateHSCodePagination() {
     
     // 上一页
     if (hscodeCurrentPageIndex > 1) {
-        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${hscodeCurrentPageIndex - 1}">上一页</a></li>`;
+        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-hscode-page="${hscodeCurrentPageIndex - 1}">上一页</a></li>`;
     } else {
         paginationHTML += `<li class="page-item disabled"><a class="page-link" href="#">上一页</a></li>`;
     }
@@ -119,15 +119,15 @@ function updateHSCodePagination() {
     
     for (let i = startPage; i <= endPage; i++) {
         if (i === hscodeCurrentPageIndex) {
-            paginationHTML += `<li class="page-item active"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+            paginationHTML += `<li class="page-item active"><a class="page-link" href="#" data-hscode-page="${i}">${i}</a></li>`;
         } else {
-            paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+            paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-hscode-page="${i}">${i}</a></li>`;
         }
     }
     
     // 下一页
     if (hscodeCurrentPageIndex < hscodeTotalPages) {
-        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${hscodeCurrentPageIndex + 1}">下一页</a></li>`;
+        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-hscode-page="${hscodeCurrentPageIndex + 1}">下一页</a></li>`;
     } else {
         paginationHTML += `<li class="page-item disabled"><a class="page-link" href="#">下一页</a></li>`;
     }
@@ -138,7 +138,7 @@ function updateHSCodePagination() {
     document.querySelectorAll('#hscodePagination .page-link').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            const page = parseInt(this.getAttribute('data-page'));
+            const page = parseInt(this.getAttribute('data-hscode-page'));
             if (page && page !== hscodeCurrentPageIndex) {
                 hscodeCurrentPageIndex = page;
                 renderHSCodeTable();

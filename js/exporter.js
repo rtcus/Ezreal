@@ -99,7 +99,7 @@ function updateExporterPagination() {
     let paginationHTML = '';
     
     if (exporterCurrentPageIndex > 1) {
-        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${exporterCurrentPageIndex - 1}">上一页</a></li>`;
+        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-exporter-page="${exporterCurrentPageIndex - 1}">上一页</a></li>`;
     } else {
         paginationHTML += `<li class="page-item disabled"><a class="page-link" href="#">上一页</a></li>`;
     }
@@ -114,14 +114,14 @@ function updateExporterPagination() {
     
     for (let i = startPage; i <= endPage; i++) {
         if (i === exporterCurrentPageIndex) {
-            paginationHTML += `<li class="page-item active"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+            paginationHTML += `<li class="page-item active"><a class="page-link" href="#" data-exporter-page="${i}">${i}</a></li>`;
         } else {
-            paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+            paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-exporter-page="${i}">${i}</a></li>`;
         }
     }
     
     if (exporterCurrentPageIndex < exporterTotalPages) {
-        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${exporterCurrentPageIndex + 1}">下一页</a></li>`;
+        paginationHTML += `<li class="page-item"><a class="page-link" href="#" data-exporter-page="${exporterCurrentPageIndex + 1}">下一页</a></li>`;
     } else {
         paginationHTML += `<li class="page-item disabled"><a class="page-link" href="#">下一页</a></li>`;
     }
@@ -131,7 +131,7 @@ function updateExporterPagination() {
     document.querySelectorAll('#exporterPagination .page-link').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            const page = parseInt(this.getAttribute('data-page'));
+            const page = parseInt(this.getAttribute('data-exporter-page'));
             if (page && page !== exporterCurrentPageIndex) {
                 exporterCurrentPageIndex = page;
                 renderExporterTable();
