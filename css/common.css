@@ -18,6 +18,18 @@ body {
     padding: 0;
 }
 
+/* 添加通知动画 */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
 .app-container {
     display: flex;
     min-height: 100vh;

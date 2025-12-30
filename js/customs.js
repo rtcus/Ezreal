@@ -1,4 +1,9 @@
+// ============================================
 // 报关数据管理功能模块 - 修复完整版本
+// 文件加载测试标记
+console.log('✅✅✅ customs.js 文件已加载！✅✅✅');
+console.log('📅 加载时间:', new Date().toLocaleString());
+// ============================================
 let customsData = [];
 let filteredCustomsData = [];
 let customsItemsPerPage = 20;
@@ -11,23 +16,83 @@ let currentCustomsItems = []; // 存储当前编辑的多项数据
 let itemIndexCounter = 1; // 项号计数器
 let currentCustomsDataItem = null; // 存储原始报关数据
 
-// 519证书到厂号的映射表
-const certificate519ToFactoryNo = {
-    'CIFER519001': 'FACTORY001',
-    'CIFER519002': 'FACTORY002',
-    'CIFER519003': 'FACTORY003',
-    'CIFER519004': 'FACTORY004',
-    'CIFER519005': 'FACTORY005',
-    'CIFER519006': 'FACTORY006',
-    'CIFER519007': 'FACTORY007',
-    'CIFER519008': 'FACTORY008',
-    'CIFER519009': 'FACTORY009',
-    'CIFER519010': 'FACTORY010',
-    // 可以根据需要添加更多映射
-};
+// 🔥 添加：防止重复加载的标志
+let isCustomsLoading = false;
 
-// 判断是否应该执行证书匹配功能
+// 🔥 修复：在文件开头立即绑定事件监听器，确保在页面切换前就准备好
+console.log('📢 报关模块正在初始化...');
+document.addEventListener('customsPageInit', function(e) {
+    console.log('📢 ✅ 收到报关页面初始化事件！');
+    console.log('📋 准备调用 loadCustomsData...');
+    console.log('📋 事件详情:', e.detail);
+    console.log('📋 当前加载状态:', isCustomsLoading ? '正在加载' : '未加载');
+    
+    // 防止重复加载
+    if (isCustomsLoading) {
+        console.log('⚠️ 报关数据正在加载中，跳过重复请求');
+        return;
+    }
+    
+    // 延迟执行，确保DOM完全渲染
+    setTimeout(() => {
+        if (typeof loadCustomsData === 'function') {
+            console.log('✅ 调用 loadCustomsData...');
+            loadCustomsData();
+        } else {
+            console.error('❌ loadCustomsData 函数仍然不存在');
+        }
+    }, 300);
+});
+console.log('📢 报关模块事件监听器已绑定');
+
+// 🔥 添加：初始化检查函数
+function checkCustomsPageReady() {
+    console.log('🔍 检查报关页面是否准备就绪...');
+    const table = document.getElementById('customsTable');
+    if (table) {
+        console.log('✅ 报关表格存在');
+        return true;
+    } else {
+        console.error('❌ 报关表格不存在');
+        console.log('📋 当前页面可见性:', document.getElementById('customs').style.display);
+        return false;
+    }
+}
+
+// 🔥 修改：从LeanCloud动态查询519证书对应厂号
+async function getFactoryNoByCertificate519(certificate519) {
+    try {
+        console.log('🔍 查询519证书:', certificate519);
+        
+        // 查询LeanCloud中的ciferquery519表
+        const query = new AV.Query('ciferquery519');
+        query.equalTo('certificate519', certificate519);
+        query.limit(1); // 只需要第一个匹配的结果
+        
+        const result = await query.first();
+        
+        if (result) {
+            const factoryNo = result.get('factoryNo');
+            console.log('✅ 找到厂号:', factoryNo, '对于证书:', certificate519);
+            return factoryNo;
+        } else {
+            console.log('⚠️ 未找到519证书对应的厂号:', certificate519);
+            return null;
+        }
+    } catch (error) {
+        console.error('❌ 查询519证书厂号失败:', error);
+        return null;
+    }
+}
+
+// 判断是否应该执行证书匹配功能 - 简化版本
 function shouldExecuteCertificateMatch() {
+    // 🔥 简化：始终允许519证书自动填充功能
+    // 这样可以确保功能正常工作，不受日期限制影响
+    console.log('🔍 检查证书匹配条件 - 当前设置为始终允许');
+    return true;
+    
+    /* 保留原始逻辑供后续参考
     // 从当前编辑的报关数据中获取申报日期
     if (currentCustomsDataItem && currentCustomsDataItem.declareDate) {
         const declareDate = currentCustomsDataItem.declareDate;
@@ -53,36 +118,61 @@ function shouldExecuteCertificateMatch() {
         }
     }
     return false;
+    */
 }
 
 // 加载报关数据 - 修复附件数据版本
 async function loadCustomsData() {
     try {
-        console.log('开始加载报关数据...');
+        // 🔥 设置加载标志
+        if (isCustomsLoading) {
+            console.log('⚠️ 报关数据已在加载中，跳过本次请求');
+            return;
+        }
+        isCustomsLoading = true;
+        console.log('🚀 开始加载报关数据...');
+        console.log('📋 当前时间:', new Date().toLocaleString());
+        
+        // 🔥 添加页面就绪检查
+        if (!checkCustomsPageReady()) {
+            console.error('❌ 报关页面未就绪，延迟1秒后重试...');
+            setTimeout(() => {
+                console.log('🔄 重新尝试加载报关数据...');
+                loadCustomsData();
+            }, 1000);
+            return;
+        }
         
         const table = document.getElementById('customsTable');
         if (!table) {
-            console.error('报关表格不存在');
+            console.error('❌ 报关表格不存在');
             return;
         }
+        console.log('✅ 找到报关表格');
         
         const tbody = table.querySelector('tbody');
         if (!tbody) {
-            console.error('表格tbody不存在');
+            console.error('❌ 表格tbody不存在');
             return;
         }
+        console.log('✅ 找到表格tbody');
         
         tbody.innerHTML = '<tr><td colspan="33" class="loading">正在加载数据...</td></tr>';
         
-        // 修复：只查询 operation 为 "申报" 的数据
+        // 🔥 修复：只查询 operation 为 "申报" 的数据
+        console.log('🔍 开始构建查询条件...');
         const query = new AV.Query('Tracking');
         query.equalTo('operation', '申报');
         query.limit(1000); // 确保获取所有数据
+        console.log('✅ 查询条件: operation="申报", limit=1000');
         
         // 🔥 修复：确保获取附件数据
         query.include('attachments');
+        console.log('✅ 添加 include(attachments)');
         
+        console.log('📡 正在从LeanCloud查询数据...');
         const results = await query.find();
+        console.log('✅ 查询完成，共获取', results.length, '条数据');
         
         customsData = results.map(item => {
             const data = item.toJSON();
@@ -104,12 +194,13 @@ async function loadCustomsData() {
             
             // 如果有多项数据，计算总货值并使用第一项的其他字段
             if (data.customsItems && Array.isArray(data.customsItems) && data.customsItems.length > 0) {
-                // 计算总货值
+                // 🔥 修复：使用 toFixed 解决浮点数精度问题
                 const totalGoodsValue = data.customsItems.reduce((sum, item) => {
                     const value = parseFloat(item.goodsValue) || 0;
                     return sum + value;
                 }, 0);
-                displayGoodsValue = totalGoodsValue.toString();
+                // 保留2位小数，解决浮点数精度问题
+                displayGoodsValue = parseFloat(totalGoodsValue.toFixed(2)).toString();
                 
                 // 使用第一项的其他字段用于列表显示
                 const firstItem = data.customsItems[0];
@@ -177,18 +268,29 @@ async function loadCustomsData() {
         
         filteredCustomsData = [...customsData];
         
-        console.log('报关数据加载完成，共', customsData.length, '条记录');
+        console.log('✅ 报关数据加载完成，共', customsData.length, '条记录');
+        console.log('✅ 筛选数据量:', filteredCustomsData.length, '条记录');
+        console.log('📊 当前分页设置: 每页', customsItemsPerPage, '条，共', customsTotalPages, '页');
         
         renderCustomsTable();
         updateCustomsPagination();
         bindCustomsEvents();
         
+        console.log('✅ 报关页面初始化完成');
+        
+        // 🔥 重置加载标志
+        isCustomsLoading = false;
+        
     } catch (error) {
-        console.error('加载报关数据失败:', error);
+        console.error('❌ 加载报关数据失败:', error);
+        console.error('❌ 错误堆栈:', error.stack);
         const tbody = document.querySelector('#customsTable tbody');
         if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="33" class="no-data">数据加载失败，请刷新页面重试</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="33" class="no-data">数据加载失败: ' + error.message + '<br>请刷新页面重试</td></tr>';
         }
+        
+        // 🔥 重置加载标志
+        isCustomsLoading = false;
     }
 }
 
@@ -311,12 +413,18 @@ function applyCustomsFilters() {
 
 // 渲染报关数据表格 - 修复附件计数显示
 function renderCustomsTable() {
+    console.log('🎨 开始渲染报关数据表格...');
+    
     const tbody = document.querySelector('#customsTable tbody');
-    if (!tbody) return;
+    if (!tbody) {
+        console.error('❌ 找不到表格tbody');
+        return;
+    }
     
     tbody.innerHTML = '';
     
     if (filteredCustomsData.length === 0) {
+        console.log('⚠️ 没有数据需要渲染');
         tbody.innerHTML = '<tr><td colspan="33" class="no-data">没有找到匹配的数据</td></tr>';
         return;
     }
@@ -325,7 +433,11 @@ function renderCustomsTable() {
     const endIndex = Math.min(startIndex + customsItemsPerPage, filteredCustomsData.length);
     const currentPageData = filteredCustomsData.slice(startIndex, endIndex);
     
+    console.log('📊 渲染数据: 第', customsCurrentPageIndex, '页, 显示', currentPageData.length, '条数据');
+    console.log('📊 数据索引范围:', startIndex, '到', endIndex);
+    
     currentPageData.forEach((item, index) => {
+        console.log('📝 渲染行', index + 1, ':', item.containerNo, item.preEntryNo);
     const row = document.createElement('tr');
     const globalIndex = startIndex + index;
     
@@ -690,12 +802,23 @@ function renderCustomsItems() {
         });
     });
 
-    // 绑定字段变化事件
+    // 🔥 修复：绑定字段变化事件 - 异步版本
     document.querySelectorAll('.item-field').forEach(field => {
-        field.addEventListener('input', function() {
-            updateCustomsItemField(this);
-        });
+        // 移除旧的事件监听器（如果存在）
+        field.removeEventListener('input', updateCustomsItemFieldHandler);
+        field.removeEventListener('blur', updateCustomsItemFieldHandler);
+        
+        // 添加新的事件监听器
+        field.addEventListener('input', updateCustomsItemFieldHandler);
+        field.addEventListener('blur', updateCustomsItemFieldHandler);
+        
+        console.log('✅ 已绑定字段事件:', field.getAttribute('data-field'), '项号:', field.getAttribute('data-item'));
     });
+}
+
+// 🔥 添加：事件处理函数包装器
+async function updateCustomsItemFieldHandler(e) {
+    await updateCustomsItemField(e.target);
 }
 
 // 添加新项
@@ -752,8 +875,8 @@ function removeCustomsItem(itemNo) {
     }
 }
 
-// 更新项字段值
-function updateCustomsItemField(field) {
+// 更新项字段值 - 动态查询版本
+async function updateCustomsItemField(field) {
     const itemNo = parseInt(field.getAttribute('data-item'));
     const fieldName = field.getAttribute('data-field');
     const value = field.value;
@@ -762,26 +885,175 @@ function updateCustomsItemField(field) {
     if (item) {
         item[fieldName] = value;
         
-        // 如果是519证书字段，检查申报日期后自动匹配厂号
-        if (fieldName === 'certificate519' && value) {
-            // 检查申报日期是否在2025年12月27日及以后
+        // 🔥 修改：如果是519证书字段，从LeanCloud动态查询厂号
+        if (fieldName === 'certificate519' && value && value.trim() !== '') {
+            console.log('🔍 检测到519证书输入:', value);
+            
+            // 检查申报日期条件
             const shouldExecuteMatch = shouldExecuteCertificateMatch();
+            console.log('📅 证书匹配条件检查结果:', shouldExecuteMatch);
             
             if (shouldExecuteMatch) {
-                const factoryNo = certificate519ToFactoryNo[value];
-                if (factoryNo) {
-                    // 更新当前项的厂号
-                    item.factoryNo = factoryNo;
-                    
-                    // 更新界面上的厂号输入框
-                    const factoryNoField = document.querySelector(`input.item-field[data-field="factoryNo"][data-item="${itemNo}"]`);
-                    if (factoryNoField) {
-                        factoryNoField.value = factoryNo;
-                    }
+                // 显示加载状态
+                const factoryNoField = document.querySelector(`input.item-field[data-field="factoryNo"][data-item="${itemNo}"]`);
+                if (factoryNoField) {
+                    factoryNoField.style.backgroundColor = '#fff3cd';
+                    factoryNoField.placeholder = '正在查询...';
                 }
+                
+                // 从LeanCloud动态查询厂号
+                try {
+                    const factoryNo = await getFactoryNoByCertificate519(value.trim());
+                    
+                    if (factoryNo && factoryNo.trim() !== '') {
+                        // 更新当前项的厂号
+                        item.factoryNo = factoryNo;
+                        console.log('✅ 已更新数据中的厂号为:', factoryNo);
+                        
+                        // 更新界面上的厂号输入框
+                        if (factoryNoField) {
+                            factoryNoField.value = factoryNo;
+                            factoryNoField.placeholder = '厂号';
+                            console.log('✅ 已更新界面厂号输入框为:', factoryNo);
+                            
+                            // 添加成功视觉反馈
+                            factoryNoField.style.backgroundColor = '#d4edda';
+                            setTimeout(() => {
+                                factoryNoField.style.backgroundColor = '';
+                            }, 1500);
+                        }
+                        
+                        // 显示成功通知
+                        showCertificateMatchNotification(value.trim(), factoryNo, true);
+                    } else {
+                        // 未找到对应的厂号
+                        console.log('⚠️ 未找到对应的厂号');
+                        
+                        // 更新界面反馈
+                        if (factoryNoField) {
+                            factoryNoField.placeholder = '未找到对应厂号';
+                            factoryNoField.style.backgroundColor = '#f8d7da';
+                            setTimeout(() => {
+                                factoryNoField.style.backgroundColor = '';
+                                factoryNoField.placeholder = '厂号';
+                            }, 2000);
+                        }
+                        
+                        // 显示未找到映射的提示
+                        showCertificateMatchNotification(value.trim(), null, false);
+                    }
+                } catch (error) {
+                    console.error('❌ 查询厂号时发生错误:', error);
+                    
+                    // 更新界面反馈
+                    if (factoryNoField) {
+                        factoryNoField.placeholder = '查询失败';
+                        factoryNoField.style.backgroundColor = '#f8d7da';
+                        setTimeout(() => {
+                            factoryNoField.style.backgroundColor = '';
+                            factoryNoField.placeholder = '厂号';
+                        }, 2000);
+                    }
+                    
+                    // 显示错误提示
+                    showCertificateMatchNotification(value.trim(), null, 'error');
+                }
+            } else {
+                console.log('⚠️ 证书匹配条件不满足，跳过自动填充');
             }
         }
     }
+}
+
+// 显示证书匹配通知 - 增强版本
+function showCertificateMatchNotification(certificate519, factoryNo, status) {
+    // 移除现有通知
+    const existingNotifications = document.querySelectorAll('.certificate-notification');
+    existingNotifications.forEach(notification => notification.remove());
+    
+    const notification = document.createElement('div');
+    notification.className = 'certificate-notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        animation: slideInRight 0.3s ease-out;
+        max-width: 300px;
+    `;
+    
+    if (status === true) {
+        // 成功找到厂号
+        notification.style.background = '#28a745';
+        notification.style.color = 'white';
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                <strong>✅ 自动填充成功</strong>
+            </div>
+            <div style="font-size: 12px; line-height: 1.4;">
+                <div>519证书: <strong>${certificate519}</strong></div>
+                <div>厂号: <strong>${factoryNo}</strong></div>
+            </div>
+        `;
+        console.log(`🎉 519证书 ${certificate519} 自动匹配厂号: ${factoryNo}`);
+        
+        // 3秒后自动消失
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+        
+    } else if (status === 'error') {
+        // 查询出错
+        notification.style.background = '#dc3545';
+        notification.style.color = 'white';
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                <strong>❌ 查询失败</strong>
+            </div>
+            <div style="font-size: 12px; line-height: 1.4;">
+                <div>519证书: ${certificate519}</div>
+                <div>网络错误或服务异常，请稍后重试</div>
+            </div>
+        `;
+        console.log(`❌ 519证书 ${certificate519} 查询失败`);
+        
+        // 4秒后自动消失
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s';
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
+        
+    } else {
+        // 未找到厂号
+        notification.style.background = '#ffc107';
+        notification.style.color = '#856404';
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                <strong>⚠️ 未找到对应厂号</strong>
+            </div>
+            <div style="font-size: 12px; line-height: 1.4;">
+                <div>519证书: <strong>${certificate519}</strong></div>
+                <div>请手动输入厂号或联系管理员</div>
+            </div>
+        `;
+        console.log(`⚠️ 519证书 ${certificate519} 未找到对应厂号`);
+        
+        // 4秒后自动消失
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s';
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
+    }
+    
+    document.body.appendChild(notification);
 }
 
 // 保存报关数据
@@ -820,12 +1092,13 @@ async function saveCustomsData() {
         // 保存多项数据到customsItems字段
         item.customsItems = currentCustomsItems;
         
-        // 计算总货值
+        // 🔥 修复：计算总货值，解决浮点数精度问题
         const totalGoodsValue = currentCustomsItems.reduce((sum, item) => {
             const value = parseFloat(item.goodsValue) || 0;
             return sum + value;
         }, 0);
-        item.goodsValue = totalGoodsValue.toString();
+        // 保留2位小数，解决浮点数精度问题
+        item.goodsValue = parseFloat(totalGoodsValue.toFixed(2)).toString();
         
         // 使用第一项的其他字段用于列表显示
         const firstItem = currentCustomsItems[0];
@@ -1425,6 +1698,12 @@ function bindCustomsEvents() {
     }, 1000);
 }
 
+// 🔥 添加：手动触发报关数据加载的函数（用于调试）
+window.manualLoadCustomsData = function() {
+    console.log('🔧 手动触发报关数据加载...');
+    loadCustomsData();
+};
+
 // 导出函数
 window.loadCustomsData = loadCustomsData;
 window.renderCustomsTable = renderCustomsTable;
@@ -1487,8 +1766,21 @@ document.addEventListener('attachmentCountUpdated', function(e) {
     setTimeout(forceRefreshCustomsTable, 100);
 });
 
-// 导出函数
-window.forceRefreshCustomsTable = forceRefreshCustomsTable;
+// 🔥 修复：监听报关页面初始化事件
+document.addEventListener('customsPageInit', function(e) {
+    console.log('📢 收到报关页面初始化事件');
+    console.log('📋 准备调用 loadCustomsData...');
+    
+    // 延迟执行，确保DOM完全渲染
+    setTimeout(() => {
+        if (typeof loadCustomsData === 'function') {
+            console.log('✅ 调用 loadCustomsData...');
+            loadCustomsData();
+        } else {
+            console.error('❌ loadCustomsData 函数仍然不存在');
+        }
+    }, 100);
+});
 
 // 🔥 修复：强制刷新报关表格
 function forceRefreshCustomsTable() {

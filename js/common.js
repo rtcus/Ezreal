@@ -343,8 +343,40 @@ function initializePageContent(page) {
             break;
             
         case 'customs':
-            if (typeof loadCustomsData === 'function') {
-                loadCustomsData();
+            console.log('🔍 准备初始化报关页面...');
+            
+            // 🔥 检查 customs.js 是否已加载
+            console.log('📋 检查 loadCustomsData 函数:', typeof loadCustomsData);
+            console.log('📋 检查 manualLoadCustomsData 函数:', typeof manualLoadCustomsData);
+            
+            // 🔥 如果 customs.js 没有加载，动态加载
+            if (typeof loadCustomsData !== 'function') {
+                console.log('⚠️ customs.js 未加载，开始动态加载...');
+                const script = document.createElement('script');
+                script.src = 'js/customs.js';
+                script.onload = function() {
+                    console.log('✅ customs.js 动态加载完成');
+                    // 延迟触发初始化事件
+                    setTimeout(() => {
+                        const event = new CustomEvent('customsPageInit', {
+                            detail: { page: 'customs' }
+                        });
+                        document.dispatchEvent(event);
+                        console.log('✅ 触发报关页面初始化事件');
+                    }, 100);
+                };
+                script.onerror = function() {
+                    console.error('❌ customs.js 动态加载失败');
+                    alert('报关模块加载失败，请刷新页面重试');
+                };
+                document.head.appendChild(script);
+            } else {
+                // customs.js 已加载，触发事件
+                console.log('✅ customs.js 已加载，触发初始化事件');
+                const event = new CustomEvent('customsPageInit', {
+                    detail: { page: 'customs' }
+                });
+                document.dispatchEvent(event);
             }
             break;
             
