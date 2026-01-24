@@ -9,9 +9,57 @@ AV.init({
 let currentPage = 'home';
 let currentUser = null;
 let uploadEventBound = false; // 防止事件重复绑定
+let loginLockedUntil = null; // 登录锁定时间
+
+// 检查登录锁定状态
+function checkLoginLock() {
+    if (loginLockedUntil) {
+        const now = new Date();
+        if (now < loginLockedUntil) {
+            const remainingSeconds = Math.ceil((loginLockedUntil - now) / 1000);
+            const minutes = Math.floor(remainingSeconds / 60);
+            const seconds = remainingSeconds % 60;
+
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = `<i class="fas fa-lock"></i> 请等待 ${minutes}分${seconds}秒`;
+
+            // 每秒更新倒计时
+            setTimeout(checkLoginLock, 1000);
+            return true;
+        } else {
+            // 锁定时间已过
+            loginLockedUntil = null;
+            localStorage.removeItem('loginLockedUntil');
+            const loginBtn = document.getElementById('loginBtn');
+            if (loginBtn) {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '登录';
+            }
+        }
+    }
+    return false;
+}
+
+// 设置登录锁定
+function setLoginLock(durationMinutes = 15) {
+    loginLockedUntil = new Date(Date.now() + durationMinutes * 60 * 1000);
+    localStorage.setItem('loginLockedUntil', loginLockedUntil.toISOString());
+    checkLoginLock();
+}
+
+// 从localStorage恢复登录锁定状态
+function restoreLoginLock() {
+    const lockedUntilStr = localStorage.getItem('loginLockedUntil');
+    if (lockedUntilStr) {
+        loginLockedUntil = new Date(lockedUntilStr);
+        checkLoginLock();
+    }
+}
 
 // 页面加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
+    restoreLoginLock(); // 恢复登录锁定状态
     checkLoginStatus();
 });
 
@@ -50,37 +98,116 @@ function showLoginModal() {
         keyboard: false
     });
     loginModal.show();
-    
-    document.getElementById('loginBtn').addEventListener('click', login);
+
+    // 检查是否有记住的用户名
+    const rememberedUsername = localStorage.getItem('rememberedUsername');
+    if (rememberedUsername) {
+        document.getElementById('loginUsername').value = rememberedUsername;
+        document.getElementById('rememberMe').checked = true;
+    }
+
+    // 移除旧的事件监听器（防止重复绑定）
+    const newLoginBtn = document.getElementById('loginBtn');
+    const oldLoginBtn = newLoginBtn.cloneNode(true);
+    newLoginBtn.parentNode.replaceChild(oldLoginBtn, newLoginBtn);
+
+    document.getElementById('loginBtn').addEventListener('click', handleLogin);
     document.getElementById('loginPassword').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-            login();
+            handleLogin();
         }
     });
+}
+
+async function handleLogin() {
+    // 检查是否被锁定
+    if (checkLoginLock()) {
+        return;
+    }
+
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const rememberMe = document.getElementById('rememberMe').checked;
+
+    // 如果勾选"记住我"，保存用户名
+    if (rememberMe) {
+        localStorage.setItem('rememberedUsername', username);
+    } else {
+        localStorage.removeItem('rememberedUsername');
+    }
+
+    await login();
 }
 
 async function login() {
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value;
     const errorElement = document.getElementById('loginError');
-    
+    const loginBtn = document.getElementById('loginBtn');
+
     if (!username || !password) {
         showError('请输入用户名和密码');
         return;
     }
-    
+
+    // 再次检查是否被锁定
+    if (checkLoginLock()) {
+        return;
+    }
+
+    // 禁用登录按钮，防止重复提交
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 登录中...';
+
     try {
         const user = await AV.User.logIn(username, password);
         currentUser = user;
-        
+
+        // 登录成功，清除锁定状态
+        loginLockedUntil = null;
+        localStorage.removeItem('loginLockedUntil');
+
         const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
         loginModal.hide();
-        
+
         initApp();
-        
+
     } catch (error) {
         console.error('登录失败:', error);
-        showError('登录失败: ' + error.message);
+
+        // 根据错误类型提供更友好的提示
+        let errorMessage = '';
+        const errorCode = error.code || '';
+
+        if (errorCode === 200) {
+            errorMessage = '用户名或密码错误';
+        } else if (errorCode === 202 || error.message?.includes('登录失败次数超过限制')) {
+            errorMessage = '登录失败次数过多，已被暂时锁定。请15-30分钟后再试，或联系管理员重置密码。';
+            // 设置本地锁定
+            setLoginLock(20);
+        } else if (errorCode === 201 || error.message?.includes('密码错误次数过多')) {
+            errorMessage = '密码错误次数过多。为保护账户安全，请稍后再试或通过"忘记密码"功能重置密码。';
+            setLoginLock(15);
+        } else if (errorCode === 210 || error.message?.includes('用户名和密码不匹配')) {
+            errorMessage = '用户名或密码错误，请重试';
+        } else if (error.message?.includes('400') && error.message?.includes('超过限制')) {
+            errorMessage = '登录失败次数超过限制，已被暂时锁定。请20-30分钟后再试，或通过"忘记密码"重置密码。';
+            setLoginLock(25);
+        } else if (error.message?.includes('403') || error.message?.includes('Forbidden')) {
+            errorMessage = '访问被拒绝，账户可能已被禁用。请联系管理员。';
+        } else if (error.message) {
+            errorMessage = '登录失败: ' + error.message;
+        } else {
+            errorMessage = '登录失败，请检查网络连接后重试';
+        }
+
+        showError(errorMessage);
+    } finally {
+        // 恢复登录按钮状态（如果没有被锁定）
+        if (!checkLoginLock()) {
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '登录';
+        }
     }
 }
 
@@ -88,6 +215,11 @@ function showError(message) {
     const errorElement = document.getElementById('loginError');
     errorElement.textContent = message;
     errorElement.style.display = 'block';
+
+    // 10秒后自动隐藏错误提示
+    setTimeout(() => {
+        errorElement.style.display = 'none';
+    }, 10000);
 }
 
 function initApp() {
@@ -393,8 +525,12 @@ function initializePageContent(page) {
             break;
             
         case 'files':
-            if (typeof loadFileList === 'function') {
-                loadFileList();
+            console.log('准备调用 loadFileList，类型检查:', typeof window.loadFileList);
+            if (typeof window.loadFileList === 'function') {
+                console.log('loadFileList 是函数，开始调用...');
+                window.loadFileList();
+            } else {
+                console.log('loadFileList 不是函数或未定义');
             }
             break;
             

@@ -1,21 +1,81 @@
 // 文件管理功能模块
+console.log('=== files.js 开始加载 ===');
+
 let fileListData = [];
+let filteredFileListData = [];
+let selectedFileIds = new Set();
+let isLoadingFiles = false; // 防止重复加载
+
+console.log('files.js 变量声明完成，loadFileList 函数类型:', typeof loadFileList);
 
 // 加载文件列表
-async function loadFileList() {
+window.loadFileList = async function() {
+    console.log('=== loadFileList 被调用 (window.loadFileList) ===');
+    console.log('=== 开始加载文件列表 ===');
+
+    // 防止重复加载
+    if (isLoadingFiles) {
+        console.log('文件列表正在加载中，跳过重复请求...');
+        return;
+    }
+
     try {
+        isLoadingFiles = true;
         const tbody = document.getElementById('fileListBody');
-        if (!tbody) return;
-        
-        tbody.innerHTML = '<tr><td colspan="7" class="loading">正在加载文件列表...</td></tr>';
-        
-        // 从Tracking表中获取所有有附件的记录
+        console.log('fileListBody 元素:', tbody);
+
+        if (!tbody) {
+            console.log('fileListBody 元素不存在，跳过加载');
+            isLoadingFiles = false;
+            return;
+        }
+
+        tbody.innerHTML = '<tr><td colspan="8" class="loading">正在加载文件列表...</td></tr>';
+
+        // 从Tracking表中获取所有有附件的记录（不限数量，分页加载）
+        console.log('开始查询Tracking表...');
         const query = new AV.Query('Tracking');
         query.exists('attachments');
-        const results = await query.find();
-        
+        query.limit(1000);
+
+        let allResults = [];
+        let skipCount = 0;
+        let hasMore = true;
+
+        // 分批次加载所有数据
+        while (hasMore) {
+            try {
+                console.log(`查询批次: skip=${skipCount}, limit=1000`);
+                query.skip(skipCount);
+                const results = await query.find();
+                console.log(`本次获取到 ${results.length} 条记录`);
+
+                if (results.length === 0) {
+                    console.log('没有更多数据，停止查询');
+                    hasMore = false;
+                    break;
+                }
+
+                allResults = allResults.concat(results);
+                skipCount += results.length;
+                console.log(`累计已加载 ${skipCount} 条记录...`);
+
+                if (results.length < 1000) {
+                    console.log('本次返回数据少于limit，说明已获取全部数据');
+                    hasMore = false;
+                }
+            } catch (error) {
+                console.error('获取数据失败:', error);
+                hasMore = false;
+            }
+        }
+
+        console.log(`总共加载 ${allResults.length} 条Tracking记录`);
+
         fileListData = [];
-        results.forEach(item => {
+        let fileCount = 0;
+
+        allResults.forEach(item => {
             const data = item.toJSON();
             if (data.attachments && data.attachments.length > 0) {
                 data.attachments.forEach(attachment => {
@@ -29,36 +89,118 @@ async function loadFileList() {
                         trackingId: data.objectId,
                         fileUrl: attachment.fileUrl
                     });
+                    fileCount++;
                 });
             }
         });
-        
-        renderFileList();
-        
+
+        console.log(`总共找到 ${fileListData.length} 个文件（来自 ${fileCount} 个附件）`);
+
+        // 统计每种类型的文件数量
+        const typeCount = {};
+        fileListData.forEach(file => {
+            const type = file.fileType || '未分类';
+            typeCount[type] = (typeCount[type] || 0) + 1;
+        });
+        console.log('各类型文件统计:', typeCount);
+
+        // 统计有多少条Tracking记录有多个附件
+        const trackingAttachmentCount = {};
+        allResults.forEach(item => {
+            const data = item.toJSON();
+            if (data.attachments && data.attachments.length > 0) {
+                const count = data.attachments.length;
+                if (count === 1) {
+                    trackingAttachmentCount['1条附件'] = (trackingAttachmentCount['1条附件'] || 0) + 1;
+                } else if (count === 2) {
+                    trackingAttachmentCount['2条附件'] = (trackingAttachmentCount['2条附件'] || 0) + 1;
+                } else if (count === 3) {
+                    trackingAttachmentCount['3条附件'] = (trackingAttachmentCount['3条附件'] || 0) + 1;
+                } else if (count === 4) {
+                    trackingAttachmentCount['4条附件'] = (trackingAttachmentCount['4条附件'] || 0) + 1;
+                } else if (count >= 5) {
+                    trackingAttachmentCount['5条及以上'] = (trackingAttachmentCount['5条及以上'] || 0) + 1;
+                }
+            }
+        });
+        console.log('各Tracking记录附件数量统计:', trackingAttachmentCount);
+        console.log('有2条附件的Tracking记录数:', trackingAttachmentCount['2条附件'] || 0);
+
+        // 应用筛选并渲染
+        console.log('开始应用筛选...');
+        applyFileFilter();
+
+        console.log('=== 文件列表加载完成 ===');
+
     } catch (error) {
         console.error('加载文件列表失败:', error);
         const tbody = document.getElementById('fileListBody');
         if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="7" class="no-data">加载文件列表失败: ' + error.message + '</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="no-data">加载文件列表失败: ' + error.message + '</td></tr>';
         }
+    } finally {
+        isLoadingFiles = false;
     }
+}
+
+// 应用文件筛选
+function applyFileFilter() {
+    console.log('=== 应用文件筛选 ===');
+
+    const fileTypeFilter = document.getElementById('fileTypeFilter')?.value || '';
+    const containerFilter = document.getElementById('containerFilter')?.value?.trim() || '';
+    const customsNoFilter = document.getElementById('customsNoFilter')?.value?.trim() || '';
+
+    console.log(`筛选条件 - 文件类型: "${fileTypeFilter}", 柜号: "${containerFilter}", 报关单号: "${customsNoFilter}"`);
+
+    filteredFileListData = fileListData.filter(file => {
+        let match = true;
+
+        if (fileTypeFilter && file.fileType !== fileTypeFilter) {
+            match = false;
+        }
+
+        if (containerFilter && !file.containerNo.includes(containerFilter)) {
+            match = false;
+        }
+
+        if (customsNoFilter && !file.customsNo.includes(customsNoFilter)) {
+            match = false;
+        }
+
+        return match;
+    });
+
+    console.log(`筛选后: ${filteredFileListData.length} 个文件`);
+    console.log('开始渲染文件列表...');
+    renderFileList();
+    console.log('=== 文件筛选完成 ===');
 }
 
 // 渲染文件列表
 function renderFileList() {
+    console.log('=== 渲染文件列表 ===');
     const tbody = document.getElementById('fileListBody');
-    if (!tbody) return;
-    
-    tbody.innerHTML = '';
-    
-    if (fileListData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="no-data">暂无文件</td></tr>';
+    if (!tbody) {
+        console.log('fileListBody 元素不存在');
         return;
     }
-    
-    fileListData.forEach((file, index) => {
+
+    tbody.innerHTML = '';
+
+    if (filteredFileListData.length === 0) {
+        console.log('没有文件数据');
+        tbody.innerHTML = '<tr><td colspan="8" class="no-data">暂无文件</td></tr>';
+        return;
+    }
+
+    console.log(`准备渲染 ${filteredFileListData.length} 个文件`);
+
+    filteredFileListData.forEach((file, index) => {
         const row = document.createElement('tr');
+        const isSelected = selectedFileIds.has(file.id);
         row.innerHTML = `
+            <td><input type="checkbox" class="form-check-input file-checkbox" data-id="${file.id}" ${isSelected ? 'checked' : ''}></td>
             <td>${index + 1}</td>
             <td>
                 <a href="#" class="file-name" data-url="${file.fileUrl}">${file.fileName}</a>
@@ -78,13 +220,49 @@ function renderFileList() {
         `;
         tbody.appendChild(row);
     });
-    
+
+    console.log(`已渲染 ${filteredFileListData.length} 个文件`);
+    console.log('=== 渲染完成 ===');
+
     // 绑定文件操作事件
     bindFileEvents();
 }
 
 // 绑定文件操作事件
 function bindFileEvents() {
+    // 全选/取消全选
+    const selectAllCheckbox = document.getElementById('selectAllFiles');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.file-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = this.checked;
+                const fileId = parseInt(cb.getAttribute('data-id'));
+                if (this.checked) {
+                    selectedFileIds.add(fileId);
+                } else {
+                    selectedFileIds.delete(fileId);
+                }
+            });
+        });
+    }
+
+    // 单个文件选择
+    document.querySelectorAll('.file-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            const fileId = parseInt(this.getAttribute('data-id'));
+            if (this.checked) {
+                selectedFileIds.add(fileId);
+            } else {
+                selectedFileIds.delete(fileId);
+                // 更新全选状态
+                const selectAllCheckbox = document.getElementById('selectAllFiles');
+                const allChecked = Array.from(document.querySelectorAll('.file-checkbox')).every(c => c.checked);
+                selectAllCheckbox.checked = allChecked;
+            }
+        });
+    });
+
     // 查看文件
     document.querySelectorAll('.view-file').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -96,19 +274,19 @@ function bindFileEvents() {
             }
         });
     });
-    
+
     // 删除文件
     document.querySelectorAll('.delete-file').forEach(btn => {
         btn.addEventListener('click', async function() {
             const fileId = parseInt(this.getAttribute('data-id'));
             const trackingId = this.getAttribute('data-tracking-id');
-            
+
             if (confirm('确定要删除这个文件吗？')) {
                 await deleteFileFromTracking(trackingId, fileId);
             }
         });
     });
-    
+
     // 文件名点击
     document.querySelectorAll('.file-name').forEach(link => {
         link.addEventListener('click', function(e) {
@@ -118,6 +296,66 @@ function bindFileEvents() {
                 window.open(fileUrl, '_blank');
             }
         });
+    });
+}
+
+// 批量下载选中的文件
+async function batchDownloadSelectedFiles() {
+    const fileTypeFilter = document.getElementById('fileTypeFilter').value;
+
+    if (!fileTypeFilter) {
+        alert('请先选择要批量下载的文件类型');
+        return;
+    }
+
+    const filesToDownload = filteredFileListData.filter(file => file.fileType === fileTypeFilter);
+
+    if (filesToDownload.length === 0) {
+        alert(`没有找到类型为"${fileTypeFilter}"的文件`);
+        return;
+    }
+
+    if (!confirm(`确定要批量下载 ${filesToDownload.length} 个"${fileTypeFilter}"类型的文件吗？`)) {
+        return;
+    }
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const file of filesToDownload) {
+        try {
+            await downloadFile(file.fileUrl, file.fileName);
+            successCount++;
+            // 稍微延迟，避免浏览器阻止多个下载
+            await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (error) {
+            console.error('下载文件失败:', error);
+            errorCount++;
+        }
+    }
+
+    if (errorCount === 0) {
+        alert(`成功下载 ${successCount} 个文件`);
+    } else {
+        alert(`下载完成！成功 ${successCount} 个，失败 ${errorCount} 个`);
+    }
+}
+
+// 下载单个文件
+function downloadFile(url, filename) {
+    return new Promise((resolve, reject) => {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // 给个短暂延迟让下载开始
+        setTimeout(() => {
+            resolve();
+        }, 100);
     });
 }
 
@@ -147,8 +385,8 @@ async function uploadFiles() {
         }
         
         // 重新加载文件列表
-        await loadFileList();
-        
+        await window.loadFileList();
+
         // 清空文件选择
         fileInput.value = '';
         
@@ -358,13 +596,62 @@ async function showManualFileAssociation(file, fileType) {
                 return false;
             }
         });
-        
     } catch (error) {
         console.error('显示手动关联界面失败:', error);
         alert('无法显示关联界面: ' + error.message);
         return false;
     }
 }
+
+// 绑定文件管理事件
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('files.js DOMContentLoaded 事件触发');
+
+    // 上传文件按钮
+    const uploadFilesBtn = document.getElementById('uploadFiles');
+    if (uploadFilesBtn) {
+        uploadFilesBtn.addEventListener('click', uploadFiles);
+        console.log('上传文件按钮事件已绑定');
+    }
+
+    // 刷新文件列表按钮
+    const refreshFileListBtn = document.getElementById('refreshFileList');
+    if (refreshFileListBtn) {
+        refreshFileListBtn.addEventListener('click', window.loadFileList);
+        console.log('刷新文件列表按钮事件已绑定');
+    }
+
+    // 批量下载按钮
+    const batchDownloadBtn = document.getElementById('batchDownloadByType');
+    if (batchDownloadBtn) {
+        batchDownloadBtn.addEventListener('click', batchDownloadSelectedFiles);
+        console.log('批量下载按钮事件已绑定');
+    }
+
+    // 文件类型筛选
+    const fileTypeFilter = document.getElementById('fileTypeFilter');
+    if (fileTypeFilter) {
+        fileTypeFilter.addEventListener('change', applyFileFilter);
+        console.log('文件类型筛选事件已绑定');
+    }
+
+    // 柜号筛选
+    const containerFilter = document.getElementById('containerFilter');
+    if (containerFilter) {
+        containerFilter.addEventListener('input', applyFileFilter);
+        console.log('柜号筛选事件已绑定');
+    }
+
+    // 报关单号筛选
+    const customsNoFilter = document.getElementById('customsNoFilter');
+    if (customsNoFilter) {
+        customsNoFilter.addEventListener('input', applyFileFilter);
+        console.log('报关单号筛选事件已绑定');
+    }
+
+    console.log('=== files.js 初始化完成 ===');
+    console.log('loadFileList 在 window 上的类型:', typeof window.loadFileList);
+});
 
 // 从Tracking记录中删除文件
 async function deleteFileFromTracking(trackingId, fileId) {
@@ -392,10 +679,10 @@ async function deleteFileFromTracking(trackingId, fileId) {
         // 2. 更新记录
         tracking.set('attachments', updatedAttachments);
         await tracking.save();
-        
+
         // 重新加载文件列表
-        await loadFileList();
-        
+        await window.loadFileList();
+
         alert('文件删除成功');
         
     } catch (error) {
@@ -403,12 +690,3 @@ async function deleteFileFromTracking(trackingId, fileId) {
         alert('文件删除失败: ' + error.message);
     }
 }
-
-// 绑定文件管理事件
-document.addEventListener('DOMContentLoaded', function() {
-    // 上传文件按钮
-    const uploadFilesBtn = document.getElementById('uploadFiles');
-    if (uploadFilesBtn) {
-        uploadFilesBtn.addEventListener('click', uploadFiles);
-    }
-});

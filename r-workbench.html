@@ -587,8 +587,13 @@
                 <div class="table-card-container">
                     <div class="table-card-header d-flex justify-content-between align-items-center">
                         <span>HS编码列表</span>
-                        <div class="pagination-info" id="hscodePaginationInfo">
-                            共 0 条记录
+                        <div class="d-flex align-items-center">
+                            <div class="pagination-info me-3" id="hscodePaginationInfo">
+                                共 0 条记录
+                            </div>
+                            <button class="btn btn-sm btn-outline-success" id="exportHSCode">
+                                <i class="fas fa-download"></i> 导出
+                            </button>
                         </div>
                     </div>
                     
@@ -672,8 +677,13 @@
                 <div class="table-card-container">
                     <div class="table-card-header d-flex justify-content-between align-items-center">
                         <span>出口商列表</span>
-                        <div class="pagination-info" id="exporterPaginationInfo">
-                            共 0 条记录
+                        <div class="d-flex align-items-center">
+                            <div class="pagination-info me-3" id="exporterPaginationInfo">
+                                共 0 条记录
+                            </div>
+                            <button class="btn btn-sm btn-outline-success" id="exportExporter">
+                                <i class="fas fa-download"></i> 导出
+                            </button>
                         </div>
                     </div>
                     
@@ -686,6 +696,7 @@
                                         <th>境外收发货人</th>
                                         <th>发货人备案号</th>
                                         <th>报关单号</th>
+                                        <th>到港日期</th>
                                         <th>同步时间</th>
                                     </tr>
                                 </thead>
@@ -753,14 +764,44 @@
                 </div>
 
                 <div class="card">
-                    <div class="card-header">
-                        文件列表
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>文件列表</span>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary me-2" id="batchDownloadByType">
+                                <i class="fas fa-download"></i> 批量下载选中类型
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" id="refreshFileList">
+                                <i class="fas fa-sync-alt"></i> 刷新
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="fileTypeFilter" class="form-label">文件类型筛选</label>
+                                <select class="form-select" id="fileTypeFilter">
+                                    <option value="">全部类型</option>
+                                    <option value="报关单">报关单</option>
+                                    <option value="核对单">核对单</option>
+                                    <option value="报关单证">报关单证</option>
+                                    <option value="检疫证">检疫证</option>
+                                    <option value="其他">其他</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="containerFilter" class="form-label">柜号筛选</label>
+                                <input type="text" class="form-control" id="containerFilter" placeholder="输入柜号">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="customsNoFilter" class="form-label">报关单号筛选</label>
+                                <input type="text" class="form-control" id="customsNoFilter" placeholder="输入报关单号">
+                            </div>
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
+                                        <th><input type="checkbox" id="selectAllFiles" class="form-check-input"></th>
                                         <th>序号</th>
                                         <th>文件名</th>
                                         <th>文件类型</th>
@@ -1371,7 +1412,93 @@
     <script src="js/customs.js"></script>
     <script src="js/hscode.js"></script>
     <script src="js/exporter.js"></script>
-    <script src="js/files.js"></script>
+    <script>
+        // 直接内联 loadFileList 函数
+        console.log('=== 内联 files.js 代码 ===');
+        window.fileListData = [];
+        window.filteredFileListData = [];
+        window.selectedFileIds = new Set();
+        window.isLoadingFiles = false;
+
+        window.loadFileList = async function() {
+            console.log('=== loadFileList 被调用 (内联版本) ===');
+            try {
+                window.isLoadingFiles = true;
+                const tbody = document.getElementById('fileListBody');
+                if (!tbody) {
+                    window.isLoadingFiles = false;
+                    return;
+                }
+                tbody.innerHTML = '<tr><td colspan="8" class="loading">正在加载文件列表...</td></tr>';
+
+                const query = new AV.Query('Tracking');
+                query.exists('attachments');
+                query.limit(1000);
+                const results = await query.find();
+
+                window.fileListData = [];
+                results.forEach(item => {
+                    const data = item.toJSON();
+                    if (data.attachments && data.attachments.length > 0) {
+                        data.attachments.forEach(attachment => {
+                            window.fileListData.push({
+                                id: attachment.id,
+                                fileName: attachment.name,
+                                fileType: attachment.type,
+                                containerNo: data.containerNo || '',
+                                customsNo: data.customsNo || '',
+                                uploadTime: attachment.uploadTime,
+                                trackingId: data.objectId,
+                                fileUrl: attachment.fileUrl
+                            });
+                        });
+                    }
+                });
+
+                window.renderInlineFileList();
+            } catch (error) {
+                console.error('加载文件列表失败:', error);
+            } finally {
+                window.isLoadingFiles = false;
+            }
+        }
+
+        window.renderInlineFileList = function() {
+            const tbody = document.getElementById('fileListBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (window.fileListData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="no-data">暂无文件</td></tr>';
+                return;
+            }
+
+            window.fileListData.forEach((file, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="checkbox" class="form-check-input file-checkbox" data-id="${file.id}"></td>
+                    <td>${index + 1}</td>
+                    <td><a href="${file.fileUrl}" target="_blank">${file.fileName}</a></td>
+                    <td>${file.fileType}</td>
+                    <td>${file.containerNo}</td>
+                    <td>${file.customsNo}</td>
+                    <td>${file.uploadTime}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="window.open('${file.fileUrl}', '_blank')"><i class="fas fa-eye"></i> 查看</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        console.log('typeof window.loadFileList:', typeof window.loadFileList);
+    </script>
+    <script src="js/files.js?v=1.4" onerror="console.error('files.js 加载失败！')" onload="console.log('files.js 加载成功！')"></script>
+    <script>
+        console.log('=== 所有JS文件加载完成后的状态检查 ===');
+        console.log('typeof window.loadFileList:', typeof window.loadFileList);
+        console.log('window.loadFileList 是否存在:', window.loadFileList !== undefined);
+    </script>
     
 <!-- CDN失败自动回退机制 -->
 <script>

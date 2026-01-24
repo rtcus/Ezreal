@@ -188,6 +188,42 @@ function clearHSCodeSearch() {
     renderHSCodeTable();
 }
 
+// 导出HS编码数据
+function exportHSCode() {
+    if (filteredHscodeData.length === 0) {
+        alert('没有可导出的数据');
+        return;
+    }
+
+    // 准备导出数据
+    const exportData = filteredHscodeData.map((item, index) => ({
+        '序号': index + 1,
+        'HS编码': item.hsCode,
+        '品名': item.productName,
+        '监管类别名称': item.supervisionCategory,
+        '规格型号': item.specification,
+        '同步时间': item.syncTime ? new Date(item.syncTime).toLocaleString('zh-CN') : ''
+    }));
+
+    // 创建工作簿和工作表
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'HS编码');
+
+    // 生成文件名
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const fileName = `HS编码_${year}${month}${day}_${hours}${minutes}${seconds}.xlsx`;
+
+    // 导出文件
+    XLSX.writeFile(wb, fileName);
+}
+
 // 从报关数据同步HS编码 - 修复版（实时同步所有数据）
 async function syncHSCodeFromCustoms() {
     try {
@@ -349,6 +385,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const syncHSCodeBtn = document.getElementById('syncHSCode');
     if (syncHSCodeBtn) {
         syncHSCodeBtn.addEventListener('click', syncHSCodeFromCustoms);
+    }
+
+    // 导出按钮
+    const exportHSCodeBtn = document.getElementById('exportHSCode');
+    if (exportHSCodeBtn) {
+        exportHSCodeBtn.addEventListener('click', exportHSCode);
     }
     
     // 每页显示条数变化

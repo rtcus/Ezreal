@@ -11,12 +11,12 @@ async function loadExporterData() {
         const tbody = document.querySelector('#exporterTable tbody');
         if (!tbody) return;
         
-        tbody.innerHTML = '<tr><td colspan="5" class="loading">正在加载数据...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="loading">正在加载数据...</td></tr>';
         
         // 检查表是否存在
         const tableExists = await checkTableExists('Exporter_Base');
         if (!tableExists) {
-            tbody.innerHTML = '<tr><td colspan="5" class="no-data">出口商表不存在，请先在LeanCloud后台创建Exporter_Base表</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="no-data">出口商表不存在，请先在LeanCloud后台创建Exporter_Base表</td></tr>';
             return;
         }
 
@@ -33,6 +33,7 @@ async function loadExporterData() {
                 foreignConsignee: data.foreignConsignee || '',
                 shipperRecordNo: data.shipperRecordNo || '',
                 customsNo: data.customsNo || '',
+                arrivalDate: data.arrivalDate || '',
                 syncTime: data.updatedAt || data.createdAt,
                 leanCloudObject: item
             };
@@ -47,7 +48,7 @@ async function loadExporterData() {
         console.error('加载出口商数据失败:', error);
         const tbody = document.querySelector('#exporterTable tbody');
         if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="5" class="no-data">数据加载失败: ' + error.message + '</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="no-data">数据加载失败: ' + error.message + '</td></tr>';
         }
     }
 }
@@ -60,7 +61,7 @@ function renderExporterTable() {
     tbody.innerHTML = '';
     
     if (filteredExporterData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="no-data">没有找到匹配的数据</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="no-data">没有找到匹配的数据</td></tr>';
         return;
     }
     
@@ -77,6 +78,7 @@ function renderExporterTable() {
             <td>${item.foreignConsignee}</td>
             <td>${item.shipperRecordNo}</td>
             <td>${item.customsNo}</td>
+            <td>${item.arrivalDate || ''}</td>
             <td>${item.syncTime ? new Date(item.syncTime).toLocaleString('zh-CN') : ''}</td>
         `;
         
@@ -151,21 +153,23 @@ function updateExporterPaginationInfo() {
 function searchExporter() {
     const foreignConsignee = document.getElementById('foreignConsigneeSearch').value.trim();
     const shipperRecordNo = document.getElementById('shipperRecordNoSearch').value.trim();
-    
+
     filteredExporterData = exporterData.filter(item => {
         let match = true;
-        
-        if (foreignConsignee && !item.foreignConsignee.includes(foreignConsignee)) {
+
+        // 境外收发货人：不区分大小写的模糊查询
+        if (foreignConsignee && !item.foreignConsignee.toLowerCase().includes(foreignConsignee.toLowerCase())) {
             match = false;
         }
-        
-        if (shipperRecordNo && !item.shipperRecordNo.includes(shipperRecordNo)) {
+
+        // 发货人备案号：不区分大小写的模糊查询
+        if (shipperRecordNo && !item.shipperRecordNo.toLowerCase().includes(shipperRecordNo.toLowerCase())) {
             match = false;
         }
-        
+
         return match;
     });
-    
+
     exporterCurrentPageIndex = 1;
     updateExporterPagination();
     renderExporterTable();
@@ -179,6 +183,42 @@ function clearExporterSearch() {
     exporterCurrentPageIndex = 1;
     updateExporterPagination();
     renderExporterTable();
+}
+
+// 导出出口商数据
+function exportExporter() {
+    if (filteredExporterData.length === 0) {
+        alert('没有可导出的数据');
+        return;
+    }
+
+    // 准备导出数据
+    const exportData = filteredExporterData.map((item, index) => ({
+        '序号': index + 1,
+        '境外收发货人': item.foreignConsignee,
+        '发货人备案号': item.shipperRecordNo,
+        '报关单号': item.customsNo,
+        '到港日期': item.arrivalDate || '',
+        '同步时间': item.syncTime ? new Date(item.syncTime).toLocaleString('zh-CN') : ''
+    }));
+
+    // 创建工作簿和工作表
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '出口商');
+
+    // 生成文件名
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const fileName = `出口商_${year}${month}${day}_${hours}${minutes}${seconds}.xlsx`;
+
+    // 导出文件
+    XLSX.writeFile(wb, fileName);
 }
 
 // 从报关数据同步出口商 - 修复版（实时同步所有数据）
@@ -203,6 +243,7 @@ async function syncExporterFromCustoms() {
         const query = new AV.Query('Tracking');
         query.exists('foreignConsignee');
         query.exists('shipperRecordNo');
+        query.ascending('arrivalDate');
         query.limit(1000); // 增加查询限制
         
         let allResults = [];
@@ -270,14 +311,23 @@ async function syncExporterFromCustoms() {
                         exporterObj.set('foreignConsignee', data.foreignConsignee || '');
                         exporterObj.set('shipperRecordNo', data.shipperRecordNo || '');
                         exporterObj.set('customsNo', data.customsNo || '');
+                        exporterObj.set('arrivalDate', data.arrivalDate || '');
                         await exporterObj.save();
                         syncCount++;
                     } else {
-                        // 检查是否需要更新
-                        const needsUpdate = existing.get('customsNo') !== data.customsNo;
-                        
+                        // 按最近日期更新：如果当前记录的日期比已有记录的日期更晚，则更新
+                        const existingDate = existing.get('arrivalDate');
+                        const currentDate = data.arrivalDate;
+
+                        const needsUpdate = 
+                            (currentDate && (!existingDate || currentDate > existingDate)) ||
+                            existing.get('customsNo') !== data.customsNo;
+
                         if (needsUpdate) {
                             existing.set('customsNo', data.customsNo || '');
+                            if (currentDate && (!existingDate || currentDate > existingDate)) {
+                                existing.set('arrivalDate', currentDate);
+                            }
                             await existing.save();
                             updateCount++;
                         } else {
@@ -337,6 +387,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const syncExporterBtn = document.getElementById('syncExporter');
     if (syncExporterBtn) {
         syncExporterBtn.addEventListener('click', syncExporterFromCustoms);
+    }
+
+    // 导出按钮
+    const exportExporterBtn = document.getElementById('exportExporter');
+    if (exportExporterBtn) {
+        exportExporterBtn.addEventListener('click', exportExporter);
     }
     
     // 每页显示条数变化
