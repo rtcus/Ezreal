@@ -64,6 +64,7 @@
                 <li><a href="#" class="nav-link" data-page="cert519">519厂号管理</a></li>
                 <li><a href="#" class="nav-link" data-page="modRecord">修撤单记录管理</a></li>
                 <li><a href="#" class="nav-link" data-page="files">文件管理</a></li>
+                <li><a href="#" class="nav-link" data-page="billing">账单管理</a></li>
                 <li class="user-info">
                     <div class="d-flex align-items-center">
                         <div class="user-avatar" id="userAvatar">
@@ -1164,6 +1165,159 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 账单管理内容 -->
+            <div id="billing" class="page-content hidden">
+                <div class="page-header">
+                    <h2>账单管理</h2>
+                    <p class="text-muted">费用账单管理与统计</p>
+                </div>
+
+                <!-- 查询条件 -->
+                <div class="card">
+                    <div class="card-header">
+                        查询条件
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2 search-form">
+                            <div class="col-md-3">
+                                <label for="billDateRange" class="form-label">账单日期</label>
+                                <input type="text" class="form-control date-input" id="billDateRange" placeholder="选择日期范围">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="billStatusFilter" class="form-label">账单状态</label>
+                                <select class="form-select" id="billStatusFilter">
+                                    <option value="">全部状态</option>
+                                    <option value="未确认">未确认</option>
+                                    <option value="已确认">已确认</option>
+                                    <option value="已收款">已收款</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="companyNameFilter" class="form-label">公司名称</label>
+                                <input type="text" class="form-control" id="companyNameFilter" placeholder="输入公司名称">
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <div class="w-100">
+                                    <button class="btn btn-primary w-100" id="searchBills">
+                                        <i class="fas fa-search"></i> 查询
+                                    </button>
+                                    <button class="btn btn-outline-secondary w-100 mt-1" id="clearBills">
+                                        <i class="fas fa-undo"></i> 清空
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 统计卡片 -->
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <div class="card status-card">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">总金额</h5>
+                                <div class="count text-primary" id="totalAmount">¥0.00</div>
+                                <p class="card-text">所有账单总额</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card status-card">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">未确认</h5>
+                                <div class="count text-warning" id="unconfirmedAmount">¥0.00</div>
+                                <p class="card-text">待确认金额</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card status-card">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">已确认</h5>
+                                <div class="count text-info" id="confirmedAmount">¥0.00</div>
+                                <p class="card-text">已确认金额</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card status-card">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">账单数量</h5>
+                                <div class="count text-success" id="billCount">0</div>
+                                <p class="card-text">总账单数</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 表格和分页统一容器 -->
+                <div class="table-card-container mt-4">
+                    <div class="table-card-header d-flex justify-content-between align-items-center">
+                        <span>账单列表</span>
+                        <div>
+                            <button class="btn btn-sm btn-outline-info me-2" id="showHistoryBills">
+                                <i class="fas fa-history"></i> 历史账单
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary me-2" id="importBills">
+                                <i class="fas fa-upload"></i> 导入
+                            </button>
+                            <button class="btn btn-sm btn-outline-success me-2" id="exportBills">
+                                <i class="fas fa-download"></i> 导出
+                            </button>
+                            <button class="btn btn-sm btn-primary" id="generateBill">
+                                <i class="fas fa-plus"></i> 生成账单
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-content-wrapper">
+                        <!-- 表格内容区域 -->
+                        <div class="table-container">
+                            <table class="table table-hover" id="billsTable">
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>账单编号</th>
+                                        <th>账单日期</th>
+                                        <th>公司名称</th>
+                                        <th>总金额</th>
+                                        <th>币种</th>
+                                        <th>账单状态</th>
+                                        <th>支付日期</th>
+                                        <th>备注</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- 数据将通过JavaScript动态填充 -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 固定在容器底部的分页控件 -->
+                        <div class="pagination-container" id="billsPaginationContainer">
+                            <div class="pagination-info" id="billsPaginationInfo">
+                                共 0 页，每页显示 10 条，共 0 条记录
+                            </div>
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination" id="billsPagination">
+                                    <!-- 分页将通过JavaScript动态生成 -->
+                                </ul>
+                            </nav>
+                            <div class="page-size-selector">
+                                <span>每页显示：</span>
+                                <select class="form-select form-select-sm" id="billsPageSizeSelect">
+                                    <option value="10">10条</option>
+                                    <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                    <option value="200">200条</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1675,6 +1829,384 @@
         </div>
     </div>
 
+    <!-- 账单管理模态框 -->
+    <!-- 生成账单模态框 -->
+    <div class="modal fade" id="generateBillModal" tabindex="-1" aria-labelledby="generateBillModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl-custom">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="generateBillModalLabel">生成账单</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="billCompanyName" class="form-label">公司名称 *</label>
+                            <input type="text" class="form-control" id="billCompanyName" placeholder="输入公司名称" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="billYear" class="form-label">年份 *</label>
+                            <select class="form-select" id="billYear" required>
+                                <option value="">选择年份</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="billMonth" class="form-label">月份 *</label>
+                            <select class="form-select" id="billMonth" required>
+                                <option value="">选择月份</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button class="btn btn-primary w-100" id="searchCustomsData">
+                                <i class="fas fa-search"></i> 查询报关数据
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="billSearchContainerNo" class="form-label">柜号查询</label>
+                            <input type="text" class="form-control" id="billSearchContainerNo" placeholder="输入柜号">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="billSearchBillNo" class="form-label">提单号查询</label>
+                            <input type="text" class="form-control" id="billSearchBillNo" placeholder="输入提单号">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="billSearchCustomsNo" class="form-label">报关单号查询</label>
+                            <input type="text" class="form-control" id="billSearchCustomsNo" placeholder="输入报关单号">
+                        </div>
+                    </div>
+
+                    <!-- 报关数据表格 -->
+                    <div class="table-responsive mb-4" style="max-height: 300px;">
+                        <table class="table table-sm table-bordered" id="customsDataTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="50">
+                                        <input type="checkbox" id="selectAllItems">
+                                    </th>
+                                    <th>序号</th>
+                                    <th>到港日期</th>
+                                    <th>申报日期</th>
+                                    <th>提单号</th>
+                                    <th>柜号</th>
+                                    <th>报关单号</th>
+                                    <th>境内收发货人</th>
+                                    <th>消费使用单位</th>
+                                    <th>国家</th>
+                                    <th>品名</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customsDataBody">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 费用输入区域 -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>费用设置</span>
+                            <button class="btn btn-sm btn-outline-primary" id="applyAllFees">
+                                <i class="fas fa-sync-alt"></i> 应用到所有选中项
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3" id="feeInputs">
+                                <div class="col-md-3">
+                                    <label for="customsFee" class="form-label">报关费</label>
+                                    <input type="number" class="form-control fee-input" id="customsFee" step="0.01" min="0" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="inspectionFee" class="form-label">查验服务费</label>
+                                    <input type="number" class="form-control fee-input" id="inspectionFee" step="0.01" min="0" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="documentFee" class="form-label">代理换单费</label>
+                                    <input type="number" class="form-control fee-input" id="documentFee" step="0.01" min="0" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="otherFee1" class="form-label">其他费用1</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="otherFee1Name" placeholder="费用名称" value="其他费用1">
+                                        <input type="number" class="form-control fee-input" id="otherFee1" step="0.01" min="0" value="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="otherFee2" class="form-label">其他费用2</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="otherFee2Name" placeholder="费用名称" value="其他费用2">
+                                        <input type="number" class="form-control fee-input" id="otherFee2" step="0.01" min="0" value="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button class="btn btn-outline-primary w-100" id="addCustomFee">
+                                        <i class="fas fa-plus"></i> 添加自定义费用
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 自定义费用区域 -->
+                            <div id="customFeesContainer" class="mt-3"></div>
+                        </div>
+                    </div>
+
+                    <!-- 账单预览 -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>账单预览</span>
+                            <div>
+                                <div class="input-group input-group-sm me-2" style="width: 400px;">
+                                    <select class="form-select" id="billPreviewSearchType" style="width: 120px;">
+                                        <option value="containerNo">柜号</option>
+                                        <option value="billNo">提单号</option>
+                                        <option value="customsNo">报关单号</option>
+                                    </select>
+                                    <input type="text" class="form-control" id="billPreviewSearch" placeholder="输入搜索内容">
+                                    <button class="btn btn-outline-secondary" type="button" id="billPreviewSearchBtn">
+                                        <i class="fas fa-search"></i> 搜索
+                                    </button>
+                                </div>
+                                <button class="btn btn-sm btn-outline-success me-2" id="previewBill">
+                                    <i class="fas fa-eye"></i> 预览
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary" id="exportBillExcel">
+                                    <i class="fas fa-file-excel"></i> 导出Excel
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="preview-table-container">
+                                <table class="table table-sm table-bordered preview-table" id="billPreviewTable">
+                                    <thead class="table-light sticky-header">
+                                        <tr>
+                                            <th>序号</th>
+                                            <th>到港时间</th>
+                                            <th>提单号</th>
+                                            <th>柜号</th>
+                                            <th>报关费</th>
+                                            <th>查验服务费</th>
+                                            <th>代理换单费</th>
+                                            <th id="otherFee1Header">其他费用1</th>
+                                            <th id="otherFee2Header">其他费用2</th>
+                                            <th id="otherFee3Header" style="display: none;">其他费用3</th>
+                                            <th id="otherFee4Header" style="display: none;">其他费用4</th>
+                                            <th>合计</th>
+                                            <th>备注</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="billPreviewBody"></tbody>
+                                    <tfoot>
+                                        <tr class="table-primary">
+                                            <td colspan="4" class="text-end"><strong>总计：</strong></td>
+                                            <td id="totalCustomsFee">0.00</td>
+                                            <td id="totalInspectionFee">0.00</td>
+                                            <td id="totalDocumentFee">0.00</td>
+                                            <td id="totalOtherFee1">0.00</td>
+                                            <td id="totalOtherFee2">0.00</td>
+                                            <td id="totalOtherFee3" style="display: none;">0.00</td>
+                                            <td id="totalOtherFee4" style="display: none;">0.00</td>
+                                            <td id="grandTotal">0.00</td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveGeneratedBill">保存账单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 历史账单模态框 -->
+    <div class="modal fade" id="historyBillsModal" tabindex="-1" aria-labelledby="historyBillsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl-custom">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="historyBillsModalLabel">历史账单管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label for="historyYear" class="form-label">年份</label>
+                            <select class="form-select" id="historyYear">
+                                <option value="">选择年份</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="historyMonth" class="form-label">月份</label>
+                            <select class="form-select" id="historyMonth">
+                                <option value="">选择月份</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-primary w-100" id="searchHistoryBills">
+                                <i class="fas fa-search"></i> 查询历史账单
+                            </button>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-success w-100" id="showUploadHistoryBillForm">
+                                <i class="fas fa-plus"></i> 添加历史账单
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 添加历史账单表单 -->
+                    <div id="addHistoryBillForm" style="display: none;" class="card mb-4">
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label for="historyCompanyName" class="form-label">公司名称 *</label>
+                                    <input type="text" class="form-control" id="historyCompanyName" placeholder="输入公司名称" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="historyTotalAmount" class="form-label">总金额 *</label>
+                                    <input type="number" class="form-control" id="historyTotalAmount" placeholder="输入总金额" step="0.01" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="historyBillFile" class="form-label">账单文件 *</label>
+                                    <input type="file" class="form-control" id="historyBillFile" accept=".pdf,.xlsx,.xls,.json" multiple>
+                                    <div class="form-text">支持选择多个文件</div>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button class="btn btn-primary w-100" id="submitHistoryBill">
+                                        <i class="fas fa-save"></i> 保存历史账单
+                                    </button>
+                                    <button class="btn btn-secondary w-100 ms-2" id="cancelAddHistoryBill">
+                                        取消
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 历史账单列表 -->
+                    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                        <table class="table table-sm table-bordered" id="historyBillsTable">
+                            <thead class="table-light sticky-header">
+                                <tr>
+                                    <th>序号</th>
+                                    <th>账单编号</th>
+                                    <th>账单日期</th>
+                                    <th>公司名称</th>
+                                    <th>总金额</th>
+                                    <th>年份</th>
+                                    <th>月份</th>
+                                    <th>账单状态</th>
+                                    <th>附件</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyBillsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 账单详情模态框 -->
+    <div class="modal fade" id="billDetailModal" tabindex="-1" aria-labelledby="billDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl-custom">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="billDetailModalLabel">账单详情</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p><strong>账单编号：</strong><span id="detailBillNo"></span></p>
+                            <p><strong>公司名称：</strong><span id="detailCompanyName"></span></p>
+                            <p><strong>账单日期：</strong><span id="detailBillDate"></span></p>
+                            <p><strong>账单状态：</strong><span id="detailBillStatus"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>总金额：</strong><span id="detailTotalAmount"></span></p>
+                            <p><strong>收款日期：</strong><span id="detailPaymentDate"></span></p>
+                            <p><strong>收款方：</strong><span id="detailPayee"></span></p>
+                            <p><strong>备注：</strong><span id="detailRemark"></span></p>
+                        </div>
+                    </div>
+
+                    <!-- 账单明细 -->
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>序号</th>
+                                    <th>到港时间</th>
+                                    <th>提单号</th>
+                                    <th>柜号</th>
+                                    <th>报关单号</th>
+                                    <th>报关费</th>
+                                    <th>查验服务费</th>
+                                    <th>代理换单费</th>
+                                    <th id="detailOtherFee1Header">其他费用1</th>
+                                    <th id="detailOtherFee2Header">其他费用2</th>
+                                    <th id="detailOtherFee3Header" style="display: none;">其他费用3</th>
+                                    <th id="detailOtherFee4Header" style="display: none;">其他费用4</th>
+                                    <th>合计</th>
+                                    <th>备注</th>
+                                </tr>
+                            </thead>
+                            <tbody id="billDetailItems"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- 附件管理 -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>附件管理</span>
+                            <button class="btn btn-sm btn-outline-primary" id="uploadInvoiceBtn">
+                                <i class="fas fa-upload"></i> 上传发票
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3" id="invoiceUploadSection" style="display: none;">
+                                <label for="invoiceUpload" class="form-label">选择发票文件</label>
+                                <input class="form-control" type="file" id="invoiceUpload" accept=".pdf,.jpg,.jpeg,.png">
+                                <div class="mt-2">
+                                    <button class="btn btn-primary btn-sm" id="confirmUpload">确认上传</button>
+                                    <button class="btn btn-secondary btn-sm" id="cancelUpload">取消</button>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>文件名</th>
+                                            <th>文件类型</th>
+                                            <th>上传时间</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="invoiceList"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-warning" id="confirmBill">确认账单</button>
+                    <button type="button" class="btn btn-outline-success" id="exportDetailExcel">
+                        <i class="fas fa-file-excel"></i> 导出Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 导入报关数据模态框 -->
     <div class="modal fade" id="importCustomsModal" tabindex="-1" aria-labelledby="importCustomsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -1925,6 +2457,7 @@
     <script src="js/cms_statistics.js"></script>
     <script src="js/cms_cert519.js"></script>
     <script src="js/cms_modRecord.js"></script>
+    <script src="js/billing.js"></script>
     <script>
         // 直接内联 loadFileList 函数
         console.log('=== 内联 files.js 代码 ===');

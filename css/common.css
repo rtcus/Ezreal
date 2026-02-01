@@ -1268,6 +1268,232 @@ table thead th {
     background-color: rgba(0, 0, 0, 0.02);
 }
 
+/* ===== 账单管理样式 ===== */
+
+/* 账单状态行颜色 */
+.table-warning {
+    background-color: #fff3cd !important;
+}
+
+.table-info {
+    background-color: #e3f2fd !important;
+}
+
+.table-success {
+    background-color: #e8f5e9 !important;
+}
+
+/* 费用编辑输入框 */
+.fee-edit-input {
+    min-width: 80px;
+    text-align: center;
+}
+
+/* 账单预览表格容器 */
+.preview-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* 固定表头 */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    z-index: 10;
+}
+
+/* 表格容器设置 */
+.table-card-container {
+    display: flex;
+    flex-direction: column;
+    height: 600px;
+    border-radius: var(--border-radius);
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.table-card-header {
+    background-color: white;
+    border-bottom: 1px solid #eaeaea;
+    padding: 15px;
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.table-content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.table-container {
+    border-radius: 0;
+    overflow-x: auto;
+    overflow-y: auto;
+    width: 100%;
+    flex: 1;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.table-card-container .table th {
+    background-color: #f8f9fa;
+    color: var(--primary-color);
+    font-weight: 600;
+    border-top: none;
+    font-size: 0.9rem;
+    padding: 10px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.table-card-container .table td {
+    font-size: 0.9rem;
+    padding: 10px 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+/* 分页控件 */
+.pagination-container {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-top: 1px solid #eaeaea;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.pagination {
+    margin: 0;
+    justify-content: center;
+    flex: 1;
+}
+
+.pagination-info {
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    margin-right: 20px;
+}
+
+.page-size-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.page-size-selector select {
+    width: auto;
+    padding: 5px 10px;
+}
+
+/* 自定义费用项 */
+.custom-fee-item {
+    margin-bottom: 15px;
+}
+
+/* 账单表格容器 */
+#billsTable .table-warning {
+    background-color: #fff3cd !important;
+}
+
+#billsTable .table-info {
+    background-color: #e3f2fd !important;
+}
+
+#billsTable .table-success {
+    background-color: #e8f5e9 !important;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .table-card-container {
+        height: 500px;
+    }
+
+    .pagination-container {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px 15px;
+    }
+
+    .pagination-info {
+        margin-right: 0;
+        order: 1;
+    }
+
+    .pagination {
+        order: 2;
+    }
+
+    .page-size-selector {
+        order: 3;
+    }
+}
+
+/* 自定义宽度模态框 */
+.modal-xl-custom {
+    max-width: 95%;
+    width: 95%;
+}
+
+@media (min-width: 1200px) {
+    .modal-xl-custom {
+        max-width: 1140px;
+    }
+}
+
+@media (min-width: 1400px) {
+    .modal-xl-custom {
+        max-width: 1300px;
+    }
+}
+
+/* 账单统计卡片 */
+.status-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    height: 100%;
+}
+
+.status-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.status-card h5 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.status-card .count {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.text-primary { color: var(--primary-color) !important; }
+.text-warning { color: var(--warning-color) !important; }
+.text-info { color: var(--accent-color) !important; }
+.text-success { color: var(--success-color) !important; }
+
 /* 519厂号表格固定表头 */
 .fixed-table-container {
     position: relative;

@@ -555,14 +555,15 @@ function initializePageContent(page) {
                 console.log('loadFileList 不是函数或未定义');
             }
             break;
-            
-        // 移除账单管理
-        // case 'list':
-        //     if (typeof loadListData === 'function') {
-        //         loadListData();
-        //     }
-        //     break;
-            
+
+        case 'billing':
+            // 账单管理页面初始化
+            console.log('初始化账单管理页面');
+            if (typeof initBillingModule === 'function') {
+                initBillingModule();
+            }
+            break;
+
         default:
             console.log(`无需特殊初始化的页面: ${page}`);
     }
