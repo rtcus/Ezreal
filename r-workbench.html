@@ -60,6 +60,9 @@
                 <li><a href="#" class="nav-link" data-page="customs">报关数据管理</a></li>
                 <li><a href="#" class="nav-link" data-page="hscode">HS编码管理</a></li>
                 <li><a href="#" class="nav-link" data-page="exporter">出口商管理</a></li>
+                <li><a href="#" class="nav-link" data-page="statistics">申报货值统计</a></li>
+                <li><a href="#" class="nav-link" data-page="cert519">519厂号管理</a></li>
+                <li><a href="#" class="nav-link" data-page="modRecord">修撤单记录管理</a></li>
                 <li><a href="#" class="nav-link" data-page="files">文件管理</a></li>
                 <li class="user-info">
                     <div class="d-flex align-items-center">
@@ -725,7 +728,349 @@
                     </div>
                 </div>
             </div>
-            
+
+            <!-- 申报货值统计页面 -->
+            <div id="statistics" class="page-content hidden">
+                <div class="page-header">
+                    <h2>申报货值统计</h2>
+                    <p class="text-muted">申报货值按时间范围统计</p>
+                </div>
+
+                <!-- 统计条件 -->
+                <div class="card">
+                    <div class="card-header">
+                        统计条件
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end compact-form">
+                            <div class="col-md-3">
+                                <label for="statType" class="form-label">统计方式</label>
+                                <select class="form-select" id="statType">
+                                    <option value="month">按月统计</option>
+                                    <option value="year">按年统计</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6" id="monthGroup">
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label for="startMonth" class="form-label">开始月份</label>
+                                        <input type="text" class="form-control date-input" id="startMonth" placeholder="开始年月">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="endMonth" class="form-label">结束月份</label>
+                                        <input type="text" class="form-control date-input" id="endMonth" placeholder="结束年月">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3" id="yearGroup" style="display: none;">
+                                <label for="statYear" class="form-label">年份</label>
+                                <input type="text" class="form-control date-input" id="statYear" placeholder="选择年份">
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary" id="queryStatistics">
+                                        <i class="fas fa-search me-1"></i>查询
+                                    </button>
+                                    <button class="btn btn-success" id="exportStatistics">
+                                        <i class="fas fa-download me-1"></i>导出
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 统计结果汇总 -->
+                <div class="table-card-container">
+                    <div class="table-card-header d-flex justify-content-between align-items-center">
+                        <span>统计结果</span>
+                        <small class="text-muted">共 <span id="totalRecords">0</span> 条数据</small>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="table table-striped summary-table" id="statisticsBodyTable">
+                            <thead>
+                                <tr>
+                                    <th width="25%">币制</th>
+                                    <th width="25%">申报数量</th>
+                                    <th width="30%">总货值(原币)</th>
+                                    <th width="20%">统计时间段</th>
+                                </tr>
+                            </thead>
+                            <tbody id="statisticsBody">
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        <i class="fas fa-chart-bar me-2"></i>请先查询统计数据
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="statistics-info">
+                        <i class="fas fa-info-circle me-1"></i>
+                        提示：详细数据最多显示500条，完整数据请导出Excel查看
+                    </div>
+                </div>
+
+                <!-- 详细数据（可选显示） -->
+                <div class="table-card-container">
+                    <div class="table-card-header">
+                        <span>详细数据</span>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="table table-hover" id="detailBodyTable">
+                            <thead>
+                                <tr>
+                                    <th width="5%">序号</th>
+                                    <th width="10%">申报日期</th>
+                                    <th width="12%">提单号</th>
+                                    <th width="10%">柜号</th>
+                                    <th width="15%">报关单号</th>
+                                    <th width="18%">品名</th>
+                                    <th width="10%">货值</th>
+                                    <th width="8%">币制</th>
+                                    <th width="12%">国家</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailBody">
+                                <tr>
+                                    <td colspan="9" class="text-center py-4 text-muted">
+                                        <i class="fas fa-table me-2"></i>暂无详细数据
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 519厂号管理页面 -->
+            <div id="cert519" class="page-content hidden">
+                <div class="page-header">
+                    <h2>519厂号管理</h2>
+                    <p class="text-muted">519证书与厂号信息管理</p>
+                </div>
+
+                <!-- 查询条件 -->
+                <div class="card">
+                    <div class="card-header">
+                        查询条件
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end compact-form">
+                            <div class="col-md-4">
+                                <label for="factoryNoSearch" class="form-label">厂号</label>
+                                <input type="text" class="form-control" id="factoryNoSearch" placeholder="输入厂号">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="certificate519Search" class="form-label">519证书号</label>
+                                <input type="text" class="form-control" id="certificate519Search" placeholder="输入519证书号">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="countrySearch" class="form-label">国家</label>
+                                <input type="text" class="form-control" id="countrySearch" placeholder="输入国家">
+                            </div>
+                            <div class="col-md-12">
+                                <div class="d-flex gap-2 justify-content-end mt-2">
+                                    <button class="btn btn-primary" id="searchCert519">
+                                        <i class="fas fa-search me-1"></i>查询
+                                    </button>
+                                    <button class="btn btn-outline-secondary" id="clearCert519">
+                                        <i class="fas fa-times me-1"></i>清空
+                                    </button>
+                                    <button class="btn btn-outline-success" id="syncCert519">
+                                        <i class="fas fa-sync me-1"></i>同步数据
+                                    </button>
+                                    <button class="btn btn-success" id="addCert519">
+                                        <i class="fas fa-plus me-1"></i>新增数据
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 厂号列表 -->
+                <div class="table-card-container">
+                    <div class="table-card-header d-flex justify-content-between align-items-center">
+                        <span>519厂号列表</span>
+                        <small class="text-muted" id="cert519PaginationInfo">共 0 条记录</small>
+                    </div>
+
+                    <div class="table-container fixed-table-container">
+                        <table class="table table-striped fixed-table" id="cert519Table">
+                            <thead>
+                                <tr>
+                                    <th width="8%">序号</th>
+                                    <th width="25%">519证书号</th>
+                                    <th width="25%">厂号</th>
+                                    <th width="20%">国家</th>
+                                    <th width="17%">创建时间</th>
+                                    <th width="5%">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cert519Body">
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">
+                                        <i class="fas fa-database me-2"></i>暂无数据
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 分页 -->
+                    <div class="statistics-info">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                每页显示：
+                                <select class="form-select form-select-sm d-inline w-auto mx-1" id="cert519PageSizeSelect">
+                                    <option value="20">20</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination pagination-sm mb-0" id="cert519Pagination">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">上一页</a>
+                                    </li>
+                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#">下一页</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 修撤单记录管理页面 -->
+            <div id="modRecord" class="page-content hidden">
+                <div class="page-header">
+                    <h2>修撤单记录管理</h2>
+                    <p class="text-muted">修撤申请单记录的管理与查询</p>
+                </div>
+
+                <!-- 查询条件 -->
+                <div class="card">
+                    <div class="card-header">
+                        查询条件
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end compact-form">
+                            <div class="col-md-4">
+                                <label for="declarationNoSearch" class="form-label">报关单编号</label>
+                                <input type="text" class="form-control" id="declarationNoSearch" placeholder="输入报关单编号">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="containerNoSearch" class="form-label">柜号</label>
+                                <input type="text" class="form-control" id="containerNoSearch" placeholder="输入柜号">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary" id="searchModRecord">
+                                        <i class="fas fa-search me-1"></i>查询
+                                    </button>
+                                    <button class="btn btn-outline-secondary" id="clearModRecord">
+                                        <i class="fas fa-times me-1"></i>清空
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button class="btn btn-success" id="addModRecord">
+                                        <i class="fas fa-plus me-1"></i>新增修撤记录
+                                    </button>
+                                    <button class="btn btn-outline-primary" id="importModRecord">
+                                        <i class="fas fa-upload me-1"></i>导入
+                                    </button>
+                                    <button class="btn btn-outline-success" id="exportModRecord" type="button" onclick="handleExportClick(event);">
+                                        <i class="fas fa-download me-1"></i>导出
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 修撤单记录列表 -->
+                <div class="table-card-container">
+                    <div class="table-card-header d-flex justify-content-between align-items-center">
+                        <span>修撤单记录列表</span>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary me-2" id="resetColumnWidths" title="重置列宽">
+                                <i class="fas fa-columns"></i> 重置列宽
+                            </button>
+                            <small class="text-muted" id="modRecordPaginationInfo">共 0 条记录</small>
+                        </div>
+                    </div>
+
+                    <div class="table-container fixed-table-container">
+                        <table class="table table-striped fixed-table" id="modRecordTable">
+                            <thead>
+                                <tr>
+                                    <th width="6%">序号</th>
+                                    <th width="13%">修撤申请单编号</th>
+                                    <th width="13%">申报单位</th>
+                                    <th width="15%">境内收发货人名称</th>
+                                    <th width="10%">报关单编号</th>
+                                    <th width="7%">柜号</th>
+                                    <th width="9%">操作日期</th>
+                                    <th width="15%">修撤原因</th>
+                                    <th width="12%">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modRecordBody">
+                                <tr>
+                                    <td colspan="9" class="text-center py-4 text-muted">
+                                        <i class="fas fa-database me-2"></i>暂无数据
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 分页 -->
+                    <div class="statistics-info">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                每页显示：
+                                <select class="form-select form-select-sm d-inline w-auto mx-1" id="modRecordPageSizeSelect">
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="200">200</option>
+                                    <option value="500">500</option>
+                                </select>
+                            </div>
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination pagination-sm mb-0" id="modRecordPagination">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">上一页</a>
+                                    </li>
+                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#">下一页</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 文件管理内容 -->
             <div id="files" class="page-content hidden">
                 <div class="page-header">
@@ -1405,6 +1750,171 @@
         </div>
     </div>
 
+    <!-- 新增519厂号模态框 -->
+    <div class="modal fade" id="addCert519Modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">新增519厂号</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addCert519Form">
+                        <div class="mb-3">
+                            <label for="modalCertificate519" class="form-label">519证书号 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="modalCertificate519" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modalFactoryNo" class="form-label">厂号 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="modalFactoryNo" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modalCountry" class="form-label">国家</label>
+                            <input type="text" class="form-control" id="modalCountry" placeholder="输入国家（可选）">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="modalSaveBtn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增修撤记录模态框 -->
+    <div class="modal fade" id="addModRecordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">新增修撤记录</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addModRecordForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="modApplicationNo" class="form-label">修撤申请单编号 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="modApplicationNo" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modDeclarationUnit" class="form-label">申报单位 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="modDeclarationUnit" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modConsigneeName" class="form-label">境内收发货人名称 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="modConsigneeName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modDeclarationNo" class="form-label">报关单编号 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="modDeclarationNo" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modContainerNo" class="form-label">柜号</label>
+                                <input type="text" class="form-control" id="modContainerNo" placeholder="输入柜号（可选）">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modOperationDate" class="form-label">操作日期 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control date-input" id="modOperationDate" placeholder="选择操作日期" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="modReason" class="form-label">修撤原因 <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="modReason" rows="3" placeholder="输入修撤原因" required></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="modalModRecordSaveBtn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑修撤记录模态框 -->
+    <div class="modal fade" id="editModRecordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title">编辑修撤记录</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editModRecordForm">
+                        <input type="hidden" id="editModRecordId">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="editModApplicationNo" class="form-label">修撤申请单编号 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="editModApplicationNo" required readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editModDeclarationUnit" class="form-label">申报单位 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="editModDeclarationUnit" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editModConsigneeName" class="form-label">境内收发货人名称 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="editModConsigneeName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editModDeclarationNo" class="form-label">报关单编号 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="editModDeclarationNo" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editModContainerNo" class="form-label">柜号</label>
+                                <input type="text" class="form-control" id="editModContainerNo" placeholder="输入柜号（可选）">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editModOperationDate" class="form-label">操作日期 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control date-input" id="editModOperationDate" placeholder="选择操作日期" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="editModReason" class="form-label">修撤原因 <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="editModReason" rows="3" placeholder="输入修撤原因" required></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-warning" id="modalEditModRecordSaveBtn" onclick="console.log('按钮被点击'); try { saveEditModRecord(); } catch(e) { console.error('调用失败:', e); }">保存修改</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入修撤记录模态框 -->
+    <div class="modal fade" id="importModRecordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">导入修撤记录</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="importFile" class="form-label">选择Excel文件</label>
+                        <input type="file" class="form-control" id="importFile" accept=".xlsx,.xls">
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        请上传Excel文件，文件应包含以下列：<br>
+                        修撤申请单编号、申报单位、境内收发货人名称、报关单编号、柜号、操作日期、修撤原因
+                    </div>
+                    <div id="importProgress" style="display: none;">
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="startImportBtn">开始导入</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 引入JavaScript文件 -->
     <script src="js/common.js"></script>
     <script src="js/home.js"></script>
@@ -1412,6 +1922,9 @@
     <script src="js/customs.js"></script>
     <script src="js/hscode.js"></script>
     <script src="js/exporter.js"></script>
+    <script src="js/cms_statistics.js"></script>
+    <script src="js/cms_cert519.js"></script>
+    <script src="js/cms_modRecord.js"></script>
     <script>
         // 直接内联 loadFileList 函数
         console.log('=== 内联 files.js 代码 ===');

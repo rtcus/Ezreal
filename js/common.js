@@ -523,7 +523,29 @@ function initializePageContent(page) {
                 loadExporterData();
             }
             break;
-            
+
+        case 'statistics':
+            if (typeof initStatisticsPage === 'function') {
+                initStatisticsPage();
+                // 初始化统计页面的日期选择器
+                setTimeout(() => {
+                    initStatisticsDatePickers();
+                }, 100);
+            }
+            break;
+
+        case 'cert519':
+            if (typeof initCert519Page === 'function') {
+                initCert519Page();
+            }
+            break;
+
+        case 'modRecord':
+            if (typeof initModRecordPage === 'function') {
+                initModRecordPage();
+            }
+            break;
+
         case 'files':
             console.log('准备调用 loadFileList，类型检查:', typeof window.loadFileList);
             if (typeof window.loadFileList === 'function') {
@@ -1675,6 +1697,77 @@ function bindListEvents() {
 // 导出全局函数
 window.switchPage = switchPage;
 window.saveToLeanCloud = saveToLeanCloud;
+
+// 初始化统计页面的日期选择器
+function initStatisticsDatePickers() {
+    console.log('初始化统计页面日期选择器...');
+
+    // 设置默认日期（近3个月）
+    const currentDate = new Date();
+    const endDate = currentDate.getFullYear() + '-' + String(currentDate.getMonth() + 1).padStart(2, '0');
+
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 2);
+    const startDateStr = startDate.getFullYear() + '-' + String(startDate.getMonth() + 1).padStart(2, '0');
+
+    // 初始化月份选择器
+    if (document.getElementById('startMonth')) {
+        const startMonthPicker = flatpickr('#startMonth', {
+            dateFormat: "Y-m",
+            altInput: true,
+            altFormat: "Y年m月",
+            locale: "zh",
+            defaultDate: startDateStr,
+            allowInput: true
+        });
+    }
+
+    if (document.getElementById('endMonth')) {
+        const endMonthPicker = flatpickr('#endMonth', {
+            dateFormat: "Y-m",
+            altInput: true,
+            altFormat: "Y年m月",
+            locale: "zh",
+            defaultDate: endDate,
+            allowInput: true
+        });
+    }
+
+    // 初始化年份选择器
+    if (document.getElementById('statYear')) {
+        const yearPicker = flatpickr('#statYear', {
+            dateFormat: "Y",
+            altInput: true,
+            altFormat: "Y年",
+            locale: "zh",
+            defaultDate: String(currentDate.getFullYear()),
+            allowInput: true
+        });
+    }
+
+    // 绑定统计方式切换事件
+    const statTypeSelect = document.getElementById('statType');
+    if (statTypeSelect) {
+        statTypeSelect.addEventListener('change', function() {
+            const statType = this.value;
+            const monthGroup = document.getElementById('monthGroup');
+            const yearGroup = document.getElementById('yearGroup');
+
+            if (monthGroup && yearGroup) {
+                if (statType === 'month') {
+                    monthGroup.style.display = 'block';
+                    yearGroup.style.display = 'none';
+                } else {
+                    monthGroup.style.display = 'none';
+                    yearGroup.style.display = 'block';
+                }
+            }
+        });
+    }
+}
+
+// 导出这个函数
+window.initStatisticsDatePickers = initStatisticsDatePickers;
 window.deleteFromLeanCloud = deleteFromLeanCloud;
 window.deleteFileFromLeanCloud = deleteFileFromLeanCloud; // 新增这一行
 window.showAttachmentModal = showAttachmentModal;

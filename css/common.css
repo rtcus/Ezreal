@@ -1197,6 +1197,200 @@ table thead th {
     border-color: #28a745;
 }
 
+/* cms-519 新增页面样式 */
+.compact-form .form-label {
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+}
+
+.compact-form .form-control,
+.compact-form .form-select {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.75rem;
+}
+
+/* 申报货值统计详细数据表头固定 */
+#statistics .table-card-container:last-child {
+    max-height: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
+#statistics .table-card-container:last-child .table-container {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+}
+
+#detailBodyTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#detailBodyTable thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #f8f9fa;
+}
+
+#detailBodyTable thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: var(--primary-color);
+    padding: 12px 8px;
+    z-index: 11;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+#detailBodyTable tbody td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #eaeaea;
+    vertical-align: middle;
+}
+
+#detailBodyTable tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* 519厂号表格固定表头 */
+.fixed-table-container {
+    position: relative;
+    height: 400px;
+    overflow: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 0 0 8px 8px;
+}
+
+#cert519Table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#cert519Table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: white;
+}
+
+#cert519Table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: var(--primary-color);
+    padding: 12px 8px;
+    z-index: 11;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+#cert519Table tbody td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #eaeaea;
+    vertical-align: middle;
+}
+
+#cert519Table tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* 修撤单记录表格样式 */
+#modRecordTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#modRecordTable thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: white;
+}
+
+#modRecordTable thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: var(--primary-color);
+    padding: 12px 8px;
+    z-index: 11;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+#modRecordTable tbody td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #eaeaea;
+    vertical-align: middle;
+}
+
+#modRecordTable tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.table-card-container {
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.table-card-header {
+    background-color: white;
+    border-bottom: 1px solid #eaeaea;
+    padding: 12px 15px;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.summary-table {
+    font-size: 0.9rem;
+}
+
+.summary-table td {
+    padding: 10px 15px;
+}
+
+.statistics-info {
+    background-color: #f8f9fa;
+    padding: 10px 15px;
+    border-top: 1px solid #eaeaea;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+/* 加载中状态 */
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+    color: #6c757d;
+}
+
+.loading-container .spinner-border {
+    margin-right: 10px;
+}
+
+/* 无数据状态 */
+.no-data-row {
+    height: 100px;
+}
+
+.no-data-row td {
+    text-align: center;
+    vertical-align: middle;
+    color: #6c757d;
+    font-style: italic;
+}
+
 /* 徽章样式优化 */
 .badge {
     font-size: 0.75rem;
