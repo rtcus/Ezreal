@@ -226,20 +226,37 @@ function initApp() {
     document.querySelector('.app-container').style.display = 'flex';
     updateUserInfo();
     initDatePickers();
-    
+
+    // 侧边栏切换功能
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    if (sidebarToggle && sidebar) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            // 保存侧边栏状态到 localStorage
+            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        });
+
+        // 恢复侧边栏状态
+        const sidebarCollapsed = localStorage.getItem('sidebarCollapsed');
+        if (sidebarCollapsed === 'true') {
+            sidebar.classList.add('collapsed');
+        }
+    }
+
     // 导航切换 - 只处理侧边栏的导航链接
     document.querySelectorAll('.sidebar .nav-link').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const targetPage = this.getAttribute('data-page');
             console.log('导航点击，目标页面:', targetPage, '链接文本:', this.textContent.trim());
-            
+
             // 确保有有效的目标页面
             if (!targetPage || targetPage === 'null') {
                 console.error('导航链接没有有效的data-page属性:', this);
                 return;
             }
-            
+
             switchPage(targetPage);
         });
     });

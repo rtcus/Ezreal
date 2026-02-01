@@ -50,21 +50,26 @@
 
     <div class="app-container" style="display: none;">
         <!-- 侧边导航栏 -->
-        <div class="sidebar">
+        <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h3>Ezreal的工作台</h3>
+                <div class="header-content">
+                    <h3>Ezreal的工作台</h3>
+                    <button class="sidebar-toggle" id="sidebarToggle" title="收起/展开导航">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
             </div>
             <ul class="nav-links">
-                <li><a href="#" class="nav-link active" data-page="home">首页</a></li>
-                <li><a href="#" class="nav-link" data-page="tracking">跟单工作台</a></li>
-                <li><a href="#" class="nav-link" data-page="customs">报关数据管理</a></li>
-                <li><a href="#" class="nav-link" data-page="hscode">HS编码管理</a></li>
-                <li><a href="#" class="nav-link" data-page="exporter">出口商管理</a></li>
-                <li><a href="#" class="nav-link" data-page="statistics">申报货值统计</a></li>
-                <li><a href="#" class="nav-link" data-page="cert519">519厂号管理</a></li>
-                <li><a href="#" class="nav-link" data-page="modRecord">修撤单记录管理</a></li>
-                <li><a href="#" class="nav-link" data-page="files">文件管理</a></li>
-                <li><a href="#" class="nav-link" data-page="billing">账单管理</a></li>
+                <li><a href="#" class="nav-link active" data-page="home"><i class="fas fa-home"></i><span>首页</span></a></li>
+                <li><a href="#" class="nav-link" data-page="tracking"><i class="fas fa-tasks"></i><span>跟单工作台</span></a></li>
+                <li><a href="#" class="nav-link" data-page="customs"><i class="fas fa-file-alt"></i><span>报关数据管理</span></a></li>
+                <li><a href="#" class="nav-link" data-page="hscode"><i class="fas fa-barcode"></i><span>HS编码管理</span></a></li>
+                <li><a href="#" class="nav-link" data-page="exporter"><i class="fas fa-building"></i><span>出口商管理</span></a></li>
+                <li><a href="#" class="nav-link" data-page="statistics"><i class="fas fa-chart-bar"></i><span>申报货值统计</span></a></li>
+                <li><a href="#" class="nav-link" data-page="cert519"><i class="fas fa-industry"></i><span>519厂号管理</span></a></li>
+                <li><a href="#" class="nav-link" data-page="modRecord"><i class="fas fa-history"></i><span>修撤单记录管理</span></a></li>
+                <li><a href="#" class="nav-link" data-page="files"><i class="fas fa-folder"></i><span>文件管理</span></a></li>
+                <li><a href="#" class="nav-link" data-page="billing"><i class="fas fa-file-invoice-dollar"></i><span>账单管理</span></a></li>
                 <li class="user-info">
                     <div class="d-flex align-items-center">
                         <div class="user-avatar" id="userAvatar">
