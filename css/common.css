@@ -30,6 +30,18 @@ body {
     }
 }
 
+/* 滑动下拉动画 */
+@keyframes slideDown {
+    from {
+        transform: translateY(-10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
 .app-container {
     display: flex;
     min-height: 100vh;

@@ -642,6 +642,386 @@ function handleCustomsAttachmentClick(e) {
     return true;
 }
 
+// 绑定境外收发货人输入事件
+function bindForeignConsigneeInputEvent() {
+    const foreignConsigneeInput = document.getElementById('editForeignConsignee');
+    if (!foreignConsigneeInput) return;
+
+    // 移除旧的事件监听器
+    foreignConsigneeInput.removeEventListener('blur', handleForeignConsigneeInput);
+    foreignConsigneeInput.removeEventListener('change', handleForeignConsigneeInput);
+
+    // 添加新的事件监听器
+    foreignConsigneeInput.addEventListener('blur', handleForeignConsigneeInput);
+    foreignConsigneeInput.addEventListener('change', handleForeignConsigneeInput);
+}
+
+// 处理境外收发货人输入
+async function handleForeignConsigneeInput(e) {
+    const foreignConsignee = e.target.value.trim();
+
+    if (!foreignConsignee) {
+        return;
+    }
+
+    console.log('🔍 检测到境外收发货人输入:', foreignConsignee);
+
+    // 显示加载状态
+    const shipperRecordNoField = document.getElementById('editShipperRecordNo');
+    if (shipperRecordNoField) {
+        shipperRecordNoField.style.backgroundColor = '#fff3cd';
+        shipperRecordNoField.placeholder = '正在查询...';
+    }
+
+    // 从LeanCloud动态查询发货人备案号
+    try {
+        const shipperRecordNos = await getShipperRecordNoByExporter(foreignConsignee);
+
+        if (shipperRecordNos && shipperRecordNos.length > 0) {
+            console.log('✅ 查询到的发货人备案号:', shipperRecordNos);
+
+            if (shipperRecordNos.length === 1) {
+                // 只有一个匹配结果，直接填充
+                const shipperRecordNo = shipperRecordNos[0];
+
+                // 更新当前数据
+                if (currentCustomsDataItem) {
+                    currentCustomsDataItem.shipperRecordNo = shipperRecordNo;
+                }
+
+                // 更新界面
+                if (shipperRecordNoField) {
+                    shipperRecordNoField.value = shipperRecordNo;
+                    shipperRecordNoField.placeholder = '发货人备案号';
+                    shipperRecordNoField.style.backgroundColor = '#d4edda';
+                    setTimeout(() => {
+                        shipperRecordNoField.style.backgroundColor = '';
+                    }, 1500);
+                }
+
+                // 显示成功通知
+                showExporterMatchNotification(foreignConsignee, shipperRecordNo, true);
+            } else {
+                // 多个匹配结果，显示选择下拉框
+                showShipperRecordNoSelector(shipperRecordNos, shipperRecordNoField);
+                // 显示提示通知
+                showExporterMatchNotification(foreignConsignee, shipperRecordNos, 'multiple');
+            }
+        } else {
+            // 未找到对应的发货人备案号
+            console.log('⚠️ 未找到对应的发货人备案号');
+
+            // 更新界面反馈
+            if (shipperRecordNoField) {
+                shipperRecordNoField.placeholder = '未找到对应备案号';
+                shipperRecordNoField.style.backgroundColor = '#f8d7da';
+                setTimeout(() => {
+                    shipperRecordNoField.style.backgroundColor = '';
+                    shipperRecordNoField.placeholder = '发货人备案号';
+                }, 2000);
+            }
+
+            // 显示未找到的提示
+            showExporterMatchNotification(foreignConsignee, null, false);
+        }
+    } catch (error) {
+        console.error('❌ 查询发货人备案号时发生错误:', error);
+
+        // 更新界面反馈
+        if (shipperRecordNoField) {
+            shipperRecordNoField.placeholder = '查询失败';
+            shipperRecordNoField.style.backgroundColor = '#f8d7da';
+            setTimeout(() => {
+                shipperRecordNoField.style.backgroundColor = '';
+                shipperRecordNoField.placeholder = '发货人备案号';
+            }, 2000);
+        }
+
+        // 显示错误提示
+        showExporterMatchNotification(foreignConsignee, null, 'error');
+    }
+}
+
+// 显示发货人备案号选择下拉框
+function showShipperRecordNoSelector(shipperRecordNos, targetField) {
+    // 移除已存在的选择框
+    const existingSelector = document.getElementById('shipperRecordNoSelector');
+    if (existingSelector) {
+        existingSelector.remove();
+    }
+
+    // 计算下拉框位置
+    const fieldRect = targetField.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+    // 创建选择框容器
+    const selector = document.createElement('div');
+    selector.id = 'shipperRecordNoSelector';
+    selector.style.cssText = `
+        position: absolute;
+        top: ${fieldRect.bottom + scrollTop + 5}px;
+        left: ${fieldRect.left + scrollLeft}px;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 10000;
+        min-width: 300px;
+        max-height: 300px;
+        overflow-y: auto;
+        animation: slideDown 0.2s ease-out;
+    `;
+
+    // 创建标题
+    const title = document.createElement('div');
+    title.style.cssText = `
+        padding: 10px 15px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+        font-size: 13px;
+    `;
+    title.textContent = `找到 ${shipperRecordNos.length} 个备案号，请选择：`;
+    selector.appendChild(title);
+
+    // 创建选项列表
+    const list = document.createElement('div');
+    list.style.cssText = 'padding: 5px 0;';
+
+    shipperRecordNos.forEach((recordNo, index) => {
+        const option = document.createElement('div');
+        option.style.cssText = `
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #495057;
+            border-bottom: 1px solid #f1f3f5;
+            transition: background 0.2s;
+        `;
+        option.textContent = recordNo;
+
+        option.addEventListener('mouseenter', function() {
+            this.style.background = '#f8f9fa';
+        });
+
+        option.addEventListener('mouseleave', function() {
+            this.style.background = 'white';
+        });
+
+        option.addEventListener('click', function() {
+            // 更新数据
+            if (currentCustomsDataItem) {
+                currentCustomsDataItem.shipperRecordNo = recordNo;
+            }
+
+            // 更新界面
+            targetField.value = recordNo;
+            targetField.placeholder = '发货人备案号';
+            targetField.style.backgroundColor = '#d4edda';
+            setTimeout(() => {
+                targetField.style.backgroundColor = '';
+            }, 1500);
+
+            // 移除选择框
+            selector.remove();
+
+            console.log('✅ 用户选择了发货人备案号:', recordNo);
+        });
+
+        list.appendChild(option);
+    });
+
+    selector.appendChild(list);
+
+    // 添加"手动输入"选项
+    const manualInputOption = document.createElement('div');
+    manualInputOption.style.cssText = `
+        padding: 10px 15px;
+        cursor: pointer;
+        font-size: 13px;
+        color: #007bff;
+        border-top: 1px solid #dee2e6;
+        transition: background 0.2s;
+        font-weight: 500;
+    `;
+    manualInputOption.innerHTML = '<i class="fas fa-edit"></i> 手动输入';
+    manualInputOption.addEventListener('mouseenter', function() {
+        this.style.background = '#f8f9fa';
+    });
+    manualInputOption.addEventListener('mouseleave', function() {
+        this.style.background = 'white';
+    });
+    manualInputOption.addEventListener('click', function() {
+        // 移除选择框
+        selector.remove();
+
+        // 聚焦到输入框并清空，允许用户手动输入
+        targetField.value = '';
+        targetField.placeholder = '请输入发货人备案号';
+        targetField.style.backgroundColor = '';
+        targetField.focus();
+    });
+    selector.appendChild(manualInputOption);
+
+    // 添加取消按钮
+    const cancelBtn = document.createElement('div');
+    cancelBtn.style.cssText = `
+        padding: 10px 15px;
+        text-align: center;
+        cursor: pointer;
+        color: #6c757d;
+        font-size: 12px;
+        border-top: 1px solid #dee2e6;
+        transition: color 0.2s;
+    `;
+    cancelBtn.textContent = '取消';
+    cancelBtn.addEventListener('mouseenter', function() {
+        this.style.color = '#495057';
+    });
+    cancelBtn.addEventListener('mouseleave', function() {
+        this.style.color = '#6c757d';
+    });
+    cancelBtn.addEventListener('click', function() {
+        selector.remove();
+        targetField.style.backgroundColor = '';
+        targetField.placeholder = '发货人备案号';
+    });
+
+    selector.appendChild(cancelBtn);
+
+    document.body.appendChild(selector);
+
+    // 点击其他区域关闭选择框
+    setTimeout(() => {
+        document.addEventListener('click', closeShipperRecordNoSelectorHandler);
+    }, 100);
+
+    function closeShipperRecordNoSelectorHandler(e) {
+        if (!selector.contains(e.target) && e.target !== targetField) {
+            selector.remove();
+            targetField.style.backgroundColor = '';
+            targetField.placeholder = '发货人备案号';
+            document.removeEventListener('click', closeShipperRecordNoSelectorHandler);
+        }
+    }
+}
+
+// 显示出口商匹配通知
+function showExporterMatchNotification(foreignConsignee, shipperRecordNoInfo, status) {
+    // 移除现有通知
+    const existingNotifications = document.querySelectorAll('.exporter-notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    const notification = document.createElement('div');
+    notification.className = 'exporter-notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        animation: slideInRight 0.3s ease-out;
+        max-width: 300px;
+    `;
+
+    if (status === true) {
+        // 成功找到单个匹配
+        notification.style.background = '#28a745';
+        notification.style.color = 'white';
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                <strong>✅ 发货人备案号匹配成功</strong>
+            </div>
+            <div style="font-size: 12px; line-height: 1.4;">
+                <div>境外收发货人: <strong>${foreignConsignee}</strong></div>
+                <div>备案号: <strong>${shipperRecordNoInfo}</strong></div>
+            </div>
+        `;
+        console.log(`🎉 境外收发货人 ${foreignConsignee} 自动匹配备案号: ${shipperRecordNoInfo}`);
+
+        // 3秒后自动消失
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+
+    } else if (status === 'multiple') {
+        // 找到多个匹配结果
+        notification.style.background = '#17a2b8';
+        notification.style.color = 'white';
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                <strong>📋 找到多个备案号</strong>
+            </div>
+            <div style="font-size: 12px; line-height: 1.4;">
+                <div>境外收发货人: <strong>${foreignConsignee}</strong></div>
+                <div>共找到 <strong>${shipperRecordNoInfo.length}</strong> 个备案号</div>
+                <div style="margin-top: 5px;">请从下拉列表选择或手动输入</div>
+            </div>
+        `;
+        console.log(`📋 境外收发货人 ${foreignConsignee} 找到 ${shipperRecordNoInfo.length} 个备案号`);
+
+        // 4秒后自动消失
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s';
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
+
+    } else if (status === 'error') {
+        // 查询出错
+        notification.style.background = '#dc3545';
+        notification.style.color = 'white';
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                <strong>❌ 查询失败</strong>
+            </div>
+            <div style="font-size: 12px; line-height: 1.4;">
+                <div>境外收发货人: ${foreignConsignee}</div>
+                <div>网络错误或服务异常，请稍后重试</div>
+            </div>
+        `;
+        console.log(`❌ 境外收发货人 ${foreignConsignee} 查询失败`);
+
+        // 4秒后自动消失
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s';
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
+
+    } else {
+        // 未找到备案号
+        notification.style.background = '#ffc107';
+        notification.style.color = '#856404';
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                <strong>⚠️ 未找到备案号</strong>
+            </div>
+            <div style="font-size: 12px; line-height: 1.4;">
+                <div>境外收发货人: <strong>${foreignConsignee}</strong></div>
+                <div>请手动输入备案号或联系管理员</div>
+            </div>
+        `;
+        console.log(`⚠️ 境外收发货人 ${foreignConsignee} 未找到对应备案号`);
+
+        // 4秒后自动消失
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s';
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
+    }
+
+    document.body.appendChild(notification);
+}
+
 // 绑定预录入号点击事件
 function bindPreEntryClickEvents() {
     document.querySelectorAll('.pre-entry-clickable').forEach(cell => {
@@ -661,7 +1041,7 @@ function showCustomsDataModal(id) {
         alert('找不到对应的报关数据');
         return;
     }
-    
+
     // 保存原始数据供添加新项时使用
     currentCustomsDataItem = item;
 
@@ -676,6 +1056,9 @@ function showCustomsDataModal(id) {
     document.getElementById('editNetWeight').value = item.netWeight || '';
     document.getElementById('editGrossWeight').value = item.grossWeight || '';
     document.getElementById('editCustomsRemark').value = item.remark || '';
+
+    // 绑定境外收发货人输入事件
+    bindForeignConsigneeInputEvent();
 
     // 处理多项数据
     currentCustomsItems = [];
@@ -875,6 +1258,70 @@ function removeCustomsItem(itemNo) {
     }
 }
 
+// 从出口商管理中查询发货人备案号（支持多个匹配）
+async function getShipperRecordNoByExporter(foreignConsignee) {
+    try {
+        console.log('🔍 查询境外收发货人:', foreignConsignee);
+
+        // 查询LeanCloud中的Exporter_Base表，获取所有匹配的记录
+        const query = new AV.Query('Exporter_Base');
+        query.equalTo('foreignConsignee', foreignConsignee);
+        query.limit(100); // 允许查询多个匹配结果
+
+        const results = await query.find();
+
+        if (results.length > 0) {
+            // 提取所有的发货人备案号（去重）
+            const shipperRecordNos = [...new Set(
+                results
+                    .map(r => r.get('shipperRecordNo'))
+                    .filter(no => no && no.trim() !== '')
+            )];
+
+            console.log('✅ 找到境外收发货人对应的备案号:', shipperRecordNos);
+            return shipperRecordNos;
+        } else {
+            console.log('⚠️ 未找到境外收发货人对应信息:', foreignConsignee);
+            return null;
+        }
+    } catch (error) {
+        console.error('❌ 查询境外收发货人失败:', error);
+        return null;
+    }
+}
+
+// 从HS编码管理中查询监管类别名称（支持多个匹配）
+async function getSupervisionCategoryByHSCode(hsCode) {
+    try {
+        console.log('🔍 查询HS编码:', hsCode);
+
+        // 查询LeanCloud中的HS_Code_Base表，获取所有匹配的记录
+        const query = new AV.Query('HS_Code_Base');
+        query.equalTo('hsCode', hsCode);
+        query.limit(100); // 允许查询多个匹配结果
+
+        const results = await query.find();
+
+        if (results.length > 0) {
+            // 提取所有的监管类别名称（去重）
+            const supervisionCategories = [...new Set(
+                results
+                    .map(r => r.get('supervisionCategory'))
+                    .filter(cat => cat && cat.trim() !== '')
+            )];
+
+            console.log('✅ 找到HS编码对应监管类别:', supervisionCategories);
+            return supervisionCategories;
+        } else {
+            console.log('⚠️ 未找到HS编码对应信息:', hsCode);
+            return null;
+        }
+    } catch (error) {
+        console.error('❌ 查询HS编码失败:', error);
+        return null;
+    }
+}
+
 // 更新项字段值 - 动态查询版本
 async function updateCustomsItemField(field) {
     const itemNo = parseInt(field.getAttribute('data-item'));
@@ -884,15 +1331,92 @@ async function updateCustomsItemField(field) {
     const item = currentCustomsItems.find(item => item.itemNo === itemNo);
     if (item) {
         item[fieldName] = value;
+
+        // 🔥 修改：如果是HS编码字段，从LeanCloud动态查询监管类别名称
+        if (fieldName === 'hsCode' && value && value.trim() !== '') {
+            console.log('🔍 检测到HS编码输入:', value);
+
+            // 显示加载状态
+            const supervisionCategoryField = document.querySelector(`input.item-field[data-field="supervisionCategory"][data-item="${itemNo}"]`);
+
+            if (supervisionCategoryField) {
+                supervisionCategoryField.style.backgroundColor = '#fff3cd';
+                supervisionCategoryField.placeholder = '正在查询...';
+            }
+
+            // 从LeanCloud动态查询HS编码信息
+            try {
+                const supervisionCategories = await getSupervisionCategoryByHSCode(value.trim());
+
+                if (supervisionCategories && supervisionCategories.length > 0) {
+                    console.log('✅ 查询到的监管类别:', supervisionCategories);
+
+                    if (supervisionCategories.length === 1) {
+                        // 只有一个匹配结果，直接填充
+                        item.supervisionCategory = supervisionCategories[0];
+                        console.log('✅ 已更新数据中的监管类别名称为:', supervisionCategories[0]);
+
+                        // 更新界面上的输入框
+                        if (supervisionCategoryField) {
+                            supervisionCategoryField.value = supervisionCategories[0];
+                            supervisionCategoryField.placeholder = '监管类别名称';
+                            supervisionCategoryField.style.backgroundColor = '#d4edda';
+                            setTimeout(() => {
+                                supervisionCategoryField.style.backgroundColor = '';
+                            }, 1500);
+                        }
+
+                        // 显示成功通知
+                        showHSCodeMatchNotification(value.trim(), supervisionCategories[0], true);
+                    } else {
+                        // 多个匹配结果，显示选择下拉框
+                        showSupervisionCategorySelector(itemNo, supervisionCategories, supervisionCategoryField);
+                        // 显示提示通知
+                        showHSCodeMatchNotification(value.trim(), supervisionCategories, 'multiple');
+                    }
+                } else {
+                    // 未找到对应的HS编码信息
+                    console.log('⚠️ 未找到对应的HS编码信息');
+
+                    // 更新界面反馈
+                    if (supervisionCategoryField) {
+                        supervisionCategoryField.placeholder = '未找到对应信息';
+                        supervisionCategoryField.style.backgroundColor = '#f8d7da';
+                        setTimeout(() => {
+                            supervisionCategoryField.style.backgroundColor = '';
+                            supervisionCategoryField.placeholder = '监管类别名称';
+                        }, 2000);
+                    }
+
+                    // 显示未找到映射的提示
+                    showHSCodeMatchNotification(value.trim(), null, false);
+                }
+            } catch (error) {
+                console.error('❌ 查询HS编码信息时发生错误:', error);
+
+                // 更新界面反馈
+                if (supervisionCategoryField) {
+                    supervisionCategoryField.placeholder = '查询失败';
+                    supervisionCategoryField.style.backgroundColor = '#f8d7da';
+                    setTimeout(() => {
+                        supervisionCategoryField.style.backgroundColor = '';
+                        supervisionCategoryField.placeholder = '监管类别名称';
+                    }, 2000);
+                }
+
+                // 显示错误提示
+                showHSCodeMatchNotification(value.trim(), null, 'error');
+            }
+        }
         
         // 🔥 修改：如果是519证书字段，从LeanCloud动态查询厂号
         if (fieldName === 'certificate519' && value && value.trim() !== '') {
             console.log('🔍 检测到519证书输入:', value);
-            
+
             // 检查申报日期条件
             const shouldExecuteMatch = shouldExecuteCertificateMatch();
             console.log('📅 证书匹配条件检查结果:', shouldExecuteMatch);
-            
+
             if (shouldExecuteMatch) {
                 // 显示加载状态
                 const factoryNoField = document.querySelector(`input.item-field[data-field="factoryNo"][data-item="${itemNo}"]`);
@@ -900,51 +1424,56 @@ async function updateCustomsItemField(field) {
                     factoryNoField.style.backgroundColor = '#fff3cd';
                     factoryNoField.placeholder = '正在查询...';
                 }
-                
+
                 // 从LeanCloud动态查询厂号
                 try {
                     const factoryNo = await getFactoryNoByCertificate519(value.trim());
-                    
+
                     if (factoryNo && factoryNo.trim() !== '') {
                         // 更新当前项的厂号
                         item.factoryNo = factoryNo;
                         console.log('✅ 已更新数据中的厂号为:', factoryNo);
-                        
+
                         // 更新界面上的厂号输入框
                         if (factoryNoField) {
                             factoryNoField.value = factoryNo;
                             factoryNoField.placeholder = '厂号';
                             console.log('✅ 已更新界面厂号输入框为:', factoryNo);
-                            
+
                             // 添加成功视觉反馈
                             factoryNoField.style.backgroundColor = '#d4edda';
                             setTimeout(() => {
                                 factoryNoField.style.backgroundColor = '';
                             }, 1500);
                         }
-                        
+
                         // 显示成功通知
                         showCertificateMatchNotification(value.trim(), factoryNo, true);
                     } else {
-                        // 未找到对应的厂号
-                        console.log('⚠️ 未找到对应的厂号');
-                        
+                        // 未找到对应的厂号，显示快捷添加按钮
+                        console.log('⚠️ 未找到对应的厂号，显示快捷添加按钮');
+
                         // 更新界面反馈
                         if (factoryNoField) {
                             factoryNoField.placeholder = '未找到对应厂号';
-                            factoryNoField.style.backgroundColor = '#f8d7da';
+                            factoryNoField.style.backgroundColor = '#fff3cd';
+
+                            // 添加快捷添加按钮
+                            showQuickAddFactoryNoButton(itemNo, value.trim(), factoryNoField);
+
+                            // 延迟恢复背景色
                             setTimeout(() => {
                                 factoryNoField.style.backgroundColor = '';
                                 factoryNoField.placeholder = '厂号';
                             }, 2000);
                         }
-                        
+
                         // 显示未找到映射的提示
                         showCertificateMatchNotification(value.trim(), null, false);
                     }
                 } catch (error) {
                     console.error('❌ 查询厂号时发生错误:', error);
-                    
+
                     // 更新界面反馈
                     if (factoryNoField) {
                         factoryNoField.placeholder = '查询失败';
@@ -954,7 +1483,7 @@ async function updateCustomsItemField(field) {
                             factoryNoField.placeholder = '厂号';
                         }, 2000);
                     }
-                    
+
                     // 显示错误提示
                     showCertificateMatchNotification(value.trim(), null, 'error');
                 }
@@ -962,6 +1491,459 @@ async function updateCustomsItemField(field) {
                 console.log('⚠️ 证书匹配条件不满足，跳过自动填充');
             }
         }
+    }
+}
+
+// 显示监管类别选择下拉框
+function showSupervisionCategorySelector(itemNo, supervisionCategories, targetField) {
+    // 移除已存在的选择框
+    const existingSelector = document.getElementById('supervisionCategorySelector');
+    if (existingSelector) {
+        existingSelector.remove();
+    }
+
+    // 计算下拉框位置
+    const fieldRect = targetField.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+    // 创建选择框容器
+    const selector = document.createElement('div');
+    selector.id = 'supervisionCategorySelector';
+    selector.style.cssText = `
+        position: absolute;
+        top: ${fieldRect.bottom + scrollTop + 5}px;
+        left: ${fieldRect.left + scrollLeft}px;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 10000;
+        min-width: 250px;
+        max-height: 300px;
+        overflow-y: auto;
+        animation: slideDown 0.2s ease-out;
+    `;
+
+    // 创建标题
+    const title = document.createElement('div');
+    title.style.cssText = `
+        padding: 10px 15px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+        font-size: 13px;
+    `;
+    title.textContent = `找到 ${supervisionCategories.length} 个监管类别，请选择：`;
+    selector.appendChild(title);
+
+    // 创建选项列表
+    const list = document.createElement('div');
+    list.style.cssText = 'padding: 5px 0;';
+
+    supervisionCategories.forEach((category, index) => {
+        const option = document.createElement('div');
+        option.style.cssText = `
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #495057;
+            border-bottom: 1px solid #f1f3f5;
+            transition: background 0.2s;
+        `;
+        option.textContent = category;
+
+        option.addEventListener('mouseenter', function() {
+            this.style.background = '#f8f9fa';
+        });
+
+        option.addEventListener('mouseleave', function() {
+            this.style.background = 'white';
+        });
+
+        option.addEventListener('click', function() {
+            // 更新数据
+            const item = currentCustomsItems.find(item => item.itemNo === itemNo);
+            if (item) {
+                item.supervisionCategory = category;
+            }
+
+            // 更新界面
+            targetField.value = category;
+            targetField.placeholder = '监管类别名称';
+            targetField.style.backgroundColor = '#d4edda';
+            setTimeout(() => {
+                targetField.style.backgroundColor = '';
+            }, 1500);
+
+            // 移除选择框
+            selector.remove();
+
+            console.log('✅ 用户选择了监管类别:', category);
+        });
+
+        list.appendChild(option);
+    });
+
+    selector.appendChild(list);
+
+    // 添加取消按钮
+    const cancelBtn = document.createElement('div');
+    cancelBtn.style.cssText = `
+        padding: 10px 15px;
+        text-align: center;
+        cursor: pointer;
+        color: #6c757d;
+        font-size: 12px;
+        border-top: 1px solid #dee2e6;
+        transition: color 0.2s;
+    `;
+    cancelBtn.textContent = '取消';
+    cancelBtn.addEventListener('mouseenter', function() {
+        this.style.color = '#495057';
+    });
+    cancelBtn.addEventListener('mouseleave', function() {
+        this.style.color = '#6c757d';
+    });
+    cancelBtn.addEventListener('click', function() {
+        selector.remove();
+        targetField.style.backgroundColor = '';
+        targetField.placeholder = '监管类别名称';
+    });
+
+    selector.appendChild(cancelBtn);
+
+    document.body.appendChild(selector);
+
+    // 点击其他区域关闭选择框
+    setTimeout(() => {
+        document.addEventListener('click', closeSelectorHandler);
+    }, 100);
+
+    function closeSelectorHandler(e) {
+        if (!selector.contains(e.target) && e.target !== targetField) {
+            selector.remove();
+            targetField.style.backgroundColor = '';
+            targetField.placeholder = '监管类别名称';
+            document.removeEventListener('click', closeSelectorHandler);
+        }
+    }
+}
+
+// 显示HS编码匹配通知
+function showHSCodeMatchNotification(hsCode, hsCodeInfo, status) {
+    // 移除现有通知
+    const existingNotifications = document.querySelectorAll('.hscode-notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    const notification = document.createElement('div');
+    notification.className = 'hscode-notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        animation: slideInRight 0.3s ease-out;
+        max-width: 300px;
+    `;
+
+    if (status === true) {
+        // 成功找到HS编码信息（单个匹配）
+        notification.style.background = '#28a745';
+        notification.style.color = 'white';
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                <strong>✅ HS编码匹配成功</strong>
+            </div>
+            <div style="font-size: 12px; line-height: 1.4;">
+                <div>HS编码: <strong>${hsCode}</strong></div>
+                <div>监管类别: <strong>${hsCodeInfo}</strong></div>
+            </div>
+        `;
+        console.log(`🎉 HS编码 ${hsCode} 自动匹配成功`);
+
+        // 3秒后自动消失
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+
+    } else if (status === 'multiple') {
+        // 找到多个匹配结果
+        notification.style.background = '#17a2b8';
+        notification.style.color = 'white';
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                <strong>📋 找到多个监管类别</strong>
+            </div>
+            <div style="font-size: 12px; line-height: 1.4;">
+                <div>HS编码: <strong>${hsCode}</strong></div>
+                <div>共找到 <strong>${hsCodeInfo.length}</strong> 个监管类别</div>
+                <div style="margin-top: 5px;">请从下拉列表中选择</div>
+            </div>
+        `;
+        console.log(`📋 HS编码 ${hsCode} 找到 ${hsCodeInfo.length} 个监管类别`);
+
+        // 4秒后自动消失
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s';
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
+
+    } else if (status === 'error') {
+        // 查询出错
+        notification.style.background = '#dc3545';
+        notification.style.color = 'white';
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                <strong>❌ 查询失败</strong>
+            </div>
+            <div style="font-size: 12px; line-height: 1.4;">
+                <div>HS编码: ${hsCode}</div>
+                <div>网络错误或服务异常，请稍后重试</div>
+            </div>
+        `;
+        console.log(`❌ HS编码 ${hsCode} 查询失败`);
+
+        // 4秒后自动消失
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s';
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
+
+    } else {
+        // 未找到HS编码信息
+        notification.style.background = '#ffc107';
+        notification.style.color = '#856404';
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                <strong>⚠️ 未找到HS编码信息</strong>
+            </div>
+            <div style="font-size: 12px; line-height: 1.4;">
+                <div>HS编码: <strong>${hsCode}</strong></div>
+                <div>请手动输入信息或联系管理员</div>
+            </div>
+        `;
+        console.log(`⚠️ HS编码 ${hsCode} 未找到对应信息`);
+
+        // 4秒后自动消失
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s';
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
+    }
+
+    document.body.appendChild(notification);
+}
+
+// 显示快捷添加厂号按钮
+function showQuickAddFactoryNoButton(itemNo, certificate519, targetField) {
+    // 移除已存在的按钮
+    const existingBtn = document.getElementById('quickAddFactoryNoBtn');
+    if (existingBtn) {
+        existingBtn.remove();
+    }
+
+    // 获取厂号输入框的父元素
+    const parentDiv = targetField.closest('.col-md-3');
+    if (!parentDiv) return;
+
+    // 创建按钮容器
+    const btnContainer = document.createElement('div');
+    btnContainer.id = 'quickAddFactoryNoBtn';
+    btnContainer.className = 'mt-1';
+    btnContainer.style.cssText = `
+        animation: slideDown 0.3s ease-out;
+    `;
+
+    // 创建按钮
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-sm btn-outline-primary w-100';
+    btn.innerHTML = '<i class="fas fa-plus"></i> 快捷添加厂号';
+    btn.style.cssText = `
+        font-size: 12px;
+        padding: 4px 8px;
+    `;
+
+    // 点击事件
+    btn.addEventListener('click', function() {
+        showQuickAddFactoryNoModal(itemNo, certificate519, targetField);
+    });
+
+    btnContainer.appendChild(btn);
+    parentDiv.appendChild(btnContainer);
+
+    // 3秒后自动移除（除非用户点击）
+    setTimeout(() => {
+        if (btnContainer.parentElement) {
+            btnContainer.style.opacity = '0';
+            btnContainer.style.transition = 'opacity 0.3s';
+            setTimeout(() => {
+                if (btnContainer.parentElement) {
+                    btnContainer.remove();
+                }
+            }, 300);
+        }
+    }, 5000);
+}
+
+// 显示快捷添加厂号模态框
+function showQuickAddFactoryNoModal(itemNo, certificate519, targetField) {
+    // 移除已存在的模态框
+    const existingModal = document.getElementById('quickAddFactoryNoModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    // 创建模态框HTML
+    const modalHTML = `
+        <div class="modal fade" id="quickAddFactoryNoModal" tabindex="-1">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-plus-circle"></i> 快捷添加厂号
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="quickAddFactoryNoForm">
+                            <div class="mb-3">
+                                <label class="form-label">519证书号</label>
+                                <input type="text" class="form-control" id="quickCertificate519" value="${certificate519}" readonly style="background-color: #f8f9fa;">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">厂号 *</label>
+                                <input type="text" class="form-control" id="quickFactoryNo" placeholder="请输入厂号" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">国家</label>
+                                <input type="text" class="form-control" id="quickCountry" placeholder="请输入国家（可选）">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="quickSaveBtn">
+                            <i class="fas fa-save"></i> 保存并填充
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 添加模态框到页面
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // 获取模态框元素
+    const modalElement = document.getElementById('quickAddFactoryNoModal');
+
+    // 绑定保存按钮事件
+    const quickSaveBtn = document.getElementById('quickSaveBtn');
+    quickSaveBtn.onclick = async function() {
+        await handleQuickSaveFactoryNo(itemNo, certificate519, targetField);
+    };
+
+    // 显示模态框
+    const modal = new bootstrap.Modal(modalElement);
+
+    // 模态框关闭时清理
+    modalElement.addEventListener('hidden.bs.modal', function() {
+        modalElement.remove();
+    });
+
+    modal.show();
+
+    // 自动聚焦到厂号输入框
+    setTimeout(() => {
+        document.getElementById('quickFactoryNo').focus();
+    }, 300);
+}
+
+// 处理快捷保存厂号
+async function handleQuickSaveFactoryNo(itemNo, certificate519, targetField) {
+    try {
+        // 获取表单数据
+        const factoryNo = document.getElementById('quickFactoryNo').value.trim();
+        const country = document.getElementById('quickCountry').value.trim();
+
+        // 验证
+        if (!factoryNo) {
+            alert('厂号不能为空');
+            return;
+        }
+
+        // 检查是否已存在
+        const query = new AV.Query('ciferquery519');
+        query.equalTo('certificate519', certificate519);
+        query.equalTo('factoryNo', factoryNo);
+        const existing = await query.first();
+
+        if (existing) {
+            alert('该519证书号和厂号已存在');
+            return;
+        }
+
+        // 保存到LeanCloud
+        const cert519Obj = new AV.Object('ciferquery519');
+        cert519Obj.set('certificate519', certificate519);
+        cert519Obj.set('factoryNo', factoryNo);
+        cert519Obj.set('country', country);
+        await cert519Obj.save();
+
+        console.log('✅ 厂号保存成功:', { certificate519, factoryNo, country });
+
+        // 更新当前项数据
+        const item = currentCustomsItems.find(item => item.itemNo === itemNo);
+        if (item) {
+            item.factoryNo = factoryNo;
+        }
+
+        // 更新界面
+        targetField.value = factoryNo;
+        targetField.placeholder = '厂号';
+        targetField.style.backgroundColor = '#d4edda';
+        setTimeout(() => {
+            targetField.style.backgroundColor = '';
+        }, 1500);
+
+        // 移除快捷添加按钮
+        const existingBtn = document.getElementById('quickAddFactoryNoBtn');
+        if (existingBtn) {
+            existingBtn.remove();
+        }
+
+        // 关闭模态框
+        const modalElement = document.getElementById('quickAddFactoryNoModal');
+        if (modalElement) {
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
+        }
+
+        // 显示成功通知
+        alert('厂号保存成功！已同步到519厂号管理');
+
+        // 刷新519厂号管理数据（如果页面打开）
+        if (typeof loadCert519Data === 'function') {
+            await loadCert519Data();
+        }
+
+    } catch (error) {
+        console.error('❌ 保存厂号失败:', error);
+        alert('保存失败: ' + error.message);
     }
 }
 
@@ -1712,6 +2694,8 @@ window.addCustomsItem = addCustomsItem;
 window.removeCustomsItem = removeCustomsItem;
 window.updateCustomsItemField = updateCustomsItemField;
 window.renderCustomsItems = renderCustomsItems;
+window.bindForeignConsigneeInputEvent = bindForeignConsigneeInputEvent;
+window.handleForeignConsigneeInput = handleForeignConsigneeInput;
 
 // 页面加载时绑定事件
 document.addEventListener('DOMContentLoaded', function() {
