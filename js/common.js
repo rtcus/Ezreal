@@ -68,20 +68,20 @@ async function checkLoginStatus() {
     try {
         console.log('开始检查登录状态...');
         currentUser = AV.User.current();
-        
+
         if (currentUser) {
             console.log('用户已登录:', currentUser.get('username'));
             document.querySelector('.app-container').style.display = 'flex';
-            
+
             const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
             if (loginModal) {
                 loginModal.hide();
             }
-            
+
             setTimeout(() => {
                 initApp();
             }, 500);
-            
+
         } else {
             console.log('用户未登录，显示登录模态框');
             showLoginModal();
@@ -358,9 +358,23 @@ function initApp() {
 function updateUserInfo() {
     if (currentUser) {
         const userData = currentUser.toJSON();
-        document.getElementById('userName').textContent = userData.username || '用户';
+        const username = userData.username || '用户';
+
+        // 侧边栏用户信息
+        document.getElementById('userName').textContent = username;
         document.getElementById('userAvatar').innerHTML = `<i class="fas fa-user"></i>`;
-        
+
+        // 顶部用户信息栏
+        document.getElementById('topUserName').textContent = username;
+        const loginTime = new Date();
+        document.getElementById('topLoginTime').textContent = `登录时间: ${loginTime.toLocaleString('zh-CN')}`;
+
+        // 顶部退出按钮事件
+        document.getElementById('topLogoutBtn').addEventListener('click', function() {
+            logout();
+        });
+
+        // 侧边栏退出按钮事件
         document.getElementById('logoutBtn').addEventListener('click', function(e) {
             e.preventDefault();
             logout();

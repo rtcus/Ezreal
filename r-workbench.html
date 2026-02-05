@@ -88,6 +88,23 @@
         
         <!-- 主内容区 -->
         <div class="main-content">
+            <!-- 顶部用户信息栏（固定定位，不占用空间） -->
+            <div class="top-user-bar">
+                <div class="top-user-info">
+                    <div class="top-user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="top-user-details">
+                        <span class="top-username" id="topUserName"></span>
+                        <span class="top-login-time" id="topLoginTime"></span>
+                    </div>
+                </div>
+                <button class="top-logout-btn" id="topLogoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>退出登录</span>
+                </button>
+            </div>
+
             <!-- 首页内容 -->
             <div id="home" class="page-content">
                 <div class="page-header">
