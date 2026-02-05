@@ -244,8 +244,33 @@ function initApp() {
         }
     }
 
-    // 导航切换 - 只处理侧边栏的导航链接
+    // 侧边栏收缩时的悬停提示
     document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+        link.addEventListener('mouseenter', function(e) {
+            if (sidebar.classList.contains('collapsed')) {
+                const title = this.getAttribute('data-title');
+                if (title) {
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'sidebar-tooltip';
+                    tooltip.textContent = title;
+                    document.body.appendChild(tooltip);
+
+                    const rect = this.getBoundingClientRect();
+                    tooltip.style.left = (rect.right + 10) + 'px';
+                    tooltip.style.top = (rect.top + rect.height / 2 - tooltip.offsetHeight / 2) + 'px';
+
+                    this._tooltip = tooltip;
+                }
+            }
+        });
+
+        link.addEventListener('mouseleave', function() {
+            if (this._tooltip) {
+                this._tooltip.remove();
+                this._tooltip = null;
+            }
+        });
+
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const targetPage = this.getAttribute('data-page');

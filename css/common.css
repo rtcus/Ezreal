@@ -110,6 +110,7 @@ body {
     text-decoration: none;
     transition: all 0.3s;
     border-left: 3px solid transparent;
+    position: relative;
 }
 
 .nav-links a i {
@@ -136,6 +137,32 @@ body {
 .sidebar.collapsed .nav-links a span,
 .sidebar.collapsed .user-info {
     display: none;
+}
+
+/* 侧边栏收缩时的提示框 */
+.sidebar-tooltip {
+    position: fixed;
+    background-color: #343a40;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    z-index: 9999;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .sidebar-toggle {
