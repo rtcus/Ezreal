@@ -92,7 +92,7 @@ function bindModRecordEvents() {
         container.addEventListener('click', function(e) {
             if (e.target && e.target.id === 'importModRecord') {
                 console.log('导入按钮被点击');
-                showImportModal();
+                showImportModRecordModal();
             }
         });
 
@@ -122,7 +122,7 @@ function bindModRecordEvents() {
 
         // 开始导入
         container.addEventListener('click', function(e) {
-            if (e.target && e.target.id === 'startImportBtn') {
+            if (e.target && e.target.id === 'startModRecordImportBtn') {
                 console.log('开始导入按钮被点击');
                 startImport();
             }
@@ -433,19 +433,19 @@ async function saveModRecord() {
 }
 
 // 显示导入模态框
-function showImportModal() {
+function showImportModRecordModal() {
     const modal = new bootstrap.Modal(document.getElementById('importModRecordModal'));
     
     // 清空文件输入
-    document.getElementById('importFile').value = '';
-    document.getElementById('importProgress').style.display = 'none';
+    document.getElementById('importModRecordFile').value = '';
+    document.getElementById('modRecordImportProgress').style.display = 'none';
     
     modal.show();
 }
 
 // 开始导入
 async function startImport() {
-    const fileInput = document.getElementById('importFile');
+    const fileInput = document.getElementById('importModRecordFile');
     const file = fileInput.files[0];
     
     if (!file) {
@@ -462,7 +462,7 @@ async function startImport() {
         }
         
         // 显示进度条
-        const progressDiv = document.getElementById('importProgress');
+        const progressDiv = document.getElementById('modRecordImportProgress');
         const progressBar = progressDiv.querySelector('.progress-bar');
         progressDiv.style.display = 'block';
         

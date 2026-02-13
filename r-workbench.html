@@ -2447,15 +2447,15 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="importFile" class="form-label">选择Excel文件</label>
-                        <input type="file" class="form-control" id="importFile" accept=".xlsx,.xls">
+                        <label for="importModRecordFile" class="form-label">选择Excel文件</label>
+                        <input type="file" class="form-control" id="importModRecordFile" accept=".xlsx,.xls">
                     </div>
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle me-2"></i>
                         请上传Excel文件，文件应包含以下列：<br>
                         修撤申请单编号、申报单位、境内收发货人名称、报关单编号、柜号、操作日期、修撤原因
                     </div>
-                    <div id="importProgress" style="display: none;">
+                    <div id="modRecordImportProgress" style="display: none;">
                         <div class="progress">
                             <div class="progress-bar" role="progressbar" style="width: 0%"></div>
                         </div>
@@ -2463,7 +2463,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="startImportBtn">开始导入</button>
+                    <button type="button" class="btn btn-primary" id="startModRecordImportBtn">开始导入</button>
                 </div>
             </div>
         </div>
