@@ -23,25 +23,21 @@ let isCustomsLoading = false;
 console.log('📢 报关模块正在初始化...');
 document.addEventListener('customsPageInit', function(e) {
     console.log('📢 ✅ 收到报关页面初始化事件！');
-    console.log('📋 准备调用 loadCustomsData...');
     console.log('📋 事件详情:', e.detail);
-    console.log('📋 当前加载状态:', isCustomsLoading ? '正在加载' : '未加载');
-    
-    // 防止重复加载
-    if (isCustomsLoading) {
-        console.log('⚠️ 报关数据正在加载中，跳过重复请求');
-        return;
-    }
-    
-    // 延迟执行，确保DOM完全渲染
-    setTimeout(() => {
-        if (typeof loadCustomsData === 'function') {
-            console.log('✅ 调用 loadCustomsData...');
-            loadCustomsData();
-        } else {
-            console.error('❌ loadCustomsData 函数仍然不存在');
+
+    // 🔥 修改：初始化时不自动加载数据，只渲染空表格，等待用户点击查询
+    const table = document.getElementById('customsTable');
+    if (table) {
+        const tbody = table.querySelector('tbody');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="33" class="loading">请输入查询条件后点击查询按钮</td></tr>';
         }
-    }, 300);
+    }
+    console.log('✅ 报关页面已就绪，请输入查询条件');
+
+    // 🔥 初始化时绑定按钮事件
+    console.log('🔗 开始绑定报关按钮事件...');
+    bindCustomsEvents();
 });
 console.log('📢 报关模块事件监听器已绑定');
 
@@ -121,8 +117,8 @@ function shouldExecuteCertificateMatch() {
     */
 }
 
-// 加载报关数据 - 修复附件数据版本
-async function loadCustomsData() {
+// 加载报关数据 - 支持分页查询所有数据
+async function loadCustomsData(searchConditions = {}) {
     try {
         // 🔥 设置加载标志
         if (isCustomsLoading) {
@@ -132,49 +128,98 @@ async function loadCustomsData() {
         isCustomsLoading = true;
         console.log('🚀 开始加载报关数据...');
         console.log('📋 当前时间:', new Date().toLocaleString());
-        
+        console.log('📋 查询条件:', searchConditions);
+
         // 🔥 添加页面就绪检查
         if (!checkCustomsPageReady()) {
             console.error('❌ 报关页面未就绪，延迟1秒后重试...');
             setTimeout(() => {
                 console.log('🔄 重新尝试加载报关数据...');
-                loadCustomsData();
+                loadCustomsData(searchConditions);
             }, 1000);
             return;
         }
-        
+
         const table = document.getElementById('customsTable');
         if (!table) {
             console.error('❌ 报关表格不存在');
             return;
         }
         console.log('✅ 找到报关表格');
-        
+
         const tbody = table.querySelector('tbody');
         if (!tbody) {
             console.error('❌ 表格tbody不存在');
             return;
         }
         console.log('✅ 找到表格tbody');
-        
-        tbody.innerHTML = '<tr><td colspan="33" class="loading">正在加载数据...</td></tr>';
-        
+
+        tbody.innerHTML = '<tr><td colspan="33" class="loading">正在从LeanCloud查询数据...</td></tr>';
+
         // 🔥 修复：只查询 operation 为 "申报" 的数据
         console.log('🔍 开始构建查询条件...');
         const query = new AV.Query('Tracking');
         query.equalTo('operation', '申报');
-        query.limit(1000); // 确保获取所有数据
-        console.log('✅ 查询条件: operation="申报", limit=1000');
-        
-        // 🔥 修复：确保获取附件数据
+        console.log('✅ 查询条件: operation="申报"');
+
+        // 🔥 添加查询条件
+        if (searchConditions.billNo) {
+            query.contains('billNo', searchConditions.billNo);
+            console.log('✅ 添加条件: billNo contains', searchConditions.billNo);
+        }
+        if (searchConditions.containerNo) {
+            query.contains('containerNo', searchConditions.containerNo);
+            console.log('✅ 添加条件: containerNo contains', searchConditions.containerNo);
+        }
+        if (searchConditions.customsNo) {
+            query.contains('customsNo', searchConditions.customsNo);
+            console.log('✅ 添加条件: customsNo contains', searchConditions.customsNo);
+        }
+        if (searchConditions.arrivalDateStart) {
+            query.greaterThanOrEqualTo('arrivalDate', searchConditions.arrivalDateStart);
+            console.log('✅ 添加条件: arrivalDate >=', searchConditions.arrivalDateStart);
+        }
+        if (searchConditions.arrivalDateEnd) {
+            query.lessThanOrEqualTo('arrivalDate', searchConditions.arrivalDateEnd);
+            console.log('✅ 添加条件: arrivalDate <=', searchConditions.arrivalDateEnd);
+        }
+        if (searchConditions.declareDateStart) {
+            query.greaterThanOrEqualTo('declareDate', searchConditions.declareDateStart);
+            console.log('✅ 添加条件: declareDate >=', searchConditions.declareDateStart);
+        }
+        if (searchConditions.declareDateEnd) {
+            query.lessThanOrEqualTo('declareDate', searchConditions.declareDateEnd);
+            console.log('✅ 添加条件: declareDate <=', searchConditions.declareDateEnd);
+        }
+
+        // 🔥 修复：使用分页查询获取超过1000条的数据
+        const batchSize = 1000;
+        let allResults = [];
+        let skip = 0;
+        let hasMore = true;
+
         query.include('attachments');
         console.log('✅ 添加 include(attachments)');
-        
-        console.log('📡 正在从LeanCloud查询数据...');
-        const results = await query.find();
-        console.log('✅ 查询完成，共获取', results.length, '条数据');
-        
-        customsData = results.map(item => {
+
+        // 循环查询直到获取所有数据
+        while (hasMore) {
+            query.limit(batchSize);
+            query.skip(skip);
+            console.log(`📡 正在从LeanCloud查询数据 (skip=${skip}, limit=${batchSize})...`);
+            const results = await query.find();
+            console.log(`✅ 第${Math.floor(skip/batchSize) + 1}批查询完成，获取`, results.length, '条数据');
+            allResults = allResults.concat(results);
+
+            if (results.length < batchSize) {
+                hasMore = false;
+            } else {
+                skip += batchSize;
+            }
+        }
+
+        console.log('✅ 查询完成，共获取', allResults.length, '条数据');
+
+        customsData = allResults.map(item => {
             const data = item.toJSON();
             console.log('📦 加载数据:', data.containerNo, '附件数:', data.attachments ? data.attachments.length : 0);
             
@@ -294,121 +339,70 @@ async function loadCustomsData() {
     }
 }
 
-// 应用报关数据筛选条件
-function applyCustomsFilters() {
+// 应用报关数据筛选条件 - 支持从LeanCloud查询
+async function applyCustomsFilters() {
     const arrivalDate = document.getElementById('customsArrivalDate').value;
     const billNo = document.getElementById('customsBillNo').value.trim();
     const containerNo = document.getElementById('customsContainerNo').value.trim();
     const declareDate = document.getElementById('customsDeclareDate').value;
     const customsNoFilter = document.getElementById('customsNoFilter').value.trim();
-    
-    filteredCustomsData = customsData.filter(item => {
-        let match = true;
-        
-        if (billNo && billNo !== '') {
-            if (!item.billNo || !item.billNo.includes(billNo)) {
-                match = false;
-            }
+
+    // 🔥 新增：检查是否有查询条件
+    const hasSearchCondition = billNo || containerNo || customsNoFilter || arrivalDate || declareDate;
+
+    if (!hasSearchCondition) {
+        // 🔥 没有查询条件时提示用户
+        alert('请输入至少一个查询条件');
+        return;
+    }
+
+    // 🔥 构建查询条件对象
+    const searchConditions = {
+        billNo: billNo,
+        containerNo: containerNo,
+        customsNo: customsNoFilter
+    };
+
+    // 解析到港日期范围
+    if (arrivalDate && arrivalDate.trim() !== '') {
+        let separator = ' to ';
+        if (arrivalDate.includes('至')) {
+            separator = '至';
+        } else if (arrivalDate.includes(' - ')) {
+            separator = ' - ';
         }
-        
-        if (containerNo && containerNo !== '') {
-            if (!item.containerNo || !item.containerNo.includes(containerNo)) {
-                match = false;
-            }
+        const dates = arrivalDate.split(separator).map(date => date.trim());
+        if (dates.length === 2) {
+            searchConditions.arrivalDateStart = dates[0];
+            searchConditions.arrivalDateEnd = dates[1];
+        } else {
+            searchConditions.arrivalDateStart = arrivalDate;
+            searchConditions.arrivalDateEnd = arrivalDate;
         }
-        
-        if (customsNoFilter && customsNoFilter !== '') {
-            if (!item.customsNo || !item.customsNo.includes(customsNoFilter)) {
-                match = false;
-            }
+    }
+
+    // 解析申报日期范围
+    if (declareDate && declareDate.trim() !== '') {
+        let separator = ' to ';
+        if (declareDate.includes('至')) {
+            separator = '至';
+        } else if (declareDate.includes(' - ')) {
+            separator = ' - ';
         }
-        
-        if (arrivalDate && arrivalDate.trim() !== '') {
-            if (!item.arrivalDate || item.arrivalDate.trim() === '') {
-                match = false;
-            } else {
-                let startDate, endDate;
-                
-                let separator = ' to ';
-                if (arrivalDate.includes('至')) {
-                    separator = '至';
-                } else if (arrivalDate.includes(' - ')) {
-                    separator = ' - ';
-                }
-                
-                const dates = arrivalDate.split(separator).map(date => date.trim());
-                
-                if (dates.length === 2) {
-                    startDate = new Date(dates[0]);
-                    endDate = new Date(dates[1]);
-                    endDate.setHours(23, 59, 59, 999);
-                } else {
-                    startDate = new Date(arrivalDate);
-                    endDate = new Date(arrivalDate);
-                    endDate.setHours(23, 59, 59, 999);
-                }
-                
-                const itemDate = new Date(item.arrivalDate);
-                
-                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || isNaN(itemDate.getTime())) {
-                    match = false;
-                } else {
-                    const itemDateOnly = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate());
-                    const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-                    const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-                    
-                    if (itemDateOnly < startDateOnly || itemDateOnly > endDateOnly) {
-                        match = false;
-                    }
-                }
-            }
+        const dates = declareDate.split(separator).map(date => date.trim());
+        if (dates.length === 2) {
+            searchConditions.declareDateStart = dates[0];
+            searchConditions.declareDateEnd = dates[1];
+        } else {
+            searchConditions.declareDateStart = declareDate;
+            searchConditions.declareDateEnd = declareDate;
         }
-        
-        if (declareDate && declareDate.trim() !== '') {
-            if (!item.declareDate || item.declareDate.trim() === '') {
-                match = false;
-            } else {
-                let startDate, endDate;
-                
-                let separator = ' to ';
-                if (declareDate.includes('至')) {
-                    separator = '至';
-                } else if (declareDate.includes(' - ')) {
-                    separator = ' - ';
-                }
-                
-                const dates = declareDate.split(separator).map(date => date.trim());
-                
-                if (dates.length === 2) {
-                    startDate = new Date(dates[0]);
-                    endDate = new Date(dates[1]);
-                    endDate.setHours(23, 59, 59, 999);
-                } else {
-                    startDate = new Date(declareDate);
-                    endDate = new Date(declareDate);
-                    endDate.setHours(23, 59, 59, 999);
-                }
-                
-                const itemDate = new Date(item.declareDate);
-                
-                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || isNaN(itemDate.getTime())) {
-                    match = false;
-                } else {
-                    const itemDateOnly = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate());
-                    const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-                    const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-                    
-                    if (itemDateOnly < startDateOnly || itemDateOnly > endDateOnly) {
-                        match = false;
-                    }
-                }
-            }
-        }
-        
-        return match;
-    });
-    
-    console.log('筛选后数据量:', filteredCustomsData.length);
+    }
+
+    console.log('🔍 开始查询，条件:', searchConditions);
+
+    // 🔥 从LeanCloud查询数据
+    await loadCustomsData(searchConditions);
 }
 
 // 渲染报关数据表格 - 修复附件计数显示
@@ -2546,9 +2540,9 @@ async function confirmCustomsImport() {
             alert(`导入完成！成功 ${successCount} 条，失败 ${errorCount} 条`);
         }
         
-        // 重新加载数据
+        // 重新加载数据（无查询条件，加载所有数据）
         console.log('🔄 重新加载报关数据...');
-        await loadCustomsData();
+        await loadCustomsData({});
         
         console.log('🔄 重新加载跟单数据...');
         if (typeof loadTrackingData === 'function') {
@@ -2602,15 +2596,19 @@ function downloadCustomsTemplate() {
 // 绑定报关数据管理事件 - 强力修复版本
 function bindCustomsEvents() {
     console.log('绑定报关数据事件...');
-    
+
     const searchCustomsBtn = document.getElementById('searchCustoms');
     if (searchCustomsBtn) {
-        searchCustomsBtn.addEventListener('click', function() {
-            applyCustomsFilters();
-            customsCurrentPageIndex = 1;
-            updateCustomsPagination();
-            renderCustomsTable();
+        // 移除旧的事件监听器避免重复绑定
+        searchCustomsBtn.onclick = null;
+        searchCustomsBtn.addEventListener('click', async function() {
+            console.log('🔘 查询按钮被点击');
+            await applyCustomsFilters();
+            // loadCustomsData 内部已经调用了 renderCustomsTable 和 updateCustomsPagination
         });
+        console.log('✅ 绑定查询按钮事件成功');
+    } else {
+        console.error('❌ 找不到查询按钮 #searchCustoms');
     }
     
     const clearCustomsBtn = document.getElementById('clearCustoms');
@@ -2681,9 +2679,9 @@ function bindCustomsEvents() {
 }
 
 // 🔥 添加：手动触发报关数据加载的函数（用于调试）
-window.manualLoadCustomsData = function() {
-    console.log('🔧 手动触发报关数据加载...');
-    loadCustomsData();
+window.manualLoadCustomsData = function(searchConditions = {}) {
+    console.log('🔧 手动触发报关数据加载...', searchConditions);
+    loadCustomsData(searchConditions);
 };
 
 // 导出函数
@@ -2752,18 +2750,16 @@ document.addEventListener('attachmentCountUpdated', function(e) {
 
 // 🔥 修复：监听报关页面初始化事件
 document.addEventListener('customsPageInit', function(e) {
-    console.log('📢 收到报关页面初始化事件');
-    console.log('📋 准备调用 loadCustomsData...');
-    
-    // 延迟执行，确保DOM完全渲染
-    setTimeout(() => {
-        if (typeof loadCustomsData === 'function') {
-            console.log('✅ 调用 loadCustomsData...');
-            loadCustomsData();
-        } else {
-            console.error('❌ loadCustomsData 函数仍然不存在');
+    console.log('📢 收到报关页面初始化事件（来自文件末尾监听器）');
+    // 🔥 修改：初始化时不加载数据，等待用户点击查询
+    const table = document.getElementById('customsTable');
+    if (table) {
+        const tbody = table.querySelector('tbody');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="33" class="loading">请输入查询条件后点击查询按钮</td></tr>';
         }
-    }, 100);
+    }
+    console.log('✅ 报关页面已就绪，请输入查询条件');
 });
 
 // 🔥 修复：强制刷新报关表格
